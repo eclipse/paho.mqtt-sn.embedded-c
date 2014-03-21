@@ -1,1 +1,1 @@
-gcc -Wall test1.c -I../src ../src/MQTTSNConnectClient.c ../src/MQTTSNConnectServer.c ../src/MQTTSNPacket.c ../src/MQTTSNSerializePublish.c ../src/MQTTSNDeserializePublish.c
+gcc -Wall test1.c -o test1 -I../src ../src/MQTTSNConnectClient.c ../src/MQTTSNConnectServer.c ../src/MQTTSNPacket.c ../src/MQTTSNSerializePublish.c ../src/MQTTSNDeserializePublish.c

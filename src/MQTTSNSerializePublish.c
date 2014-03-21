@@ -46,7 +46,7 @@ int MQTTSNSerialize_publishLength(int payloadlen, MQTTSN_topicid topic, int qos)
   * @param qos integer - the MQTT QoS value
   * @param retained integer - the MQTT retained flag
   * @param packetid integer - the MQTT packet identifier
-  * @param topicName MQTTString - the MQTT topic in the publish
+  * @param topic MQTTSN_topicid - the MQTT topic in the publish
   * @param payload byte buffer - the MQTT publish payload
   * @param payloadlen integer - the length of the MQTT payload
   * @return the length of the serialized data.  <= 0 indicates error

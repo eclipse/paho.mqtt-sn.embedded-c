@@ -1,0 +1,2 @@
+gcc -Wall qos0pub.c -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNPacket.c ../src/MQTTSNConnectClient.c -o qos0pub -Os -s
+gcc -Wall qos-1pub.c -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNPacket.c -o qos-1pub -Os -s
