@@ -65,6 +65,11 @@ typedef struct
 	{
 		unsigned short id;
 		char name[2];
+		struct
+		{
+			char* longname;
+			int longlen;
+		} qos3;
 	} data;
 } MQTTSN_topicid;
 

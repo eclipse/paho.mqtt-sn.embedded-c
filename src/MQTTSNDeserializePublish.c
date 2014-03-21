@@ -57,7 +57,12 @@ int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, int* packetid, 
 	*retained = flags.bits.retain;
 
 	topic->type = flags.bits.topicIdType;
-	if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL || topic->type == MQTTSN_TOPIC_TYPE_PREDEFINED)
+	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
+	{
+		/* special arrangement for long topic names in QoS -1 publishes.  The length of the topic is in the topicid field */
+		topic->data.qos3.longlen = readInt(&curdata);
+	}
+	else if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL || topic->type == MQTTSN_TOPIC_TYPE_PREDEFINED)
 		topic->data.id = readInt(&curdata);
 	else
 	{
@@ -65,6 +70,12 @@ int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, int* packetid, 
 		topic->data.name[1] = readChar(&curdata);
 	}
 	*packetid = readInt(&curdata);
+
+	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
+	{
+		topic->data.qos3.longname = curdata;
+		curdata += topic->data.qos3.longlen;
+	}
 
 	*payloadlen = enddata - curdata;
 	*payload = curdata;

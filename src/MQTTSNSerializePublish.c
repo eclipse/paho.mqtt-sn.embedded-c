@@ -27,9 +27,14 @@
   * @param payloadlen the length of the payload to be sent
   * @return the length of buffer needed to contain the serialized version of the packet
   */
-int MQTTSNSerialize_publishLength(int payloadlen)
+int MQTTSNSerialize_publishLength(int payloadlen, MQTTSN_topicid topic, int qos)
 {
-	return payloadlen + 6;
+	int len = 6;
+
+	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
+		len += topic.data.qos3.longlen;
+
+	return payloadlen + len;
 }
 
 
@@ -55,7 +60,7 @@ int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, in
 	int rc = 0;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(MQTTSNSerialize_publishLength(payloadlen))) > buflen)
+	if ((len = MQTTSNPacket_len(MQTTSNSerialize_publishLength(payloadlen, topic, qos))) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
@@ -70,7 +75,12 @@ int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, in
 	flags.bits.topicIdType = topic.type;
 	writeChar(&ptr, flags.all);
 
-	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL || topic.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
+	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
+	{
+		/* special arrangement for long topic names in QoS -1 publishes.  The length of the topic is in the topicid field */
+		writeInt(&ptr, topic.data.qos3.longlen); /* topic length */
+	}
+	else if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL || topic.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
 		writeInt(&ptr, topic.data.id);
 	else
 	{
@@ -78,6 +88,11 @@ int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, in
 		writeChar(&ptr, topic.data.name[1]);
 	}
 	writeInt(&ptr, packetid);
+	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
+	{
+		memcpy(ptr, topic.data.qos3.longname, topic.data.qos3.longlen);
+		ptr += topic.data.qos3.longlen;
+	}
 	memcpy(ptr, payload, payloadlen);
 	ptr += payloadlen;
 
