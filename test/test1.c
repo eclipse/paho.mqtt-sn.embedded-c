@@ -343,7 +343,7 @@ int test2(struct Options options)
 	int dup = 0;
 	int qos = 2;
 	int retained = 0;
-	int msgid = 23;
+	unsigned short msgid = 23;
 	MQTTSN_topicid topic;
 	unsigned char *payload = (unsigned char*)"kkhkhkjkj jkjjk jk jk ";
 	int payloadlen = strlen((char*)payload);
@@ -351,10 +351,13 @@ int test2(struct Options options)
 	int dup2 = 1;
 	int qos2 = 1;
 	int retained2 = 1;
-	int msgid2 = 3243;
+	unsigned short msgid2 = 3243;
 	MQTTSN_topicid topic2;
 	unsigned char *payload2 = NULL;
 	int payloadlen2 = 0;
+	unsigned char acktype;
+
+	unsigned char returncode = 3, returncode2 = -99;
 
 	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
 	global_start_time = start_clock();
@@ -387,6 +390,22 @@ int test2(struct Options options)
 
 	assert("payloads should be the same",
 						memcmp(payload, payload2, payloadlen) == 0, "payloads were different %s\n", "");
+
+	rc = MQTTSNSerialize_puback(buf, buflen, topic.data.id, msgid, returncode);
+	assert("good rc from serialize puback", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_puback(&topic2.data.id, &msgid2, &returncode2, buf, buflen);
+	assert("good rc from deserialize puback", rc > 0, "rc was %d\n", rc);
+	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
+	assert("return codes should be the same", returncode == returncode2, "return codes were different %d\n", returncode2);
+
+	rc = MQTTSNSerialize_pubrec(buf, buflen, msgid);
+	assert("good rc from serialize pubrec", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_ack(&acktype, &msgid2, buf, buflen);
+	assert("good rc from deserialize pubrec", rc == 1, "rc was %d\n", rc);
+	assert("Acktype should be MQTTSN_PUBREC", acktype == MQTTSN_PUBREC, "acktype was %d\n", acktype);
+	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
 
 /*exit:*/
 	MyLog(LOGA_INFO, "TEST2: test %s. %d tests run, %d failures.",

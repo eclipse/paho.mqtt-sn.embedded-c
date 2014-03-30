@@ -14,17 +14,23 @@
  *    Ian Craggs - initial API and implementation and/or initial documentation
  *******************************************************************************/
 
-#ifndef MQTTSNPUBLISH_H_
+#if !defined(MQTTSNPUBLISH_H_)
 #define MQTTSNPUBLISH_H_
 
-int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, int retained, int packetid,
+int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, int retained, unsigned short packetid,
 		MQTTSN_topicid topic, unsigned char* payload, int payloadlen);
-
-int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, int* packetid,
+int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, unsigned short* packetid,
 		MQTTSN_topicid* topic, unsigned char** payload, int* payloadlen, unsigned char* buf, int len);
 
-int MQTTSerialize_puback(char* buf, int buflen, unsigned short packetid, unsigned short topicid, unsigned char returncode);
-int MQTTSerialize_pubrel(char* buf, int buflen, int packetid);
-int MQTTSerialize_pubcomp(char* buf, int buflen, int packetid);
+int MQTTSNSerialize_puback(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
+		unsigned char returncode);
+int MQTTSNDeserialize_puback(unsigned short* topicid, unsigned short* packetid,
+		unsigned char* returncode, unsigned char* buf, int buflen);
+
+int MQTTSNSerialize_pubrec(unsigned char* buf, int buflen, unsigned short packetid);
+int MQTTSNSerialize_pubrel(unsigned char* buf, int buflen, int dup, unsigned short packetid);
+int MQTTSNSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid);
+
+int MQTTSNDeserialize_ack(unsigned char* packettype, unsigned short* packetid, unsigned char* buf, int buflen);
 
 #endif /* MQTTSNPUBLISH_H_ */
