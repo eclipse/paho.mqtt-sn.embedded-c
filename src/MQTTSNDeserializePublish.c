@@ -43,7 +43,7 @@ int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, unsigned short*
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decodeBuf(curdata, &mylen)); /* read length */
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;
@@ -95,7 +95,7 @@ int MQTTSNDeserialize_puback(unsigned short* topicid, unsigned short* packetid,
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decodeBuf(curdata, &mylen)); /* read length */
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;
@@ -130,7 +130,7 @@ int MQTTSNDeserialize_ack(unsigned char* type, unsigned short* packetid, unsigne
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decodeBuf(curdata, &mylen)); /* read length */
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;

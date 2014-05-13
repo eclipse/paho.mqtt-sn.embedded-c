@@ -88,15 +88,15 @@ int MQTTSNDeserialize_connack(int* connack_rc, unsigned char* buf, int buflen)
 	int mylen;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decodeBuf(curdata, &mylen)); /* read length */
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
 	enddata = buf + mylen;
-	if (enddata - curdata < 2)
+	if (enddata - buf < 3)
 		goto exit;
 
 	if (readChar(&curdata) != MQTTSN_CONNACK)
 		goto exit;
 
-	*connack_rc = readInt(&curdata);
+	*connack_rc = readChar(&curdata);
 
 	rc = 1;
 exit:
@@ -151,3 +151,208 @@ exit:
 	FUNC_EXIT_RC(rc);
 	return rc;
 }
+
+
+/**
+  * Serializes a disconnect packet into the supplied buffer, ready for writing to a socket
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer, to avoid overruns
+  * @param clientid optional string, not added to packet string == NULL
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTString clientid)
+{
+	int rc = -1;
+	unsigned char *ptr = buf;
+	int len = 0;
+
+	FUNC_ENTRY;
+	if ((len = MQTTSNPacket_len(MQTTstrlen(clientid) + 1)) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
+	writeChar(&ptr, MQTTSN_PINGREQ);      /* write message type */
+
+	writeMQTTSNString(&ptr, clientid);
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Deserializes the supplied (wire) buffer
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_pingresp(unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = 0;
+	int mylen;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - curdata < 2)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_PINGRESP)
+		goto exit;
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes a willtopicupd packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffer
+  * @param willQoS the qos of the will message
+  * @param willRetain the retained flag of the will message
+  * @param willTopic the topic of the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+{
+	unsigned char *ptr = buf;
+	MQTTSNFlags flags;
+	int len = 0;
+	int rc = -1;
+
+	FUNC_ENTRY;
+	if ((len = MQTTSNPacket_len(MQTTstrlen(willTopic) + 2)) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
+	writeChar(&ptr, MQTTSN_WILLTOPICUPD);      /* write message type */
+
+	flags.all = 0;
+	flags.bits.QoS = willQoS;
+	flags.bits.retain = willRetain;
+	writeChar(&ptr, flags.all);
+
+	writeMQTTSNString(&ptr, willTopic);
+
+	rc = ptr - buf;
+
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes a willmsgupd packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffersage
+  * @param willMsg the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMsg)
+{
+	unsigned char *ptr = buf;
+	int len = 0;
+	int rc = -1;
+
+	FUNC_ENTRY;
+	if ((len = MQTTSNPacket_len(MQTTstrlen(willMsg) + 1)) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
+	writeChar(&ptr, MQTTSN_WILLMSGUPD);      /* write message type */
+
+	writeMQTTSNString(&ptr, willMsg);
+
+	rc = ptr - buf;
+
+	exit: FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Deserializes the supplied (wire) buffer
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_willtopicreq(unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = -1;
+	int mylen;
+
+	FUNC_ENTRY;
+	if (MQTTSNPacket_decode(curdata++, buflen, &mylen) != 1) /* read length */
+		goto exit;
+	if (mylen > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	enddata = buf + mylen;
+	if (enddata - curdata < 1)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_WILLTOPICREQ)
+		goto exit;
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Deserializes the supplied (wire) buffer
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_willmsgreq(unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = -1;
+	int mylen;
+
+	FUNC_ENTRY;
+	if (MQTTSNPacket_decode(curdata++, buflen, &mylen) != 1) /* read length */
+		goto exit;
+	if (mylen > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	enddata = buf + mylen;
+	if (enddata - curdata < 1)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_WILLMSGREQ)
+		goto exit;
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+
+

@@ -38,7 +38,7 @@ int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decodeBuf(curdata, &mylen)); /* read length */
+	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 2)
 		goto exit;
@@ -94,3 +94,155 @@ exit:
 	return rc;
 }
 
+
+/**
+  * Deserializes the supplied (wire) buffer into disconnect data - optional duration
+  * @param duration returned integer value of the duration field, -1 if no duration was specified
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_disconnect(int* duration, unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = -1;
+	int mylen;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - curdata < 1)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_DISCONNECT)
+		goto exit;
+
+	if (enddata - curdata == 2)
+		*duration = readInt(&curdata);
+	else if (enddata != curdata)
+		goto exit;
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes a willtopicreq packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willtopicreq(unsigned char* buf, int buflen)
+{
+	int rc = 0;
+	unsigned char *ptr = buf;
+
+	FUNC_ENTRY;
+	if (buflen < 2)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+
+	ptr += MQTTSNPacket_encode(ptr, 2); /* write length */
+	writeChar(&ptr, MQTTSN_WILLTOPICREQ);
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes a willmsgreq packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willmsgreq(unsigned char* buf, int buflen)
+{
+	int rc = 0;
+	unsigned char *ptr = buf;
+
+	FUNC_ENTRY;
+	if (buflen < 2)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+
+	ptr += MQTTSNPacket_encode(ptr, 2); /* write length */
+	writeChar(&ptr, MQTTSN_WILLMSGREQ);
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+
+/**
+  * Deserializes the supplied (wire) buffer into pingreq data
+  * @param clientID the connect data structure to be filled out
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_pingreq(MQTTString* clientID, unsigned char* buf, int len)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = &buf[len];
+	int rc = 0;
+	int mylen = 0;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - curdata < 1)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_PINGREQ)
+		goto exit;
+
+	if (!readMQTTSNString(clientID, &curdata, enddata))
+		goto exit;
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes a pingresp packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_pingresp(unsigned char* buf, int buflen)
+{
+	int rc = 0;
+	unsigned char *ptr = buf;
+
+	FUNC_ENTRY;
+	if (buflen < 2)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+
+	ptr += MQTTSNPacket_encode(ptr, 2); /* write length */
+	writeChar(&ptr, MQTTSN_PINGRESP);
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}

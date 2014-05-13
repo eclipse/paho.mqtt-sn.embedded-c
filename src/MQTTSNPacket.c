@@ -83,56 +83,31 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
  * @param value the decoded length returned
  * @return the number of bytes read from the socket
  */
-int MQTTSNPacket_decode(int (*getcharfn)(unsigned char*, int), int* value)
+int MQTTSNPacket_decode(unsigned char* buf, size_t buflen, int* value)
 {
-	unsigned char c;
-	int rc = MQTTSNPACKET_READ_ERROR;
 	int len = MQTTSNPACKET_READ_ERROR;
 #define MAX_NO_OF_LENGTH_BYTES 3
 
 	FUNC_ENTRY;
-	rc = (*getcharfn)(&c, 1);
-	if (rc != 1)
+	if (buflen <= 0)
 		goto exit;
 
-	if (c == 1)
+	if (buf[0] == 1)
 	{
-		unsigned char buf[2];
-		unsigned char* ptr = buf;
-
-		rc = (*getcharfn)(buf, 2);
-		if (rc != 2)
+		unsigned char* bufptr = &buf[1];
+		if (buflen < 3)
 			goto exit;
-		*value = readInt(&ptr);
+		*value = readInt(&bufptr);
 		len = 3;
 	}
 	else
 	{
-		*value = c;
+		*value = buf[0];
 		len = 1;
 	}
 exit:
 	FUNC_EXIT_RC(len);
 	return len;
-}
-
-
-static unsigned char* bufptr;
-
-int bufchar(unsigned char* c, int count)
-{
-	int i;
-
-	for (i = 0; i < count; ++i)
-		*c = *bufptr++;
-	return count;
-}
-
-
-int MQTTSNPacket_decodeBuf(unsigned char* buf, int* value)
-{
-	bufptr = buf;
-	return MQTTSNPacket_decode(bufchar, value);
 }
 
 
@@ -233,8 +208,14 @@ int readMQTTSNString(MQTTString* mqttstring, unsigned char** pptr, unsigned char
 
 	FUNC_ENTRY;
 	mqttstring->lenstring.len = enddata - *pptr;
-	mqttstring->lenstring.data = (char*)*pptr;
-	*pptr += mqttstring->lenstring.len;
+	if (mqttstring->lenstring.len > 0)
+	{
+		mqttstring->lenstring.data = (char*)*pptr;
+		*pptr += mqttstring->lenstring.len;
+	}
+	else
+		mqttstring->lenstring.data = NULL;
+	mqttstring->cstring = NULL;
 	rc = 1;
 	FUNC_EXIT_RC(rc);
 	return rc;
@@ -265,23 +246,22 @@ int MQTTstrlen(MQTTString mqttstring)
  * @param getfn pointer to a function which will read any number of bytes from the needed source
  * @return integer MQTT packet type, or MQTTSNPACKET_READ_ERROR on error
  */
-int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int))
+int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t))
 {
 	int rc = MQTTSNPACKET_READ_ERROR;
+	const int MQTTSN_MIN_PACKET_LENGTH = 3;
 	int len = 0;  /* the length of the whole packet including length field */
-	int lenlen = 0; /* the length of the length field: 1 or 3 */
+	int lenlen = 0;
+	int datalen = 0;
 
-	/* 1. read the length.  This is variable in itself */
-	lenlen = MQTTSNPacket_decode(getfn, &len);
-	if (lenlen <= 0)
+	/* 1. read a packet - UDP style */
+	if ((len = (*getfn)(buf, buflen)) < MQTTSN_MIN_PACKET_LENGTH)
+		goto exit;
+
+	/* 2. read the length.  This is variable in itself */
+	lenlen = MQTTSNPacket_decode(buf, len, &datalen);
+	if (datalen != len)
 		goto exit; /* there was an error */
-
-	if (MQTTSNPacket_encode(buf, len) != lenlen) /* put the original remaining length back into the buffer */
-		goto exit;
-
-	/* 2. read the rest of the data using a callback */
-	if ((*getfn)(buf + lenlen, len - lenlen) != len - lenlen)
-		goto exit;
 
 	rc = buf[lenlen]; /* return the packet type */
 exit:

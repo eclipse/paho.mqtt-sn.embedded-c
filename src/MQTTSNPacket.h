@@ -126,12 +126,13 @@ int MQTTstrlen(MQTTString mqttstring);
 #include "MQTTSNUnsubscribe.h"
 */
 
+#include <stdio.h>
+
 char* MQTTSNPacket_name(int ptype);
 int MQTTSNPacket_len(int length);
 
 int MQTTSNPacket_encode(unsigned char* buf, int length);
-int MQTTSNPacket_decode(int (*getcharfn)(unsigned char*, int), int* value);
-int MQTTSNPacket_decodeBuf(unsigned char* buf, int* value);
+int MQTTSNPacket_decode(unsigned char* buf, size_t buflen, int* value);
 
 int readInt(unsigned char** pptr);
 char readChar(unsigned char** pptr);
@@ -142,6 +143,8 @@ void writeCString(unsigned char** pptr, char* string);
 void writeMQTTSNString(unsigned char** pptr, MQTTString mqttstring);
 
 int MQTTDeserialize_ack(int* type, int* dup, int* packetid, char* buf, int buflen);
+
+int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t));
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 }

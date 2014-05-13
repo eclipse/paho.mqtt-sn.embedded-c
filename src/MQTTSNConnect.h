@@ -39,5 +39,18 @@ int MQTTSNSerialize_connack(unsigned char* buf, int buflen, int connack_rc);
 int MQTTSNDeserialize_connack(int* connack_rc, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_disconnect(unsigned char* buf, int buflen, int duration);
+int MQTTSNDeserialize_disconnect(int* duration, unsigned char* buf, int buflen);
+
+int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTString clientid);
+int MQTTSNDeserialize_pingreq(MQTTString* clientID, unsigned char* buf, int len);
+
+int MQTTSNSerialize_pingresp(unsigned char* buf, int buflen);
+int MQTTSNDeserialize_pingresp(unsigned char* buf, int buflen);
+
+int MQTTSNSerialize_willtopicreq(unsigned char* buf, int buflen);
+int MQTTSNDeserialize_willtopicreq(unsigned char* buf, int buflen);
+
+int MQTTSNSerialize_willmsgreq(unsigned char* buf, int buflen);
+int MQTTSNDeserialize_willmsgreq(unsigned char* buf, int buflen);
 
 #endif /* MQTTSNCONNECT_H_ */

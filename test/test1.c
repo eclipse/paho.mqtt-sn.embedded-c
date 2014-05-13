@@ -303,6 +303,8 @@ int test1(struct Options options)
 	int rc = 0;
 	unsigned char buf[100];
 	int buflen = sizeof(buf);
+	MQTTString clientid = MQTTString_initializer, clientid_after = MQTTString_initializer;
+	int duration_after = -1;
 
 	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
 	global_start_time = start_clock();
@@ -325,6 +327,63 @@ int test1(struct Options options)
 	/* data after should be the same as data before */
 	rc = checkConnectPackets(&data, &data_after);
 	assert("packets should be the same",  rc == 1, "packets were different\n", rc);
+
+	/* Pingreq without clientid */
+	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
+	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
+	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
+
+	/* data after should be the same as data before */
+	assert("ClientIDs should be the same",
+			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+
+	/* Pingreq with clientid */
+	clientid.cstring = "this is me";
+	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
+	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
+	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
+
+	/* data after should be the same as data before */
+	assert("ClientIDs should be the same",
+			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+
+	rc = MQTTSNSerialize_pingresp(buf, buflen);
+	assert("good rc from serialize pingresp", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_pingresp(buf, buflen);
+	assert("good rc from deserialize pingresp", rc == 1, "rc was %d\n", rc);
+
+	/* Disconnect without duration */
+	rc = MQTTSNSerialize_disconnect(buf, buflen, 0);
+	assert("good rc from serialize disconnect", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_disconnect(&duration_after, buf, buflen);
+	assert("good rc from deserialize disconnect", rc == 1, "rc was %d\n", rc);
+
+	/* data after should be the same as data before */
+	assert("durations should be the same", 0 == duration_after, "durations were different\n", rc);
+
+	/* Disconnect with duration */
+	rc = MQTTSNSerialize_disconnect(buf, buflen, 33);
+	assert("good rc from serialize disconnect", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_disconnect(&duration_after, buf, buflen);
+	assert("good rc from deserialize disconnect", rc == 1, "rc was %d\n", rc);
+
+	/* data after should be the same as data before */
+	assert("durations should be the same", 33 == duration_after, "durations were different\n", rc);
+
+	/* Pingreq with clientid */
+	clientid.cstring = "this is me";
+	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
+	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
+	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
 
 /* exit: */
 	MyLog(LOGA_INFO, "TEST1: test %s. %d tests run, %d failures.",
@@ -409,6 +468,37 @@ int test2(struct Options options)
 
 /*exit:*/
 	MyLog(LOGA_INFO, "TEST2: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+int test3(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+
+	fprintf(xml, "<testcase classname=\"test3\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 3 - will messages");
+
+	rc = MQTTSNSerialize_willtopicreq(buf, buflen);
+	assert("good rc from serialize willtopicreq", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willtopicreq(buf, buflen);
+	assert("good rc from deserialize willtopicreq", rc == 1, "rc was %d\n", rc);
+
+	rc = MQTTSNSerialize_willmsgreq(buf, buflen);
+	assert("good rc from serialize willmsgreq", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willmsgreq(buf, rc);
+	assert("good rc from deserialize willmsgreq", rc == 1, "rc was %d\n", rc);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST1: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
 	return failures;
@@ -599,7 +689,7 @@ int test6(struct Options options)
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, /*test3, test4, test5,*/ test6};
+ 	int (*tests[])() = {NULL, test1, test2, test3, /*test4, test5,*/ test6};
 
 	xml = fopen("TEST-test1.xml", "w");
 	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));
