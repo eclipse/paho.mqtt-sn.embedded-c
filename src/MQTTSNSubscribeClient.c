@@ -14,15 +14,104 @@
  *    Ian Craggs - initial API and implementation and/or initial documentation
  *******************************************************************************/
 
+#include "MQTTSNPacket.h"
+#include "StackTrace.h"
 
+#include <string.h>
 
-int MQTTDeserialize_subscribe(int* dup, int* packetid, int maxcount, int* count, MQTTString topicFilters[], int requestedQoSs[],
-    char* buf, int buflen)
+/**
+  * Determines the length of the MQTTSN subscribe packet that would be produced using the supplied parameters, 
+  * excluding length
+  * @param topicName the topic name to be used in the publish  
+  * @return the length of buffer needed to contain the serialized version of the packet
+  */
+int MQTTSNSerialize_subscribeLength(MQTTSN_topicid* topicFilter)
 {
+	int len = 4;
+
+	if (topicFilter->type == MQTTSN_TOPIC_TYPE_NORMAL)
+		len += topicFilter->data.long_.len;
+
+	return len;
+}
+
+
+int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, unsigned short packetid, MQTTSN_topicid* topicFilter)
+{
+	unsigned char *ptr = buf;
+	MQTTSNFlags flags;
+	int len = 0;
+	int rc = 0;
+
+	FUNC_ENTRY;
+	if ((len = MQTTSNPacket_len(MQTTSNSerialize_subscribeLength(topicFilter))) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len);   /* write length */
+	writeChar(&ptr, MQTTSN_SUBSCRIBE);      /* write message type */
+
+	flags.all = 0;
+	flags.bits.dup = dup;
+	flags.bits.QoS = qos;
+	flags.bits.topicIdType = topicFilter->type;
+	writeChar(&ptr, flags.all);
+
+	writeInt(&ptr, packetid);
+
+	/* now the topic id or name */
+	if (topicFilter->type == MQTTSN_TOPIC_TYPE_NORMAL) /* means long topic name */
+	{
+		memcpy(ptr, topicFilter->data.long_.name, topicFilter->data.long_.len);
+		ptr += topicFilter->data.long_.len;
+	}
+	else if (topicFilter->type == MQTTSN_TOPIC_TYPE_PREDEFINED)
+		writeInt(&ptr, topicFilter->data.id);
+	else if (topicFilter->type == MQTTSN_TOPIC_TYPE_SHORT)
+	{
+		writeChar(&ptr, topicFilter->data.short_name[0]);
+		writeChar(&ptr, topicFilter->data.short_name[1]);
+	}
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
 
 }
 
 
-int MQTTSerialize_suback(char* buf, int buflen, int packetid, int count, int* grantedQoSs)
+int MQTTSNDeserialize_suback(int* qos, unsigned short* topicid, unsigned short* packetid,
+		unsigned char* returncode, unsigned char* buf, int buflen)
 {
+	MQTTSNFlags flags;
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = 0;
+	int mylen = 0;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - curdata > buflen)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_SUBACK)
+		goto exit;
+
+	flags.all = readChar(&curdata);
+	*qos = flags.bits.QoS;
+
+	*topicid = readInt(&curdata);
+	*packetid = readInt(&curdata);
+	*returncode = readChar(&curdata);
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
 

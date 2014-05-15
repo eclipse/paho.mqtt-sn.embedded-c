@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 
 	/* publish with short name */
 	topic.type = MQTTSN_TOPIC_TYPE_SHORT;
-	memcpy(topic.data.name, "tt", 2);
+	memcpy(topic.data.short_name, "tt", 2);
 	len = MQTTSNSerialize_publish(buf, buflen - len, dup, qos, retained, packetid,
 			topic, payload, payloadlen);
 	rc = sendPacketBuffer(mysock, host, port, buf, len);

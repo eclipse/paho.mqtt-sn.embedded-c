@@ -30,7 +30,7 @@ typedef struct
 	int willFlag;
 } MQTTSNPacket_connectData;
 
-#define MQTTSNPacket_connectData_initializer { {'M', 'Q', 'S', 'C'}, 0, {NULL, {0, NULL}}, 10, 0, 0 }
+#define MQTTSNPacket_connectData_initializer { {'M', 'Q', 'S', 'C'}, 0, {NULL, {0, NULL}}, 10, 1, 0 }
 
 int MQTTSNSerialize_connect(unsigned char* buf, int buflen, MQTTSNPacket_connectData* options);
 int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf, int len);

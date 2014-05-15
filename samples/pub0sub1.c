@@ -98,8 +98,20 @@ int sendPacketBuffer(int asocket, char* host, int port, unsigned char* buf, int 
 
 	if ((rc = sendto(asocket, buf, buflen, 0, (const struct sockaddr*)&cliaddr, sizeof(cliaddr))) == SOCKET_ERROR)
 		Socket_error("sendto", asocket);
-	else
+	else if (rc == buflen)
 		rc = 0;
+	return rc;
+}
+
+
+int mysock = 0;
+char *host = "127.0.0.1";
+int port = 1884;
+
+int getdata(unsigned char* buf, size_t count)
+{
+	int rc = recvfrom(mysock, buf, count, 0, NULL, NULL);
+	printf("received %d bytes count %d\n", rc, (int)count);
 	return rc;
 }
 
@@ -109,17 +121,19 @@ int main(int argc, char** argv)
 	int rc = 0;
 	unsigned char buf[200];
 	int buflen = sizeof(buf);
-	int mysock = 0;
 	MQTTSN_topicid topic;
 	unsigned char* payload = (unsigned char*)"mypayload";
 	int payloadlen = strlen((char*)payload);
 	int len = 0;
 	int dup = 0;
-	int qos = 3;
-	int retained = 0, packetid = 0;
-	char *host = argv[1];
+	int qos = 1;
+	int retained = 0, packetid = 1;
 	char *topicname = "a long topic name";
-	int port = 1883;
+	MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
+	unsigned short topicid;
+
+	if (argc > 1)
+		host = argv[1];
 
 	if (argc > 2)
 		port = atoi(argv[2]);
@@ -130,15 +144,104 @@ int main(int argc, char** argv)
 	if (mysock == INVALID_SOCKET)
 		rc = Socket_error("socket", mysock);
 
-	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topic.data.long_.name = topicname;
-	topic.data.long_.len = strlen(topicname);
-
-	len = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, packetid,
-			topic, payload, payloadlen);
-
+	options.clientID.cstring = "pub0sub1 MQTT-SN";
+	len = MQTTSNSerialize_connect(buf, buflen, &options);
 	rc = sendPacketBuffer(mysock, host, port, buf, len);
 
+	/* wait for connack */
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_CONNACK)
+	{
+		int connack_rc = -1;
+
+		if (MQTTSNDeserialize_connack(&connack_rc, buf, buflen) != 1 || connack_rc != 0)
+		{
+			printf("Unable to connect, return code %d\n", connack_rc);
+			goto exit;
+		}
+		else 
+			printf("connected rc %d\n", connack_rc);
+	}
+	else
+		goto exit;
+
+
+	/* subscribe */
+	printf("Subscribing\n");
+	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topic.data.long_.name = "substopic";
+	topic.data.long_.len = strlen(topic.data.long_.name);
+	len = MQTTSNSerialize_subscribe(buf, buflen, 0, 2, /*msgid*/ 1, &topic);
+	rc = sendPacketBuffer(mysock, host, port, buf, len);
+
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_SUBACK) 	/* wait for suback */
+	{
+		unsigned short submsgid;
+		int granted_qos;
+		unsigned char returncode;
+
+		rc = MQTTSNDeserialize_suback(&granted_qos, &topicid, &submsgid, &returncode, buf, buflen);
+		if (granted_qos != 2 || returncode != 0)
+		{
+			printf("granted qos != 2, %d return code %d\n", granted_qos, returncode);
+			goto exit;
+		}
+		else
+			printf("suback topic id %d\n", topicid);
+	}
+	else
+		goto exit;
+
+	printf("Publishing\n");
+	/* publish with short name */
+	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topic.data.id = topicid;
+	len = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, packetid,
+			topic, payload, payloadlen);
+	rc = sendPacketBuffer(mysock, host, port, buf, len);
+
+	/* wait for puback */
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_PUBACK)
+	{
+		unsigned short packet_id, topic_id;
+		unsigned char returncode;
+
+		if (MQTTSNDeserialize_puback(&topic_id, &packet_id, &returncode, buf, buflen) != 1 || returncode != MQTTSN_RC_ACCEPTED)
+			printf("Unable to publish, return code %d\n", returncode);
+		else 
+			printf("puback received, msgid %d topic id %d\n", packet_id, topic_id);
+	}
+	else
+		goto exit;
+
+	printf("Receive publish\n");
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_PUBLISH)
+	{
+		unsigned short packet_id;
+		int dup, qos, retained, payloadlen;
+		unsigned char* payload;
+		MQTTSN_topicid pubtopic;
+
+		if (MQTTSNDeserialize_publish(&dup, &qos, &retained, &packet_id, &pubtopic,
+				&payload, &payloadlen, buf, buflen) != 1)
+			printf("Error deserializing publish\n");
+		else 
+			printf("publish received, id %d qos %d\n", packet_id, qos);
+
+		if (qos == 1)
+		{
+			len = MQTTSNSerialize_puback(buf, buflen, pubtopic.data.id, packet_id, MQTTSN_RC_ACCEPTED);
+			rc = sendPacketBuffer(mysock, host, port, buf, len);
+			if (rc == 0)
+				printf("puback sent\n");
+		}
+	}
+	else
+		goto exit;
+
+	len = MQTTSNSerialize_disconnect(buf, buflen, 0);
+	rc = sendPacketBuffer(mysock, host, port, buf, len);
+
+exit:
 	rc = shutdown(mysock, SHUT_WR);
 	rc = close(mysock);
 

@@ -32,7 +32,7 @@ int MQTTSNSerialize_publishLength(int payloadlen, MQTTSN_topicid topic, int qos)
 	int len = 6;
 
 	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
-		len += topic.data.qos3.longlen;
+		len += topic.data.long_.len;
 
 	return payloadlen + len;
 }
@@ -78,20 +78,20 @@ int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, in
 	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
 	{
 		/* special arrangement for long topic names in QoS -1 publishes.  The length of the topic is in the topicid field */
-		writeInt(&ptr, topic.data.qos3.longlen); /* topic length */
+		writeInt(&ptr, topic.data.long_.len); /* topic length */
 	}
 	else if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL || topic.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
 		writeInt(&ptr, topic.data.id);
 	else
 	{
-		writeChar(&ptr, topic.data.name[0]);
-		writeChar(&ptr, topic.data.name[1]);
+		writeChar(&ptr, topic.data.short_name[0]);
+		writeChar(&ptr, topic.data.short_name[1]);
 	}
 	writeInt(&ptr, packetid);
 	if (topic.type == MQTTSN_TOPIC_TYPE_NORMAL && qos == 3)
 	{
-		memcpy(ptr, topic.data.qos3.longname, topic.data.qos3.longlen);
-		ptr += topic.data.qos3.longlen;
+		memcpy(ptr, topic.data.long_.name, topic.data.long_.len);
+		ptr += topic.data.long_.len;
 	}
 	memcpy(ptr, payload, payloadlen);
 	ptr += payloadlen;

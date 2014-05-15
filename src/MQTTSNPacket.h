@@ -64,12 +64,12 @@ typedef struct
 	union
 	{
 		unsigned short id;
-		char name[2];
+		char short_name[2];
 		struct
 		{
-			char* longname;
-			int longlen;
-		} qos3;
+			char* name;
+			int len;
+		} long_;
 	} data;
 } MQTTSN_topicid;
 
@@ -122,8 +122,8 @@ int MQTTstrlen(MQTTString mqttstring);
 
 #include "MQTTSNConnect.h"
 #include "MQTTSNPublish.h"
-/*#include "MQTTSNSubscribe.h"
-#include "MQTTSNUnsubscribe.h"
+#include "MQTTSNSubscribe.h"
+/*#include "MQTTSNUnsubscribe.h"
 */
 
 #include <stdio.h>

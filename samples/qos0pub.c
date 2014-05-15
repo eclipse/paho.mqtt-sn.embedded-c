@@ -139,8 +139,8 @@ int main(int argc, char** argv)
 	rc = sendPacketBuffer(mysock, host, port, buf, len);
 
 	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topic.data.qos3.longname = topicname;
-	topic.data.qos3.longlen = strlen(topicname);
+	topic.data.long_.name = topicname;
+	topic.data.long_.len = strlen(topicname);
 	len = MQTTSNSerialize_publish(buf, buflen - len, dup, qos, retained, packetid,
 			topic, payload, payloadlen);
 	rc = sendPacketBuffer(mysock, host, port, buf, len);

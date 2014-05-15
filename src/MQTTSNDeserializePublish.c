@@ -60,21 +60,21 @@ int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, unsigned short*
 	if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL && *qos == 3)
 	{
 		/* special arrangement for long topic names in QoS -1 publishes.  The length of the topic is in the topicid field */
-		topic->data.qos3.longlen = readInt(&curdata);
+		topic->data.long_.len = readInt(&curdata);
 	}
 	else if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL || topic->type == MQTTSN_TOPIC_TYPE_PREDEFINED)
 		topic->data.id = readInt(&curdata);
 	else
 	{
-		topic->data.name[0] = readChar(&curdata);
-		topic->data.name[1] = readChar(&curdata);
+		topic->data.short_name[0] = readChar(&curdata);
+		topic->data.short_name[1] = readChar(&curdata);
 	}
 	*packetid = readInt(&curdata);
 
 	if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL && *qos == 3)
 	{
-		topic->data.qos3.longname = (char*)curdata;
-		curdata += topic->data.qos3.longlen;
+		topic->data.long_.name = (char*)curdata;
+		curdata += topic->data.long_.len;
 	}
 
 	*payloadlen = enddata - curdata;
