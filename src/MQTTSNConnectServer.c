@@ -78,7 +78,7 @@ int MQTTSNSerialize_connack(unsigned char* buf, int buflen, int connack_rc)
 	unsigned char *ptr = buf;
 
 	FUNC_ENTRY;
-	if (buflen < 4)
+	if (buflen < 3)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
@@ -86,7 +86,7 @@ int MQTTSNSerialize_connack(unsigned char* buf, int buflen, int connack_rc)
 
 	ptr += MQTTSNPacket_encode(ptr, 4); /* write length */
 	writeChar(&ptr, MQTTSN_CONNACK);
-	writeInt(&ptr, connack_rc);
+	writeChar(&ptr, connack_rc);
 
 	rc = ptr - buf;
 exit:

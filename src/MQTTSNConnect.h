@@ -53,4 +53,7 @@ int MQTTSNDeserialize_willtopicreq(unsigned char* buf, int buflen);
 int MQTTSNSerialize_willmsgreq(unsigned char* buf, int buflen);
 int MQTTSNDeserialize_willmsgreq(unsigned char* buf, int buflen);
 
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic);
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic);
+
 #endif /* MQTTSNCONNECT_H_ */

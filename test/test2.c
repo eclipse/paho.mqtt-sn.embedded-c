@@ -16,15 +16,27 @@
 
 
 #include "MQTTSNPacket.h"
+
+#include <sys/types.h>
+
+#if !defined(SOCKET_ERROR)
+	/** error in socket operation */
+	#define SOCKET_ERROR -1
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #if !defined(_WINDOWS)
-	#include <sys/time.h>
-  	#include <sys/socket.h>
-	#include <unistd.h>
-  	#include <errno.h>
+#define INVALID_SOCKET SOCKET_ERROR
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
 #else
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -41,16 +53,14 @@
 
 struct Options
 {
-	char* connection;         /**< connection to system under test. */
-	char** haconnections;
-	int hacount;
+	char* host;  
+	int port;
 	int verbose;
 	int test_no;
 } options =
 {
-	"tcp://m2m.eclipse.org:1883",
-	NULL,
-	0,
+	"127.0.0.1",
+	1884,
 	0,
 	0,
 };
@@ -73,31 +83,20 @@ void getopts(int argc, char** argv)
 			else
 				usage();
 		}
-		else if (strcmp(argv[count], "--connection") == 0)
+		else if (strcmp(argv[count], "--host") == 0)
 		{
 			if (++count < argc)
 			{
-				options.connection = argv[count];
-				printf("\nSetting connection to %s\n", options.connection);
+				options.host = argv[count];
+				printf("\nSetting host to %s\n", options.host);
 			}
 			else
 				usage();
 		}
-		else if (strcmp(argv[count], "--haconnections") == 0)
+		else if (strcmp(argv[count], "--port") == 0)
 		{
 			if (++count < argc)
-			{
-				char* tok = strtok(argv[count], " ");
-				options.hacount = 0;
-				options.haconnections = malloc(sizeof(char*) * 5);
-				while (tok)
-				{
-					options.haconnections[options.hacount] = malloc(strlen(tok) + 1);
-					strcpy(options.haconnections[options.hacount], tok);
-					options.hacount++;
-					tok = strtok(NULL, " ");
-				}
-			}
+				options.port = atoi(argv[count]);
 			else
 				usage();
 		}
@@ -247,145 +246,116 @@ void myassert(char* filename, int lineno, char* description, int value, char* fo
 
 #define min(a, b) ((a < b) ? a : b)
 
-int checkMQTTStrings(MQTTString a, MQTTString b)
+int Socket_error(char* aString, int sock)
 {
-	if (!a.lenstring.data)
+#if defined(WIN32)
+	int errno;
+#endif
+
+#if defined(WIN32)
+	errno = WSAGetLastError();
+#endif
+	if (errno != EINTR && errno != EAGAIN && errno != EINPROGRESS && errno != EWOULDBLOCK)
 	{
-		a.lenstring.data = a.cstring;
-		if (a.cstring)
-			a.lenstring.len = strlen(a.cstring);
+		if (strcmp(aString, "shutdown") != 0 || (errno != ENOTCONN && errno != ECONNRESET))
+		{
+			int orig_errno = errno;
+			char* errmsg = strerror(errno);
+
+			printf("Socket error %d (%s) in %s for socket %d\n", orig_errno, errmsg, aString, sock);
+		}
 	}
-	if (!b.lenstring.data)
-	{
-		b.lenstring.data = b.cstring;
-		if (b.cstring)
-			b.lenstring.len = strlen(b.cstring);
-	}
-	return memcmp(a.lenstring.data, b.lenstring.data, min(a.lenstring.len, b.lenstring.len)) == 0;
+	return errno;
 }
 
-int checkMQTTSNTopics(MQTTSN_topicid a, MQTTSN_topicid b)
-{
-	return a.type == b.type && a.data.id == b.data.id;
-}
 
-
-int checkConnectPackets(MQTTSNPacket_connectData* before, MQTTSNPacket_connectData* after)
+int sendPacketBuffer(int asocket, char* host, int port, unsigned char* buf, int buflen)
 {
+	struct sockaddr_in cliaddr;
 	int rc = 0;
-	int start_failures = failures;
 
-	assert("struct_ids should be the same",
-			memcmp(before->struct_id, after->struct_id, 4) == 0, "struct_ids were different %.4s\n", after->struct_id);
+	memset(&cliaddr, 0, sizeof(cliaddr));
+	cliaddr.sin_family = AF_INET;
+	cliaddr.sin_addr.s_addr = inet_addr(host);
+	cliaddr.sin_port = htons(port);
 
-	assert("struct_versions should be the same",
-			before->struct_version == after->struct_version, "struct_versions were different\n", rc);
-
-	assert("ClientIDs should be the same",
-			checkMQTTStrings(before->clientID, after->clientID), "ClientIDs were different\n", rc);
-
-	assert("durations should be the same",
-			before->duration == after->duration, "durations were different\n", rc);
-
-	assert("cleansessions should be the same",
-			before->cleansession == after->cleansession, "cleansessions were different\n", rc);
-
-	assert("willFlags should be the same",
-				before->willFlag == after->willFlag, "willFlags were different\n", rc);
-
-	return failures == start_failures;
+	if ((rc = sendto(asocket, buf, buflen, 0, (const struct sockaddr*)&cliaddr, sizeof(cliaddr))) == SOCKET_ERROR)
+		Socket_error("sendto", asocket);
+	else
+		rc = 0;
+	return rc;
 }
 
-int test1(struct Options options)
+
+int mysock = 0;
+
+int getdata(unsigned char* buf, size_t count)
+{
+	int rc = recvfrom(mysock, buf, count, 0, NULL, NULL);
+	//printf("received %d bytes count %d\n", rc, (int)count);
+	return rc;
+}
+
+
+int connectDisconnect(struct Options options)
 {
 	MQTTSNPacket_connectData data = MQTTSNPacket_connectData_initializer;
-	MQTTSNPacket_connectData data_after = MQTTSNPacket_connectData_initializer;
 	int rc = 0;
 	unsigned char buf[100];
 	int buflen = sizeof(buf);
-	MQTTString clientid = MQTTString_initializer, clientid_after = MQTTString_initializer;
-	int duration_after = -1;
+	int len = 0;
 
-	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
-	global_start_time = start_clock();
-	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 1 - serialization of connect and back");
+	mysock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (mysock == INVALID_SOCKET)
+		rc = Socket_error("socket", mysock);
 
-	data.clientID.cstring = "me too";
+	data.clientID.cstring = "test2/test1";
 
-	data.duration = 20;
-	data.cleansession = 1;
-
-	data.willFlag = 1;
+	data.cleansession = 0;
 
 	rc = MQTTSNSerialize_connect(buf, buflen, &data);
 	assert("good rc from serialize connect", rc > 0, "rc was %d\n", rc);
 
-	rc = MQTTSNDeserialize_connect(&data_after, buf, buflen);
-	assert("good rc from deserialize connect", rc == 1, "rc was %d\n", rc);
+	rc = sendPacketBuffer(mysock, options.host, options.port, buf, rc);
+	assert("good rc from sendPacketBuffer", rc == 0, "rc was %d\n", rc);
 
-	/* data after should be the same as data before */
-	rc = checkConnectPackets(&data, &data_after);
-	assert("packets should be the same",  rc == 1, "packets were different\n", rc);
+	/* wait for connack */
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_CONNACK)
+	{
+		int connack_rc = -1;
 
-	/* Pingreq without clientid */
-	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
-	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
+		if (MQTTSNDeserialize_connack(&connack_rc, buf, buflen) != 1 || connack_rc != 0)
+		{
+			printf("Unable to connect, return code %d\n", connack_rc);
+			goto exit;
+		}
+		else 
+			printf("connected rc %d\n", connack_rc);
+	}
+	else
+		goto exit;
 
-	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
-	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
+	len = MQTTSNSerialize_disconnect(buf, buflen, 0);
+	rc = sendPacketBuffer(mysock, options.host, options.port, buf, len);
 
-	/* data after should be the same as data before */
-	assert("ClientIDs should be the same",
-			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+	rc = shutdown(mysock, SHUT_WR);
+	rc = close(mysock);
 
-	/* Pingreq with clientid */
-	clientid.cstring = "this is me";
-	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
-	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
+exit:
+	return rc;
+}
 
-	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
-	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
+int test1(struct Options options)
+{
 
-	/* data after should be the same as data before */
-	assert("ClientIDs should be the same",
-			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+	fprintf(xml, "<testcase classname=\"test1\" name=\"reconnect\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 1 - reconnection");
 
-	rc = MQTTSNSerialize_pingresp(buf, buflen);
-	assert("good rc from serialize pingresp", rc > 0, "rc was %d\n", rc);
+	connectDisconnect(options);
+	connectDisconnect(options);
 
-	rc = MQTTSNDeserialize_pingresp(buf, buflen);
-	assert("good rc from deserialize pingresp", rc == 1, "rc was %d\n", rc);
-
-	/* Disconnect without duration */
-	rc = MQTTSNSerialize_disconnect(buf, buflen, 0);
-	assert("good rc from serialize disconnect", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTSNDeserialize_disconnect(&duration_after, buf, buflen);
-	assert("good rc from deserialize disconnect", rc == 1, "rc was %d\n", rc);
-
-	/* data after should be the same as data before */
-	assert("durations should be the same", 0 == duration_after, "durations were different\n", rc);
-
-	/* Disconnect with duration */
-	rc = MQTTSNSerialize_disconnect(buf, buflen, 33);
-	assert("good rc from serialize disconnect", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTSNDeserialize_disconnect(&duration_after, buf, buflen);
-	assert("good rc from deserialize disconnect", rc == 1, "rc was %d\n", rc);
-
-	/* data after should be the same as data before */
-	assert("durations should be the same", 33 == duration_after, "durations were different\n", rc);
-
-	/* Pingreq with clientid */
-	clientid.cstring = "this is me";
-	rc = MQTTSNSerialize_pingreq(buf, buflen, clientid);
-	assert("good rc from serialize pingreq", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTSNDeserialize_pingreq(&clientid_after, buf, buflen);
-	assert("good rc from deserialize pingreq", rc == 1, "rc was %d\n", rc);
-
-/* exit: */
 	MyLog(LOGA_INFO, "TEST1: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
@@ -393,80 +363,96 @@ int test1(struct Options options)
 }
 
 
-int test2(struct Options options)
+int connectSubscribeDisconnect(struct Options options)
 {
+	MQTTSNPacket_connectData data = MQTTSNPacket_connectData_initializer;
 	int rc = 0;
 	unsigned char buf[100];
 	int buflen = sizeof(buf);
-
-	int dup = 0;
-	int qos = 2;
-	int retained = 0;
-	unsigned short msgid = 23;
+	int len = 0;
 	MQTTSN_topicid topic;
-	unsigned char *payload = (unsigned char*)"kkhkhkjkj jkjjk jk jk ";
-	int payloadlen = strlen((char*)payload);
 
-	int dup2 = 1;
-	int qos2 = 1;
-	int retained2 = 1;
-	unsigned short msgid2 = 3243;
-	MQTTSN_topicid topic2;
-	unsigned char *payload2 = NULL;
-	int payloadlen2 = 0;
-	unsigned char acktype;
+	mysock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (mysock == INVALID_SOCKET)
+		rc = Socket_error("socket", mysock);
 
-	unsigned char returncode = 3, returncode2 = -99;
+	data.clientID.cstring = "test2/test1";
 
-	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
+	data.cleansession = 0;
+
+	rc = MQTTSNSerialize_connect(buf, buflen, &data);
+	assert("good rc from serialize connect", rc > 0, "rc was %d\n", rc);
+
+	rc = sendPacketBuffer(mysock, options.host, options.port, buf, rc);
+	assert("good rc from sendPacketBuffer", rc == 0, "rc was %d\n", rc);
+
+	/* wait for connack */
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_CONNACK)
+	{
+		int connack_rc = -1;
+
+		rc = MQTTSNDeserialize_connack(&connack_rc, buf, buflen);
+		assert("Good rc from deserialize connack", rc == 1, "rc was %d\n", rc);
+		assert("Good rc from connect", connack_rc == 0, "connack_rc was %d\n", rc);
+		if (connack_rc != 0)
+			goto exit;
+	}
+	else
+		goto exit;
+
+	/* subscribe */
+	printf("Subscribing\n");
+	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topic.data.long_.name = "substopic";
+	topic.data.long_.len = strlen(topic.data.long_.name);
+	len = MQTTSNSerialize_subscribe(buf, buflen, 0, 2, /*msgid*/ 1, &topic);
+	rc = sendPacketBuffer(mysock, options.host, options.port, buf, len);
+
+	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_SUBACK) 	/* wait for suback */
+	{
+		unsigned short submsgid;
+		int granted_qos;
+		unsigned char returncode;
+		unsigned short topicid;
+
+		rc = MQTTSNDeserialize_suback(&granted_qos, &topicid, &submsgid, &returncode, buf, buflen);
+		if (granted_qos != 2 || returncode != 0)
+		{
+			printf("granted qos != 2, %d return code %d\n", granted_qos, returncode);
+			goto exit;
+		}
+		else
+			printf("suback topic id %d\n", topicid);
+	}
+	else
+		goto exit;
+
+	len = MQTTSNSerialize_disconnect(buf, buflen, 0);
+	rc = sendPacketBuffer(mysock, options.host, options.port, buf, len);
+
+	rc = shutdown(mysock, SHUT_WR);
+	rc = close(mysock);
+
+exit:
+	return rc;
+}
+
+
+/*
+ * Connect non-cleansession, subscribe, disconnect.
+ * Then reconnect non-cleansession.
+ */
+int test2(struct Options options)
+{
+
+	fprintf(xml, "<testcase classname=\"test2\" name=\"clientid free\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 2 - serialization of publish and back");
+	MyLog(LOGA_INFO, "Starting test 2 - clientid free");
 
-	memset(&topic, 0, sizeof(topic));
-	memset(&topic2, 0, sizeof(topic2));
-	topic.type = MQTTSN_TOPIC_TYPE_SHORT;
-	memcpy(topic.data.short_name, "my", 2);
-	rc = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, msgid, topic,
-			payload, payloadlen);
-	assert("good rc from serialize publish", rc > 0, "rc was %d\n", rc);
+	connectSubscribeDisconnect(options);
+	connectDisconnect(options);
 
-	rc = MQTTSNDeserialize_publish(&dup2, &qos2, &retained2, &msgid2, &topic2,
-			&payload2, &payloadlen2, buf, buflen);
-	assert("good rc from deserialize publish", rc == 1, "rc was %d\n", rc);
-
-	/* data after should be the same as data before */
-	assert("dups should be the same", dup == dup2, "dups were different %d\n", dup2);
-	assert("qoss should be the same", qos == qos2, "qoss were different %d\n", qos2);
-	assert("retaineds should be the same", retained == retained2, "retaineds were different %d\n", retained2);
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
-
-	assert("topics should be the same",
-			checkMQTTSNTopics(topic, topic2), "topics were different %s\n", "");
-
-	assert("payload lengths should be the same",
-				payloadlen == payloadlen2, "payload lengths were different %d\n", payloadlen2);
-
-	assert("payloads should be the same",
-						memcmp(payload, payload2, payloadlen) == 0, "payloads were different %s\n", "");
-
-	rc = MQTTSNSerialize_puback(buf, buflen, topic.data.id, msgid, returncode);
-	assert("good rc from serialize puback", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTSNDeserialize_puback(&topic2.data.id, &msgid2, &returncode2, buf, buflen);
-	assert("good rc from deserialize puback", rc > 0, "rc was %d\n", rc);
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
-	assert("return codes should be the same", returncode == returncode2, "return codes were different %d\n", returncode2);
-
-	rc = MQTTSNSerialize_pubrec(buf, buflen, msgid);
-	assert("good rc from serialize pubrec", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTSNDeserialize_ack(&acktype, &msgid2, buf, buflen);
-	assert("good rc from deserialize pubrec", rc == 1, "rc was %d\n", rc);
-	assert("Acktype should be MQTTSN_PUBREC", acktype == MQTTSN_PUBREC, "acktype was %d\n", acktype);
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
-
-/*exit:*/
 	MyLog(LOGA_INFO, "TEST2: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
@@ -474,6 +460,7 @@ int test2(struct Options options)
 }
 
 
+#if 0
 int test3(struct Options options)
 {
 	int rc = 0;
@@ -664,10 +651,10 @@ int test6(struct Options options)
 
 	int connack_rc2 = 0;
 
-	fprintf(xml, "<testcase classname=\"test6\" name=\"de/serialization\"");
+	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 6 - serialization of connack and back");
+	MyLog(LOGA_INFO, "Starting test 2 - serialization of connack and back");
 
 	rc = MQTTSNSerialize_connack(buf, buflen, connack_rc);
 	assert("good rc from serialize connack", rc > 0, "rc was %d\n", rc);
@@ -676,7 +663,7 @@ int test6(struct Options options)
 	assert("good rc from deserialize connack", rc == 1, "rc was %d\n", rc);
 
 	/* data after should be the same as data before */
-	assert("connack rcs should be the same", connack_rc == connack_rc2, "connack rcs were different %d\n", connack_rc2);
+	assert("dups should be the same", connack_rc == connack_rc2, "dups were different %d\n", connack_rc2);
 
 /* exit: */
 	MyLog(LOGA_INFO, "TEST6: test %s. %d tests run, %d failures.",
@@ -685,14 +672,15 @@ int test6(struct Options options)
 	return failures;
 }
 
+#endif
 
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, /*test4, test5,*/ test6};
+ 	int (*tests[])() = {NULL, test1, test2};
 
 	xml = fopen("TEST-test1.xml", "w");
-	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));
+	fprintf(xml, "<testsuite name=\"test2\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));
 
 	getopts(argc, argv);
 

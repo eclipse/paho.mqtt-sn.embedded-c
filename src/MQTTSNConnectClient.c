@@ -214,7 +214,7 @@ exit:
 
 
 /**
-  * Serializes a willtopicupd packet into the supplied buffer.
+  * Serializes a willtopic or willtopicupd packet into the supplied buffer.
   * @param buf the buffer into which the packet will be serialized
   * @param len the length in bytes of the supplied buffer
   * @param willQoS the qos of the will message
@@ -222,7 +222,8 @@ exit:
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic,
+		enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char *ptr = buf;
 	MQTTSNFlags flags;
@@ -236,7 +237,7 @@ int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, in
 		goto exit;
 	}
 	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
-	writeChar(&ptr, MQTTSN_WILLTOPICUPD);      /* write message type */
+	writeChar(&ptr, packet_type);      /* write message type */
 
 	flags.all = 0;
 	flags.bits.QoS = willQoS;
@@ -254,13 +255,43 @@ exit:
 
 
 /**
-  * Serializes a willmsgupd packet into the supplied buffer.
+  * Serializes a willtopicupd packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffer
+  * @param willQoS the qos of the will message
+  * @param willRetain the retained flag of the will message
+  * @param willTopic the topic of the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+{
+	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPICUPD);
+}
+
+
+/**
+  * Serializes a willtopic packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffer
+  * @param willQoS the qos of the will message
+  * @param willRetain the retained flag of the will message
+  * @param willTopic the topic of the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+{
+	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPIC);
+}
+
+
+/**
+  * Serializes a willmsg or willmsgupd packet into the supplied buffer.
   * @param buf the buffer into which the packet will be serialized
   * @param len the length in bytes of the supplied buffersage
   * @param willMsg the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMsg)
+int MQTTSNSerialize_willmsg1(unsigned char* buf, int buflen, MQTTString willMsg, enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char *ptr = buf;
 	int len = 0;
@@ -273,7 +304,7 @@ int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMs
 		goto exit;
 	}
 	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
-	writeChar(&ptr, MQTTSN_WILLMSGUPD);      /* write message type */
+	writeChar(&ptr, packet_type);      /* write message type */
 
 	writeMQTTSNString(&ptr, willMsg);
 
@@ -281,6 +312,32 @@ int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMs
 
 	exit: FUNC_EXIT_RC(rc);
 	return rc;
+}
+
+
+/**
+  * Serializes a willmsg packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffersage
+  * @param willMsg the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTString willMsg)
+{
+	return MQTTSNSerialize_willmsg1(buf, buflen, willMsg, MQTTSN_WILLMSG);
+}
+
+
+/**
+  * Serializes a willmsgupd packet into the supplied buffer.
+  * @param buf the buffer into which the packet will be serialized
+  * @param len the length in bytes of the supplied buffersage
+  * @param willMsg the will message
+  * @return serialized length, or error if 0
+  */
+int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMsg)
+{
+	return MQTTSNSerialize_willmsg1(buf, buflen, willMsg, MQTTSN_WILLMSGUPD);
 }
 
 
