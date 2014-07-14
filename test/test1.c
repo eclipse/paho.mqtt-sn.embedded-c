@@ -266,7 +266,20 @@ int checkMQTTStrings(MQTTString a, MQTTString b)
 
 int checkMQTTSNTopics(MQTTSN_topicid a, MQTTSN_topicid b)
 {
-	return a.type == b.type && a.data.id == b.data.id;
+	int rc = 0;
+
+	if (a.type != b.type)
+		goto exit;
+
+	if (a.data.long_.name)
+		rc = memcmp(a.data.long_.name, b.data.long_.name, a.data.long_.len) == 0;
+	else if (a.type == MQTTSN_TOPIC_TYPE_SHORT)
+		rc = (memcpy(a.data.short_name, b.data.short_name, 2) == 0);
+	else
+		rc = (a.data.id == b.data.id);
+
+exit:
+	return rc;
 }
 
 
@@ -570,62 +583,56 @@ int test3(struct Options options)
 }
 
 
-#if 0
-int test3(struct Options options)
+
+int test4(struct Options options)
 {
-	int i = 0;
 	int rc = 0;
-	char buf[100];
-	int buflen = sizeof(buf);
-#define TOPIC_COUNT 2
+	unsigned char buf[100];
+	size_t buflen = sizeof(buf);
 
 	int dup = 0;
-	int msgid = 23;
-	int count = TOPIC_COUNT;
-	MQTTString topicStrings[TOPIC_COUNT] = { MQTTString_initializer, MQTTString_initializer };
-	int req_qoss[TOPIC_COUNT] = {2, 1};
+	unsigned short packetid = 23;
+	MQTTSN_topicid topicFilter;
+	int req_qos = 2;
 
 	int dup2 = 1;
-	int msgid2 = 2223;
-	int count2 = 0;
-	MQTTString topicStrings2[TOPIC_COUNT] = { MQTTString_initializer, MQTTString_initializer };
-	int req_qoss2[TOPIC_COUNT] = {0, 0};
+	unsigned short packetid2 = 2223;
+	MQTTSN_topicid topicFilter2;
+	int req_qos2 = 0;
 
-	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
+	fprintf(xml, "<testcase classname=\"test4\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 2 - serialization of subscribe and back");
+	MyLog(LOGA_INFO, "Starting test 4 - serialization of subscribe and back");
 
-	topicStrings[0].cstring = "mytopic";
-	topicStrings[1].cstring = "mytopic2";
-	rc = MQTTSerialize_subscribe(buf, buflen, dup, msgid, count, topicStrings, req_qoss);
+	memset(&topicFilter, '\0', sizeof(topicFilter));
+	memset(&topicFilter2, '\0', sizeof(topicFilter2));
+	topicFilter.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topicFilter.data.long_.name = "mytopic";
+	topicFilter.data.long_.len = strlen(topicFilter.data.long_.name);
+	rc = MQTTSNSerialize_subscribe(buf, buflen, dup, req_qos, packetid, &topicFilter);
 	assert("good rc from serialize subscribe", rc > 0, "rc was %d\n", rc);
 
-	rc = MQTTDeserialize_subscribe(&dup2, &msgid2, 2, &count2, topicStrings2, req_qoss2, buf, buflen);
+	rc = MQTTSNDeserialize_subscribe(&dup2, &req_qos2, &packetid2, &topicFilter2, buf, buflen);
 	assert("good rc from deserialize subscribe", rc == 1, "rc was %d\n", rc);
 
 	/* data after should be the same as data before */
 	assert("dups should be the same", dup == dup2, "dups were different %d\n", dup2);
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
+	assert("msgids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
 
-	assert("count should be the same", count == count2, "counts were different %d\n", count2);
-
-	for (i = 0; i < count2; ++i)
-	{
-		assert("topics should be the same",
-					checkMQTTStrings(topicStrings[i], topicStrings2[i]), "topics were different %s\n", "");
-
-		assert("qoss should be the same", req_qoss[i] == req_qoss2[i], "qoss were different %d\n", req_qoss2[i]);
-	}
+	assert("topics should be the same",
+					checkMQTTSNTopics(topicFilter, topicFilter2), "topics were different %s\n", "");
+	assert("qoss should be the same", req_qos == req_qos2, "qoss were different %d\n", req_qos2);
 
 /*exit:*/
-	MyLog(LOGA_INFO, "TEST3: test %s. %d tests run, %d failures.",
+	MyLog(LOGA_INFO, "TEST4: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
 	return failures;
 }
 
 
+#if 0
 int test4(struct Options options)
 {
 	int i = 0;
@@ -754,7 +761,7 @@ int test6(struct Options options)
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, /*test4, test5,*/ test6};
+ 	int (*tests[])() = {NULL, test1, test2, test3, test4, test6};
 
 	xml = fopen("TEST-test1.xml", "w");
 	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));
