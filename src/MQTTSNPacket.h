@@ -142,8 +142,6 @@ int readMQTTSNString(MQTTString* mqttstring, unsigned char** pptr, unsigned char
 void writeCString(unsigned char** pptr, char* string);
 void writeMQTTSNString(unsigned char** pptr, MQTTString mqttstring);
 
-int MQTTDeserialize_ack(int* type, int* dup, int* packetid, char* buf, int buflen);
-
 int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t));
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */

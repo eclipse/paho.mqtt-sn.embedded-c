@@ -287,7 +287,7 @@ int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int w
 /**
   * Serializes a willmsg or willmsgupd packet into the supplied buffer.
   * @param buf the buffer into which the packet will be serialized
-  * @param len the length in bytes of the supplied buffersage
+  * @param buflen the length in bytes of the supplied buffer
   * @param willMsg the will message
   * @return serialized length, or error if 0
   */
@@ -411,5 +411,67 @@ exit:
 }
 
 
+/**
+  * Deserializes the supplied (wire) buffer into willtopicresp data - return code
+  * @param connack_rc returned integer value of the return code
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_willtopicresp(int* resp_rc, unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = 0;
+	int mylen;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - buf < 3)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_WILLTOPICRESP)
+		goto exit;
+
+	*resp_rc = readChar(&curdata);
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Deserializes the supplied (wire) buffer into willmsgresp data - return code
+  * @param connack_rc returned integer value of the return code
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param len the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success, 0 is failure
+  */
+int MQTTSNDeserialize_willmsgresp(int* resp_rc, unsigned char* buf, int buflen)
+{
+	unsigned char* curdata = buf;
+	unsigned char* enddata = NULL;
+	int rc = 0;
+	int mylen;
+
+	FUNC_ENTRY;
+	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	enddata = buf + mylen;
+	if (enddata - buf < 3)
+		goto exit;
+
+	if (readChar(&curdata) != MQTTSN_WILLMSGRESP)
+		goto exit;
+
+	*resp_rc = readChar(&curdata);
+
+	rc = 1;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
 
 

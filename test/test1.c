@@ -497,8 +497,73 @@ int test3(struct Options options)
 	rc = MQTTSNDeserialize_willmsgreq(buf, rc);
 	assert("good rc from deserialize willmsgreq", rc == 1, "rc was %d\n", rc);
 
+	memset(buf, '\0', sizeof(buf));
+	int willQoS = 1, willRetain = 1, willQoS1 = 0, willRetain1 = 0;
+	MQTTString willTopic = MQTTString_initializer, willTopic1 = MQTTString_initializer;
+	willTopic.cstring = "a will topic";
+	rc = MQTTSNSerialize_willtopic(buf, buflen, willQoS, willRetain, willTopic);
+	assert("good rc from serialize willtopic", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willtopic(&willQoS1, &willRetain1, &willTopic1, buf, rc);
+	assert("good rc from deserialize willtopic", rc == 1, "rc was %d\n", rc);
+	assert("willQoSs are the same", willQoS == willQoS1, "willQoS1 was %d\n", willQoS1);
+	assert("willRetains are the same", willRetain == willRetain1, "willRetain1 was %d\n", willRetain1);
+	assert("willTopics are the same", checkMQTTStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
+
+	memset(buf, '\0', sizeof(buf));
+	willQoS = 2; willRetain = 1; willQoS1 = 0; willRetain1 = 0;
+	MQTTString initTopic = MQTTString_initializer;
+	memcpy(&willTopic, &initTopic, sizeof(initTopic));
+	memcpy(&willTopic1, &initTopic, sizeof(initTopic));
+	willTopic.cstring = "a will topic update";
+	rc = MQTTSNSerialize_willtopicupd(buf, buflen, willQoS, willRetain, willTopic);
+	assert("good rc from serialize willtopicupd", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willtopicupd(&willQoS1, &willRetain1, &willTopic1, buf, rc);
+	assert("good rc from deserialize willtopicupd", rc == 1, "rc was %d\n", rc);
+	assert("willQoSs are the same", willQoS == willQoS1, "willQoS1 was %d\n", willQoS1);
+	assert("willRetains are the same", willRetain == willRetain1, "willRetain1 was %d\n", willRetain1);
+	assert("willTopics are the same", checkMQTTStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
+
+	memset(buf, '\0', sizeof(buf));
+	MQTTString willMsg = MQTTString_initializer, willMsg1 = MQTTString_initializer;
+	willMsg.cstring = "a will message";
+	rc = MQTTSNSerialize_willmsg(buf, buflen, willMsg);
+	assert("good rc from serialize willmsg", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willmsg(&willMsg1, buf, rc);
+	assert("good rc from deserialize willmsg", rc == 1, "rc was %d\n", rc);
+	assert("willMsgs are the same", checkMQTTStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
+
+	memset(buf, '\0', sizeof(buf));
+	memcpy(&willMsg, &initTopic, sizeof(initTopic));
+	memcpy(&willMsg1, &initTopic, sizeof(initTopic));
+	willMsg.cstring = "a will message";
+	rc = MQTTSNSerialize_willmsgupd(buf, buflen, willMsg);
+	assert("good rc from serialize willmsgupd", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willmsgupd(&willMsg1, buf, rc);
+	assert("good rc from deserialize willmsgupd", rc == 1, "rc was %d\n", rc);
+	assert("willMsgs are the same", checkMQTTStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
+
+	int resp_rc = 33, resp_rc2 = 0;
+	rc = MQTTSNSerialize_willmsgresp(buf, buflen, resp_rc);
+	assert("good rc from serialize willmsgresp", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willmsgresp(&resp_rc2, buf, buflen);
+	assert("good rc from deserialize willmsgresp", rc == 1, "rc was %d\n", rc);
+	assert("resp rcs should be the same", resp_rc == resp_rc2, "resp rcs were different %d\n", resp_rc2);
+
+	resp_rc = 67, resp_rc2 = 0;
+	rc = MQTTSNSerialize_willtopicresp(buf, buflen, resp_rc);
+	assert("good rc from serialize willmsgresp", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_willtopicresp(&resp_rc2, buf, buflen);
+	assert("good rc from deserialize willmsgresp", rc == 1, "rc was %d\n", rc);
+	assert("resp rcs should be the same", resp_rc == resp_rc2, "resp rcs were different %d\n", resp_rc2);
+
 /* exit: */
-	MyLog(LOGA_INFO, "TEST1: test %s. %d tests run, %d failures.",
+	MyLog(LOGA_INFO, "TEST3: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
 	return failures;
