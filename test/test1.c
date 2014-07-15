@@ -645,10 +645,10 @@ int test5(struct Options options)
 	unsigned short packetid2 = 2223;
 	MQTTSN_topicid topicFilter2;
 
-	fprintf(xml, "<testcase classname=\"test4\" name=\"de/serialization\"");
+	fprintf(xml, "<testcase classname=\"test5\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 4 - serialization of unsubscribe and back");
+	MyLog(LOGA_INFO, "Starting test 5 - serialization of unsubscribe and back");
 
 	memset(&topicFilter, '\0', sizeof(topicFilter));
 	memset(&topicFilter2, '\0', sizeof(topicFilter2));
@@ -720,7 +720,7 @@ int test7(struct Options options)
 	fprintf(xml, "<testcase classname=\"test7\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 6 - serialization of suback and back");
+	MyLog(LOGA_INFO, "Starting test 7 - serialization of suback and back");
 
 	rc = MQTTSNSerialize_suback(buf, buflen, qos, topicid, packetid, return_code);
 	assert("good rc from serialize suback", rc > 0, "rc was %d\n", rc);
@@ -751,7 +751,7 @@ int test8(struct Options options)
 	fprintf(xml, "<testcase classname=\"test8\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 6 - serialization of unsuback and back");
+	MyLog(LOGA_INFO, "Starting test 8 - serialization of unsuback and back");
 
 	rc = MQTTSNSerialize_unsuback(buf, buflen, packetid);
 	assert("good rc from serialize unsuback", rc > 0, "rc was %d\n", rc);
@@ -769,13 +769,76 @@ int test8(struct Options options)
 }
 
 
+int test9(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned short packetid = 255, packetid2 = 0;
+	unsigned short topicid = 233, topicid2 = 0;
+	MQTTString topicname = MQTTString_initializer, topicname2 = MQTTString_initializer;
 
+	fprintf(xml, "<testcase classname=\"test9\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 9 - serialization of register and back");
+
+	rc = MQTTSNSerialize_register(buf, buflen, topicid, packetid, &topicname);
+	assert("good rc from serialize register", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_register(&topicid2, &packetid2, &topicname2, buf, buflen);
+	assert("good rc from deserialize register", rc == 1, "rc was %d\n", rc);
+
+	assert("packetids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
+	assert("topicids should be the same", topicid == topicid2, "topicids were different %d\n", topicid2);
+	assert("topicnames should be the same",
+			checkMQTTStrings(topicname, topicname2), "topicnames were different\n", rc);
+
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST9: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+int test10(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned short packetid = 255, packetid2 = 0;
+	unsigned short topicid = 233, topicid2 = 0;
+	unsigned char return_code = 127, return_code2 = 0;
+
+	fprintf(xml, "<testcase classname=\"test10\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 10 - serialization of regack and back");
+
+	rc = MQTTSNSerialize_regack(buf, buflen, topicid, packetid, return_code);
+	assert("good rc from serialize regack", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_regack(&topicid2, &packetid2, &return_code2, buf, buflen);
+	assert("good rc from deserialize regack", rc == 1, "rc was %d\n", rc);
+
+	assert("packetids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
+	assert("topicids should be the same", topicid == topicid2, "topicids were different %d\n", topicid2);
+	assert("return codes should be the same", return_code == return_code2, "return_codes were different %d\n", return_code2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST10: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
 
 
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test7};
+ 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10};
 
 	xml = fopen("TEST-test1.xml", "w");
 	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));

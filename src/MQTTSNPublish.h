@@ -33,4 +33,14 @@ int MQTTSNSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packe
 
 int MQTTSNDeserialize_ack(unsigned char* packettype, unsigned short* packetid, unsigned char* buf, int buflen);
 
+int MQTTSNSerialize_register(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
+		MQTTString* topicname);
+int MQTTSNDeserialize_register(unsigned short* topicid, unsigned short* packetid, MQTTString* topicname,
+		unsigned char* buf, int buflen);
+
+int MQTTSNSerialize_regack(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
+		unsigned char return_code);
+int MQTTSNDeserialize_regack(unsigned short* topicid, unsigned short* packetid, unsigned char* return_code,
+		unsigned char* buf, int buflen);
+
 #endif /* MQTTSNPUBLISH_H_ */

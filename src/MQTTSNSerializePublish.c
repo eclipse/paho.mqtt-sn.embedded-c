@@ -203,3 +203,89 @@ int MQTTSNSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packe
 {
 	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBCOMP, 0, packetid);
 }
+
+
+/**
+  * Determines the length of the MQTT register packet that would be produced using the supplied parameters
+  * @param topicnamelen the length of the topic name to be used in the register
+  * @return the length of buffer needed to contain the serialized version of the packet
+  */
+int MQTTSNSerialize_registerLength(int topicnamelen)
+{
+	return topicnamelen + 5;
+}
+
+/**
+  * Serializes the supplied register data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param topicid if sent by a gateway, contains the id for the topicname, otherwise 0
+  * @param packetid integer - the MQTT packet identifier
+  * @param topicname null-terminated topic name string
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
+int MQTTSNSerialize_register(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
+		MQTTString* topicname)
+{
+	unsigned char *ptr = buf;
+	int len = 0;
+	int rc = 0;
+	int topicnamelen = 0;
+
+	FUNC_ENTRY;
+	topicnamelen = (topicname->cstring) ? strlen(topicname->cstring) : topicname->lenstring.len;
+	if ((len = MQTTSNPacket_len(MQTTSNSerialize_registerLength(topicnamelen))) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len);  /* write length */
+	writeChar(&ptr, MQTTSN_REGISTER);      /* write message type */
+
+	writeInt(&ptr, topicid);
+	writeInt(&ptr, packetid);
+
+	memcpy(ptr, (topicname->cstring) ? topicname->cstring : topicname->lenstring.data, topicnamelen);
+	ptr += topicnamelen;
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
+
+
+/**
+  * Serializes the supplied register data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param topicid if sent by a gateway, contains the id for the topicname, otherwise 0
+  * @param packetid integer - the MQTT packet identifier
+  * @param return_code integer return code
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
+int MQTTSNSerialize_regack(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
+		unsigned char return_code)
+{
+	unsigned char *ptr = buf;
+	int len = 0;
+	int rc = 0;
+
+	FUNC_ENTRY;
+	if ((len = MQTTSNPacket_len(6)) > buflen)
+	{
+		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
+		goto exit;
+	}
+	ptr += MQTTSNPacket_encode(ptr, len);  /* write length */
+	writeChar(&ptr, MQTTSN_REGACK);      /* write message type */
+
+	writeInt(&ptr, topicid);
+	writeInt(&ptr, packetid);
+	writeChar(&ptr, return_code);
+
+	rc = ptr - buf;
+exit:
+	FUNC_EXIT_RC(rc);
+	return rc;
+}
