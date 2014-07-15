@@ -584,6 +584,7 @@ int test3(struct Options options)
 
 
 
+
 int test4(struct Options options)
 {
 	int rc = 0;
@@ -632,98 +633,46 @@ int test4(struct Options options)
 }
 
 
-#if 0
-int test4(struct Options options)
-{
-	int i = 0;
-	int rc = 0;
-	char buf[100];
-	int buflen = sizeof(buf);
-#define TOPIC_COUNT 2
-
-	int msgid = 23;
-	int count = TOPIC_COUNT;
-	int granted_qoss[TOPIC_COUNT] = {2, 1};
-;
-	int msgid2 = 2223;
-	int count2 = 0;
-	int granted_qoss2[TOPIC_COUNT] = {0, 0};
-
-	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
-	global_start_time = start_clock();
-	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 4 - serialization of suback and back");
-
-	rc = MQTTSerialize_suback(buf, buflen, msgid, count, granted_qoss);
-	assert("good rc from serialize suback", rc > 0, "rc was %d\n", rc);
-
-	rc = MQTTDeserialize_suback(&msgid2, 2, &count2, granted_qoss2, buf, buflen);
-	assert("good rc from deserialize suback", rc == 1, "rc was %d\n", rc);
-
-	/* data after should be the same as data before */
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
-
-	assert("count should be the same", count == count2, "counts were different %d\n", count2);
-
-	for (i = 0; i < count2; ++i)
-		assert("qoss should be the same", granted_qoss[i] == granted_qoss2[i], "qoss were different %d\n", granted_qoss2[i]);
-
-/* exit: */
-	MyLog(LOGA_INFO, "TEST4: test %s. %d tests run, %d failures.",
-			(failures == 0) ? "passed" : "failed", tests, failures);
-	write_test_result();
-	return failures;
-}
-
-
 int test5(struct Options options)
 {
-	int i = 0;
 	int rc = 0;
-	char buf[100];
-	int buflen = sizeof(buf);
-#define TOPIC_COUNT 2
+	unsigned char buf[100];
+	size_t buflen = sizeof(buf);
 
-	int dup = 0;
-	int msgid = 23;
-	int count = TOPIC_COUNT;
-	MQTTString topicStrings[TOPIC_COUNT] = { MQTTString_initializer, MQTTString_initializer };
+	unsigned short packetid = 23;
+	MQTTSN_topicid topicFilter;
 
-	int dup2 = 1;
-	int msgid2 = 2223;
-	int count2 = 0;
-	MQTTString topicStrings2[TOPIC_COUNT] = { MQTTString_initializer, MQTTString_initializer };
+	unsigned short packetid2 = 2223;
+	MQTTSN_topicid topicFilter2;
 
-	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
+	fprintf(xml, "<testcase classname=\"test4\" name=\"de/serialization\"");
 	global_start_time = start_clock();
 	failures = 0;
-	MyLog(LOGA_INFO, "Starting test 2 - serialization of unsubscribe and back");
+	MyLog(LOGA_INFO, "Starting test 4 - serialization of unsubscribe and back");
 
-	topicStrings[0].cstring = "mytopic";
-	topicStrings[1].cstring = "mytopic2";
-	rc = MQTTSerialize_unsubscribe(buf, buflen, dup, msgid, count, topicStrings);
+	memset(&topicFilter, '\0', sizeof(topicFilter));
+	memset(&topicFilter2, '\0', sizeof(topicFilter2));
+	topicFilter.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topicFilter.data.long_.name = "mytopic";
+	topicFilter.data.long_.len = strlen(topicFilter.data.long_.name);
+	rc = MQTTSNSerialize_unsubscribe(buf, buflen, packetid, &topicFilter);
 	assert("good rc from serialize unsubscribe", rc > 0, "rc was %d\n", rc);
 
-	rc = MQTTDeserialize_unsubscribe(&dup2, &msgid2, 2, &count2, topicStrings2, buf, buflen);
+	rc = MQTTSNDeserialize_unsubscribe(&packetid2, &topicFilter2, buf, buflen);
 	assert("good rc from deserialize unsubscribe", rc == 1, "rc was %d\n", rc);
 
 	/* data after should be the same as data before */
-	assert("dups should be the same", dup == dup2, "dups were different %d\n", dup2);
-	assert("msgids should be the same", msgid == msgid2, "msgids were different %d\n", msgid2);
+	assert("msgids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
 
-	assert("count should be the same", count == count2, "counts were different %d\n", count2);
+	assert("topics should be the same",
+					checkMQTTSNTopics(topicFilter, topicFilter2), "topics were different %s\n", "");
 
-	for (i = 0; i < count2; ++i)
-		assert("topics should be the same",
-					checkMQTTStrings(topicStrings[i], topicStrings2[i]), "topics were different %s\n", "");
-
-/* exit: */
+/*exit:*/
 	MyLog(LOGA_INFO, "TEST5: test %s. %d tests run, %d failures.",
 			(failures == 0) ? "passed" : "failed", tests, failures);
 	write_test_result();
 	return failures;
 }
-#endif
 
 
 int test6(struct Options options)
@@ -758,10 +707,75 @@ int test6(struct Options options)
 }
 
 
+int test7(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned short packetid = 255, packetid2 = 0;
+	int qos = 2, qos2 = 0;
+	unsigned short topicid = 233, topicid2 = 0;
+	unsigned char return_code = 32, return_code2 = 0;
+
+	fprintf(xml, "<testcase classname=\"test7\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 6 - serialization of suback and back");
+
+	rc = MQTTSNSerialize_suback(buf, buflen, qos, topicid, packetid, return_code);
+	assert("good rc from serialize suback", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_suback(&qos2, &topicid2, &packetid2, &return_code2, buf, buflen);
+	assert("good rc from deserialize suback", rc == 1, "rc was %d\n", rc);
+
+	assert("packetids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
+	assert("qoss should be the same", qos == qos2, "qoss were different %d\n", qos2);
+	assert("topicids should be the same", topicid == topicid2, "topicids were different %d\n", topicid2);
+	assert("return codes should be the same", return_code == return_code2, "return codes were different %d\n", return_code2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST7: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+int test8(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned short packetid = 255, packetid2 = 0;
+
+	fprintf(xml, "<testcase classname=\"test8\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 6 - serialization of unsuback and back");
+
+	rc = MQTTSNSerialize_unsuback(buf, buflen, packetid);
+	assert("good rc from serialize unsuback", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_unsuback(&packetid2, buf, buflen);
+	assert("good rc from deserialize unsuback", rc == 1, "rc was %d\n", rc);
+
+	assert("packetids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST8: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+
+
+
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, test4, test6};
+ 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test7};
 
 	xml = fopen("TEST-test1.xml", "w");
 	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));

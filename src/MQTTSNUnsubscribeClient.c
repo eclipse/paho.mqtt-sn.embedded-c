@@ -25,7 +25,7 @@
   * @param topicName the topic name to be used in the publish  
   * @return the length of buffer needed to contain the serialized version of the packet
   */
-int MQTTSNSerialize_subscribeLength(MQTTSN_topicid* topicFilter)
+int MQTTSNSerialize_unsubscribeLength(MQTTSN_topicid* topicFilter)
 {
 	int len = 4;
 
@@ -38,7 +38,7 @@ int MQTTSNSerialize_subscribeLength(MQTTSN_topicid* topicFilter)
 }
 
 
-int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, unsigned short packetid, MQTTSN_topicid* topicFilter)
+int MQTTSNSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned short packetid, MQTTSN_topicid* topicFilter)
 {
 	unsigned char *ptr = buf;
 	MQTTSNFlags flags;
@@ -46,17 +46,15 @@ int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, 
 	int rc = 0;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(MQTTSNSerialize_subscribeLength(topicFilter))) > buflen)
+	if ((len = MQTTSNPacket_len(MQTTSNSerialize_unsubscribeLength(topicFilter))) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
 	}
 	ptr += MQTTSNPacket_encode(ptr, len);   /* write length */
-	writeChar(&ptr, MQTTSN_SUBSCRIBE);      /* write message type */
+	writeChar(&ptr, MQTTSN_UNSUBSCRIBE);      /* write message type */
 
 	flags.all = 0;
-	flags.bits.dup = dup;
-	flags.bits.QoS = qos;
 	flags.bits.topicIdType = topicFilter->type;
 	writeChar(&ptr, flags.all);
 
@@ -84,10 +82,8 @@ exit:
 }
 
 
-int MQTTSNDeserialize_suback(int* qos, unsigned short* topicid, unsigned short* packetid,
-		unsigned char* returncode, unsigned char* buf, int buflen)
+int MQTTSNDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int buflen)
 {
-	MQTTSNFlags flags;
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
 	int rc = 0;
@@ -99,15 +95,10 @@ int MQTTSNDeserialize_suback(int* qos, unsigned short* topicid, unsigned short* 
 	if (enddata - curdata > buflen)
 		goto exit;
 
-	if (readChar(&curdata) != MQTTSN_SUBACK)
+	if (readChar(&curdata) != MQTTSN_UNSUBACK)
 		goto exit;
 
-	flags.all = readChar(&curdata);
-	*qos = flags.bits.QoS;
-
-	*topicid = readInt(&curdata);
 	*packetid = readInt(&curdata);
-	*returncode = readChar(&curdata);
 
 	rc = 1;
 exit:

@@ -123,8 +123,7 @@ int MQTTstrlen(MQTTString mqttstring);
 #include "MQTTSNConnect.h"
 #include "MQTTSNPublish.h"
 #include "MQTTSNSubscribe.h"
-/*#include "MQTTSNUnsubscribe.h"
-*/
+#include "MQTTSNUnsubscribe.h"
 
 #include <stdio.h>
 
