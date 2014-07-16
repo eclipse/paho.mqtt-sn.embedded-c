@@ -184,38 +184,38 @@ int getLenStringLen(char* ptr)
 }
 
 
-void writeMQTTSNString(unsigned char** pptr, MQTTString mqttstring)
+void writeMQTTSNString(unsigned char** pptr, MQTTSNString MQTTSNString)
 {
-	if (mqttstring.lenstring.len > 0)
+	if (MQTTSNString.lenstring.len > 0)
 	{
-		memcpy(*pptr, mqttstring.lenstring.data, mqttstring.lenstring.len);
-		*pptr += mqttstring.lenstring.len;
+		memcpy(*pptr, MQTTSNString.lenstring.data, MQTTSNString.lenstring.len);
+		*pptr += MQTTSNString.lenstring.len;
 	}
-	else if (mqttstring.cstring)
-		writeCString(pptr, mqttstring.cstring);
+	else if (MQTTSNString.cstring)
+		writeCString(pptr, MQTTSNString.cstring);
 }
 
 
 /**
- * @param mqttstring the MQTTString structure into which the data is to be read
+ * @param MQTTSNString the MQTTSNString structure into which the data is to be read
  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
  * @param enddata pointer to the end of the data: do not read beyond
  * @return 1 if successful, 0 if not
  */
-int readMQTTSNString(MQTTString* mqttstring, unsigned char** pptr, unsigned char* enddata)
+int readMQTTSNString(MQTTSNString* MQTTSNString, unsigned char** pptr, unsigned char* enddata)
 {
 	int rc = 0;
 
 	FUNC_ENTRY;
-	mqttstring->lenstring.len = enddata - *pptr;
-	if (mqttstring->lenstring.len > 0)
+	MQTTSNString->lenstring.len = enddata - *pptr;
+	if (MQTTSNString->lenstring.len > 0)
 	{
-		mqttstring->lenstring.data = (char*)*pptr;
-		*pptr += mqttstring->lenstring.len;
+		MQTTSNString->lenstring.data = (char*)*pptr;
+		*pptr += MQTTSNString->lenstring.len;
 	}
 	else
-		mqttstring->lenstring.data = NULL;
-	mqttstring->cstring = NULL;
+		MQTTSNString->lenstring.data = NULL;
+	MQTTSNString->cstring = NULL;
 	rc = 1;
 	FUNC_EXIT_RC(rc);
 	return rc;
@@ -223,18 +223,18 @@ int readMQTTSNString(MQTTString* mqttstring, unsigned char** pptr, unsigned char
 
 
 /**
- * Return the length of the MQTTstring - C string if there is one, otherwise the length delimited string
- * @param mqttstring the string to return the length of
+ * Return the length of the MQTTSNString - C string if there is one, otherwise the length delimited string
+ * @param MQTTSNString the string to return the length of
  * @return the length of the string
  */
-int MQTTstrlen(MQTTString mqttstring)
+int MQTTSNstrlen(MQTTSNString MQTTSNString)
 {
 	int rc = 0;
 
-	if (mqttstring.cstring)
-		rc = strlen(mqttstring.cstring);
+	if (MQTTSNString.cstring)
+		rc = strlen(MQTTSNString.cstring);
 	else
-		rc = mqttstring.lenstring.len;
+		rc = MQTTSNString.lenstring.len;
 	return rc;
 }
 

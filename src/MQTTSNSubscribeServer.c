@@ -18,6 +18,17 @@
 #include "MQTTSNPacket.h"
 #include <string.h>
 
+
+/**
+  * Deserializes the supplied (wire) buffer into subscribe data
+  * @param dup the returned MQTT-SN dup flag
+  * @param qos the returned qos
+  * @param packetid returned - the same value as the one contained in the corresponding SUBSCRIBE
+  * @param topicFilter returned - the topic filter - normal, predefined or short
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_subscribe(int* dup, int* qos, unsigned short* packetid,
         MQTTSN_topicid* topicFilter, unsigned char* buf, int buflen)
 {
@@ -64,6 +75,16 @@ exit:
 }
 
 
+/**
+  * Serializes the supplied suback data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param qos integer - the MQTT-SN QoS value
+  * @param topicid if "accepted" the value which will be used by the gateway in subsequent PUBLISH packets
+  * @param packetid integer - the MQTT-SN packet identifier
+  * @param returncode returned - "accepted" or rejection reason
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
 int MQTTSNSerialize_suback(unsigned char* buf, int buflen, int qos, unsigned short topicid, unsigned short packetid,
 		unsigned char returncode)
 {

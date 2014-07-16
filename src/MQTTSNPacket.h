@@ -108,17 +108,17 @@ typedef struct
 {
 	int len;
 	char* data;
-} MQTTLenString;
+} MQTTSNLenString;
 
 typedef struct
 {
 	char* cstring;
-	MQTTLenString lenstring;
-} MQTTString;
+	MQTTSNLenString lenstring;
+} MQTTSNString;
 
-#define MQTTString_initializer {NULL, {0, NULL}}
+#define MQTTSNString_initializer {NULL, {0, NULL}}
 
-int MQTTstrlen(MQTTString mqttstring);
+int MQTTSNstrlen(MQTTSNString mqttsnstring);
 
 #include "MQTTSNConnect.h"
 #include "MQTTSNPublish.h"
@@ -138,9 +138,9 @@ int readInt(unsigned char** pptr);
 char readChar(unsigned char** pptr);
 void writeChar(unsigned char** pptr, char c);
 void writeInt(unsigned char** pptr, int anInt);
-int readMQTTSNString(MQTTString* mqttstring, unsigned char** pptr, unsigned char* enddata);
+int readMQTTSNString(MQTTSNString* mqttstring, unsigned char** pptr, unsigned char* enddata);
 void writeCString(unsigned char** pptr, char* string);
-void writeMQTTSNString(unsigned char** pptr, MQTTString mqttstring);
+void writeMQTTSNString(unsigned char** pptr, MQTTSNString mqttstring);
 
 int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t));
 

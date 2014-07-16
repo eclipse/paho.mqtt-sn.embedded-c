@@ -225,7 +225,7 @@ int MQTTSNSerialize_registerLength(int topicnamelen)
   * @return the length of the serialized data.  <= 0 indicates error
   */
 int MQTTSNSerialize_register(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,
-		MQTTString* topicname)
+		MQTTSNString* topicname)
 {
 	unsigned char *ptr = buf;
 	int len = 0;

@@ -24,7 +24,7 @@ typedef struct
 	/** The version number of this structure.  Must be 0.
 	  */
 	int struct_version;
-	MQTTString clientID;
+	MQTTSNString clientID;
 	int duration;
 	int cleansession;
 	int willFlag;
@@ -41,32 +41,32 @@ int MQTTSNDeserialize_connack(int* connack_rc, unsigned char* buf, int buflen);
 int MQTTSNSerialize_disconnect(unsigned char* buf, int buflen, int duration);
 int MQTTSNDeserialize_disconnect(int* duration, unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTString clientid);
-int MQTTSNDeserialize_pingreq(MQTTString* clientID, unsigned char* buf, int len);
+int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTSNString clientid);
+int MQTTSNDeserialize_pingreq(MQTTSNString* clientID, unsigned char* buf, int len);
 
 int MQTTSNSerialize_pingresp(unsigned char* buf, int buflen);
 int MQTTSNDeserialize_pingresp(unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTString willMsg);
-int MQTTSNDeserialize_willmsg(MQTTString* willMsg, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTSNString willMsg);
+int MQTTSNDeserialize_willmsg(MQTTSNString* willMsg, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willmsgreq(unsigned char* buf, int buflen);
 int MQTTSNDeserialize_willmsgreq(unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMsg);
-int MQTTSNDeserialize_willmsgupd(MQTTString* willMsg, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTSNString willMsg);
+int MQTTSNDeserialize_willmsgupd(MQTTSNString* willMsg, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willmsgresp(unsigned char* buf, int buflen, int resp_rc);
 int MQTTSNDeserialize_willmsgresp(int* resp_rc, unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic);
-int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTString* willTopic, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic);
+int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willtopicreq(unsigned char* buf, int buflen);
 int MQTTSNDeserialize_willtopicreq(unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic);
-int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTString* willTopic, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic);
+int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willtopicresp(unsigned char* buf, int buflen, int resp_rc);
 int MQTTSNDeserialize_willtopicresp(int* resp_rc, unsigned char* buf, int buflen);

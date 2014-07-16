@@ -29,7 +29,7 @@ int MQTTSNSerialize_connectLength(MQTTSNPacket_connectData* options)
 	int len = 0;
 
 	FUNC_ENTRY;
-	len = 5 + MQTTstrlen(options->clientID);
+	len = 5 + MQTTSNstrlen(options->clientID);
 	FUNC_EXIT_RC(len);
 	return len;
 }
@@ -160,14 +160,14 @@ exit:
   * @param clientid optional string, not added to packet string == NULL
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTString clientid)
+int MQTTSNSerialize_pingreq(unsigned char* buf, int buflen, MQTTSNString clientid)
 {
 	int rc = -1;
 	unsigned char *ptr = buf;
 	int len = 0;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(MQTTstrlen(clientid) + 1)) > buflen)
+	if ((len = MQTTSNPacket_len(MQTTSNstrlen(clientid) + 1)) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
@@ -222,7 +222,7 @@ exit:
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic,
+int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic,
 		enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char *ptr = buf;
@@ -231,7 +231,7 @@ int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, int 
 	int rc = -1;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(MQTTstrlen(willTopic) + 2)) > buflen)
+	if ((len = MQTTSNPacket_len(MQTTSNstrlen(willTopic) + 2)) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
@@ -263,7 +263,7 @@ exit:
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic)
 {
 	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPICUPD);
 }
@@ -278,7 +278,7 @@ int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, in
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTString willTopic)
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic)
 {
 	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPIC);
 }
@@ -291,14 +291,14 @@ int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int w
   * @param willMsg the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willmsg1(unsigned char* buf, int buflen, MQTTString willMsg, enum MQTTSN_msgTypes packet_type)
+int MQTTSNSerialize_willmsg1(unsigned char* buf, int buflen, MQTTSNString willMsg, enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char *ptr = buf;
 	int len = 0;
 	int rc = -1;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(MQTTstrlen(willMsg) + 1)) > buflen)
+	if ((len = MQTTSNPacket_len(MQTTSNstrlen(willMsg) + 1)) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
@@ -322,7 +322,7 @@ int MQTTSNSerialize_willmsg1(unsigned char* buf, int buflen, MQTTString willMsg,
   * @param willMsg the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTString willMsg)
+int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTSNString willMsg)
 {
 	return MQTTSNSerialize_willmsg1(buf, buflen, willMsg, MQTTSN_WILLMSG);
 }
@@ -335,7 +335,7 @@ int MQTTSNSerialize_willmsg(unsigned char* buf, int buflen, MQTTString willMsg)
   * @param willMsg the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTString willMsg)
+int MQTTSNSerialize_willmsgupd(unsigned char* buf, int buflen, MQTTSNString willMsg)
 {
 	return MQTTSNSerialize_willmsg1(buf, buflen, willMsg, MQTTSN_WILLMSGUPD);
 }

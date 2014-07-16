@@ -247,7 +247,7 @@ void myassert(char* filename, int lineno, char* description, int value, char* fo
 
 #define min(a, b) ((a < b) ? a : b)
 
-int checkMQTTStrings(MQTTString a, MQTTString b)
+int checkMQTTSNStrings(MQTTSNString a, MQTTSNString b)
 {
 	if (!a.lenstring.data)
 	{
@@ -295,7 +295,7 @@ int checkConnectPackets(MQTTSNPacket_connectData* before, MQTTSNPacket_connectDa
 			before->struct_version == after->struct_version, "struct_versions were different\n", rc);
 
 	assert("ClientIDs should be the same",
-			checkMQTTStrings(before->clientID, after->clientID), "ClientIDs were different\n", rc);
+			checkMQTTSNStrings(before->clientID, after->clientID), "ClientIDs were different\n", rc);
 
 	assert("durations should be the same",
 			before->duration == after->duration, "durations were different\n", rc);
@@ -316,7 +316,7 @@ int test1(struct Options options)
 	int rc = 0;
 	unsigned char buf[100];
 	int buflen = sizeof(buf);
-	MQTTString clientid = MQTTString_initializer, clientid_after = MQTTString_initializer;
+	MQTTSNString clientid = MQTTSNString_initializer, clientid_after = MQTTSNString_initializer;
 	int duration_after = -1;
 
 	fprintf(xml, "<testcase classname=\"test1\" name=\"de/serialization\"");
@@ -350,7 +350,7 @@ int test1(struct Options options)
 
 	/* data after should be the same as data before */
 	assert("ClientIDs should be the same",
-			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+			checkMQTTSNStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
 
 	/* Pingreq with clientid */
 	clientid.cstring = "this is me";
@@ -362,7 +362,7 @@ int test1(struct Options options)
 
 	/* data after should be the same as data before */
 	assert("ClientIDs should be the same",
-			checkMQTTStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
+			checkMQTTSNStrings(clientid, clientid_after), "ClientIDs were different\n", rc);
 
 	rc = MQTTSNSerialize_pingresp(buf, buflen);
 	assert("good rc from serialize pingresp", rc > 0, "rc was %d\n", rc);
@@ -512,7 +512,7 @@ int test3(struct Options options)
 
 	memset(buf, '\0', sizeof(buf));
 	int willQoS = 1, willRetain = 1, willQoS1 = 0, willRetain1 = 0;
-	MQTTString willTopic = MQTTString_initializer, willTopic1 = MQTTString_initializer;
+	MQTTSNString willTopic = MQTTSNString_initializer, willTopic1 = MQTTSNString_initializer;
 	willTopic.cstring = "a will topic";
 	rc = MQTTSNSerialize_willtopic(buf, buflen, willQoS, willRetain, willTopic);
 	assert("good rc from serialize willtopic", rc > 0, "rc was %d\n", rc);
@@ -521,11 +521,11 @@ int test3(struct Options options)
 	assert("good rc from deserialize willtopic", rc == 1, "rc was %d\n", rc);
 	assert("willQoSs are the same", willQoS == willQoS1, "willQoS1 was %d\n", willQoS1);
 	assert("willRetains are the same", willRetain == willRetain1, "willRetain1 was %d\n", willRetain1);
-	assert("willTopics are the same", checkMQTTStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
+	assert("willTopics are the same", checkMQTTSNStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
 
 	memset(buf, '\0', sizeof(buf));
 	willQoS = 2; willRetain = 1; willQoS1 = 0; willRetain1 = 0;
-	MQTTString initTopic = MQTTString_initializer;
+	MQTTSNString initTopic = MQTTSNString_initializer;
 	memcpy(&willTopic, &initTopic, sizeof(initTopic));
 	memcpy(&willTopic1, &initTopic, sizeof(initTopic));
 	willTopic.cstring = "a will topic update";
@@ -536,17 +536,17 @@ int test3(struct Options options)
 	assert("good rc from deserialize willtopicupd", rc == 1, "rc was %d\n", rc);
 	assert("willQoSs are the same", willQoS == willQoS1, "willQoS1 was %d\n", willQoS1);
 	assert("willRetains are the same", willRetain == willRetain1, "willRetain1 was %d\n", willRetain1);
-	assert("willTopics are the same", checkMQTTStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
+	assert("willTopics are the same", checkMQTTSNStrings(willTopic, willTopic1), "willTopic1 was %.s\n", willTopic1.lenstring.data);
 
 	memset(buf, '\0', sizeof(buf));
-	MQTTString willMsg = MQTTString_initializer, willMsg1 = MQTTString_initializer;
+	MQTTSNString willMsg = MQTTSNString_initializer, willMsg1 = MQTTSNString_initializer;
 	willMsg.cstring = "a will message";
 	rc = MQTTSNSerialize_willmsg(buf, buflen, willMsg);
 	assert("good rc from serialize willmsg", rc > 0, "rc was %d\n", rc);
 
 	rc = MQTTSNDeserialize_willmsg(&willMsg1, buf, rc);
 	assert("good rc from deserialize willmsg", rc == 1, "rc was %d\n", rc);
-	assert("willMsgs are the same", checkMQTTStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
+	assert("willMsgs are the same", checkMQTTSNStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
 
 	memset(buf, '\0', sizeof(buf));
 	memcpy(&willMsg, &initTopic, sizeof(initTopic));
@@ -557,7 +557,7 @@ int test3(struct Options options)
 
 	rc = MQTTSNDeserialize_willmsgupd(&willMsg1, buf, rc);
 	assert("good rc from deserialize willmsgupd", rc == 1, "rc was %d\n", rc);
-	assert("willMsgs are the same", checkMQTTStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
+	assert("willMsgs are the same", checkMQTTSNStrings(willMsg, willMsg1), "willMsg1 was %.s\n", willMsg1.lenstring.data);
 
 	int resp_rc = 33, resp_rc2 = 0;
 	rc = MQTTSNSerialize_willmsgresp(buf, buflen, resp_rc);
@@ -776,7 +776,7 @@ int test9(struct Options options)
 	int buflen = sizeof(buf);
 	unsigned short packetid = 255, packetid2 = 0;
 	unsigned short topicid = 233, topicid2 = 0;
-	MQTTString topicname = MQTTString_initializer, topicname2 = MQTTString_initializer;
+	MQTTSNString topicname = MQTTSNString_initializer, topicname2 = MQTTSNString_initializer;
 
 	fprintf(xml, "<testcase classname=\"test9\" name=\"de/serialization\"");
 	global_start_time = start_clock();
@@ -792,7 +792,7 @@ int test9(struct Options options)
 	assert("packetids should be the same", packetid == packetid2, "packetids were different %d\n", packetid2);
 	assert("topicids should be the same", topicid == topicid2, "topicids were different %d\n", topicid2);
 	assert("topicnames should be the same",
-			checkMQTTStrings(topicname, topicname2), "topicnames were different\n", rc);
+			checkMQTTSNStrings(topicname, topicname2), "topicnames were different\n", rc);
 
 
 /* exit: */
@@ -835,10 +835,101 @@ int test10(struct Options options)
 }
 
 
+int test11(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned char gatewayid = 255, gatewayid2 = 0;
+	unsigned short duration = 3233, duration2 = 0;
+
+	fprintf(xml, "<testcase classname=\"test11\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 11 - serialization of advertise and back");
+
+	rc = MQTTSNSerialize_advertise(buf, buflen, gatewayid, duration);
+	assert("good rc from serialize advertise", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_advertise(&gatewayid2, &duration2, buf, buflen);
+	assert("good rc from deserialize advertise", rc == 1, "rc was %d\n", rc);
+
+	assert("gatewayids should be the same", gatewayid == gatewayid2, "gatewayids were different %d\n", gatewayid2);
+	assert("return codes should be the same", duration == duration2, "return_codes were different %d\n", duration2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST11: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+int test12(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned char radius = 255, radius2 = 0;
+
+	fprintf(xml, "<testcase classname=\"test12\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 12 - serialization of searchgw and back");
+
+	rc = MQTTSNSerialize_searchgw(buf, buflen, radius);
+	assert("good rc from serialize searchgw", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_searchgw(&radius2, buf, buflen);
+	assert("good rc from deserialize searchgw", rc == 1, "rc was %d\n", rc);
+
+	assert("radiuss should be the same", radius == radius2, "radiuss were different %d\n", radius2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST12: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
+int test13(struct Options options)
+{
+	int rc = 0;
+	unsigned char buf[100];
+	int buflen = sizeof(buf);
+	unsigned char gatewayid = 255, gatewayid2 = 0;
+	unsigned short gatewayaddress_len = 16, gatewayaddress_len2 = 0;
+	unsigned char gatewayaddress[40] = "a gateway address", *gatewayaddress2 = NULL;
+
+	fprintf(xml, "<testcase classname=\"test11\" name=\"de/serialization\"");
+	global_start_time = start_clock();
+	failures = 0;
+	MyLog(LOGA_INFO, "Starting test 13 - serialization of gwinfo and back");
+
+	rc = MQTTSNSerialize_gwinfo(buf, buflen, gatewayid, gatewayaddress_len, gatewayaddress);
+	assert("good rc from serialize gwinfo", rc > 0, "rc was %d\n", rc);
+
+	rc = MQTTSNDeserialize_gwinfo(&gatewayid2, &gatewayaddress_len2, &gatewayaddress2, buf, buflen);
+	assert("good rc from deserialize gwinfo", rc == 1, "rc was %d\n", rc);
+
+	assert("gatewayids should be the same", gatewayid == gatewayid2, "gatewayids were different %d\n", gatewayid2);
+	assert("gateway lengths should be the same", gatewayaddress_len == gatewayaddress_len2, "gateway lengths were different %d\n", gatewayaddress_len2);
+	assert("gateway addresses should be the same", memcmp(gatewayaddress, gatewayaddress2, gatewayaddress_len) == 0,
+			"gateway addresses were different %.10s\n", gatewayaddress2);
+
+/* exit: */
+	MyLog(LOGA_INFO, "TEST13: test %s. %d tests run, %d failures.",
+			(failures == 0) ? "passed" : "failed", tests, failures);
+	write_test_result();
+	return failures;
+}
+
+
 int main(int argc, char** argv)
 {
 	int rc = 0;
- 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10};
+ 	int (*tests[])() = {NULL, test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test12, test13};
 
 	xml = fopen("TEST-test1.xml", "w");
 	fprintf(xml, "<testsuite name=\"test1\" tests=\"%d\">\n", (int)(ARRAY_SIZE(tests) - 1));

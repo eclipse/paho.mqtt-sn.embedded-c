@@ -82,6 +82,13 @@ exit:
 }
 
 
+/**
+  * Deserializes the supplied (wire) buffer into unsuback data
+  * @param packetid returned - the same value as the one contained in the corresponding SUBSCRIBE
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int buflen)
 {
 	unsigned char* curdata = buf;

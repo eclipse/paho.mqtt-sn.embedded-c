@@ -38,6 +38,16 @@ int MQTTSNSerialize_subscribeLength(MQTTSN_topicid* topicFilter)
 }
 
 
+/**
+  * Serializes the supplied subscribe data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param dup integer - the MQTT-SN dup flag
+  * @param qos integer - the MQTT-SN QoS value
+  * @param packetid integer - the MQTT-SN packet identifier
+  * @param topic MQTTSN_topicid - the MQTT-SN topic in the subscribe
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
 int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, unsigned short packetid, MQTTSN_topicid* topicFilter)
 {
 	unsigned char *ptr = buf;
@@ -84,6 +94,16 @@ exit:
 }
 
 
+/**
+  * Deserializes the supplied (wire) buffer into suback data
+  * @param qos the returned qos
+  * @param topicid returned if "accepted" the value which will be used by the gateway in subsequent PUBLISH packets
+  * @param packetid returned - the same value as the one contained in the corresponding SUBSCRIBE
+  * @param returncode returned - "accepted" or rejection reason
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_suback(int* qos, unsigned short* topicid, unsigned short* packetid,
 		unsigned char* returncode, unsigned char* buf, int buflen)
 {

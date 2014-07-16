@@ -194,7 +194,7 @@ exit:
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_pingreq(MQTTString* clientID, unsigned char* buf, int len)
+int MQTTSNDeserialize_pingreq(MQTTSNString* clientID, unsigned char* buf, int len)
 {
 	unsigned char* curdata = buf;
 	unsigned char* enddata = &buf[len];
@@ -255,7 +255,7 @@ exit:
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willtopic1(int *willQoS, int *willRetain, MQTTString* willTopic, unsigned char* buf, int len,
+int MQTTSNDeserialize_willtopic1(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int len,
 		enum MQTTSN_msgTypes packet_type)
 {
 	MQTTSNFlags flags;
@@ -294,7 +294,7 @@ exit:
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTString* willTopic, unsigned char* buf, int len)
+int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int len)
 {
 	return MQTTSNDeserialize_willtopic1(willQoS, willRetain, willTopic, buf, len, MQTTSN_WILLTOPIC);
 }
@@ -306,7 +306,7 @@ int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTString* willT
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTString* willTopic, unsigned char* buf, int len)
+int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int len)
 {
 	return MQTTSNDeserialize_willtopic1(willQoS, willRetain, willTopic, buf, len, MQTTSN_WILLTOPICUPD);
 }
@@ -319,7 +319,7 @@ int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTString* wi
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willmsg1(MQTTString* willMsg, unsigned char* buf, int len, enum MQTTSN_msgTypes packet_type)
+int MQTTSNDeserialize_willmsg1(MQTTSNString* willMsg, unsigned char* buf, int len, enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char* curdata = buf;
 	unsigned char* enddata = &buf[len];
@@ -352,7 +352,7 @@ exit:
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willmsg(MQTTString* willMsg, unsigned char* buf, int len)
+int MQTTSNDeserialize_willmsg(MQTTSNString* willMsg, unsigned char* buf, int len)
 {
 	return MQTTSNDeserialize_willmsg1(willMsg, buf, len, MQTTSN_WILLMSG);
 }
@@ -364,7 +364,7 @@ int MQTTSNDeserialize_willmsg(MQTTString* willMsg, unsigned char* buf, int len)
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTSNDeserialize_willmsgupd(MQTTString* willMsg, unsigned char* buf, int len)
+int MQTTSNDeserialize_willmsgupd(MQTTSNString* willMsg, unsigned char* buf, int len)
 {
 	return MQTTSNDeserialize_willmsg1(willMsg, buf, len, MQTTSN_WILLMSGUPD);
 }

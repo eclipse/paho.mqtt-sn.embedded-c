@@ -20,6 +20,14 @@
 #include <string.h>
 
 
+/**
+  * Deserializes the supplied (wire) buffer into advertise data
+  * @param gatewayid the returned gateway id
+  * @param duration the returned duration - the time interval until the next advertise will be sent
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_advertise(unsigned char* gatewayid, unsigned short* duration,	unsigned char* buf, int buflen)
 {
 	unsigned char* curdata = buf;
@@ -46,6 +54,14 @@ exit:
 }
 
 
+
+/**
+  * Serializes the supplied searchgw data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param radius the broadcast radius of this message
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
 int MQTTSNSerialize_searchgw(unsigned char* buf, int buflen, unsigned char radius)
 {
 	unsigned char *ptr = buf;
@@ -71,6 +87,15 @@ exit:
 }
 
 
+/**
+  * Deserializes the supplied (wire) buffer into gwinfo data
+  * @param gatewayid the returned gateway id
+  * @param gatewayaddress_len the optional returned length of the gateway address (0 if none)
+  * @param gatewayaddress the optional returned gateway address (set to NULL if none)
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_gwinfo(unsigned char* gatewayid, unsigned short* gatewayaddress_len,
 		unsigned char** gatewayaddress, unsigned char* buf, int buflen)
 {
@@ -91,15 +116,11 @@ int MQTTSNDeserialize_gwinfo(unsigned char* gatewayid, unsigned short* gatewayad
 	*gatewayid = readChar(&curdata);
 
 	*gatewayaddress_len = enddata - curdata;
-	*gatewayaddress = curdata;
+	*gatewayaddress = (gatewayaddress_len > 0) ? curdata : NULL;
 
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
 	return rc;
 }
-
-
-
-
 

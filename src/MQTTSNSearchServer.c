@@ -20,6 +20,14 @@
 #include <string.h>
 
 
+/**
+  * Serializes the supplied advertise data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param radius the broadcast radius of this message
+  * @param duration - the time interval until the next advertise will be sent
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
 int MQTTSNSerialize_advertise(unsigned char* buf, int buflen, unsigned char gatewayid, unsigned short duration)
 {
 	unsigned char *ptr = buf;
@@ -45,6 +53,13 @@ exit:
 }
 
 
+/**
+  * Deserializes the supplied (wire) buffer into searchgw data
+  * @param radius the returned broadcast radius of this message
+  * @param buf the raw buffer data, of the correct length determined by the remaining length field
+  * @param buflen the length in bytes of the data in the supplied buffer
+  * @return error code.  1 is success
+  */
 int MQTTSNDeserialize_searchgw(unsigned char* radius, unsigned char* buf, int buflen)
 {
 	unsigned char* curdata = buf;
@@ -70,6 +85,15 @@ exit:
 }
 
 
+/**
+  * Serializes the supplied gwinfo data into the supplied buffer, ready for sending
+  * @param buf the buffer into which the packet will be serialized
+  * @param buflen the length in bytes of the supplied buffer
+  * @param gatewayid the gateway id
+  * @param gatewayaddress_len the optional length of the gateway address (0 if none)
+  * @param gatewayaddress the optional gateway address (NULL if none)
+  * @return the length of the serialized data.  <= 0 indicates error
+  */
 int MQTTSNSerialize_gwinfo(unsigned char* buf, int buflen, unsigned char gatewayid, unsigned short gatewayaddress_len,
 		unsigned char* gatewayaddress)
 {
@@ -87,8 +111,11 @@ int MQTTSNSerialize_gwinfo(unsigned char* buf, int buflen, unsigned char gateway
 	writeChar(&ptr, MQTTSN_GWINFO);      /* write message type */
 
 	writeChar(&ptr, gatewayid);
-	memcpy(ptr, gatewayaddress, gatewayaddress_len);
-	ptr += gatewayaddress_len;
+	if (gatewayaddress_len > 0 && gatewayaddress != NULL)
+	{
+		memcpy(ptr, gatewayaddress, gatewayaddress_len);
+		ptr += gatewayaddress_len;
+	}
 
 	rc = ptr - buf;
 exit:

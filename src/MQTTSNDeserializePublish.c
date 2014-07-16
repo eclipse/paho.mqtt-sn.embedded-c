@@ -26,7 +26,7 @@
   * @param qos returned integer - the MQTT QoS value
   * @param retained returned integer - the MQTT retained flag
   * @param packetid returned integer - the MQTT packet identifier
-  * @param topicName returned MQTTString - the MQTT topic in the publish
+  * @param topicName returned MQTTSNString - the MQTT topic in the publish
   * @param payload returned byte buffer - the MQTT publish payload
   * @param payloadlen returned integer - the length of the MQTT payload
   * @param buf the raw buffer data, of the correct length determined by the remaining length field
@@ -152,12 +152,12 @@ exit:
   * Deserializes the supplied (wire) buffer into register data
   * @param topicid returned topic id
   * @param packetid returned integer - the MQTT packet identifier
-  * @param topicName returned MQTTString - the MQTT topic in the register
+  * @param topicName returned MQTTSNString - the MQTT topic in the register
   * @param buf the raw buffer data, of the correct length determined by the remaining length field
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success
   */
-int MQTTSNDeserialize_register(unsigned short* topicid, unsigned short* packetid, MQTTString* topicname,
+int MQTTSNDeserialize_register(unsigned short* topicid, unsigned short* packetid, MQTTSNString* topicname,
 		unsigned char* buf, int buflen)
 {
 	unsigned char* curdata = buf;
