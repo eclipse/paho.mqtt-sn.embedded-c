@@ -124,6 +124,7 @@ int MQTTstrlen(MQTTString mqttstring);
 #include "MQTTSNPublish.h"
 #include "MQTTSNSubscribe.h"
 #include "MQTTSNUnsubscribe.h"
+#include "MQTTSNSearch.h"
 
 #include <stdio.h>
 
