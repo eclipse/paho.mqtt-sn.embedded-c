@@ -126,13 +126,11 @@ int MQTTSNstrlen(MQTTSNString mqttsnstring);
 #include "MQTTSNUnsubscribe.h"
 #include "MQTTSNSearch.h"
 
-#include <stdio.h>
-
 char* MQTTSNPacket_name(int ptype);
 int MQTTSNPacket_len(int length);
 
 int MQTTSNPacket_encode(unsigned char* buf, int length);
-int MQTTSNPacket_decode(unsigned char* buf, size_t buflen, int* value);
+int MQTTSNPacket_decode(unsigned char* buf, int buflen, int* value);
 
 int readInt(unsigned char** pptr);
 char readChar(unsigned char** pptr);
@@ -142,7 +140,7 @@ int readMQTTSNString(MQTTSNString* mqttstring, unsigned char** pptr, unsigned ch
 void writeCString(unsigned char** pptr, char* string);
 void writeMQTTSNString(unsigned char** pptr, MQTTSNString mqttstring);
 
-int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t));
+int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int));
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 }

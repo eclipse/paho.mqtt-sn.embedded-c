@@ -141,10 +141,11 @@ int main(int argc, char** argv)
 	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
 	topic.data.long_.name = topicname;
 	topic.data.long_.len = strlen(topicname);
-	len = MQTTSNSerialize_publish(buf, buflen - len, dup, qos, retained, packetid,
+	len = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, packetid,
 			topic, payload, payloadlen);
 	rc = sendPacketBuffer(mysock, host, port, buf, len);
 
+	printf("rc %d from send packet for publish length %d\n", rc, len);
 	rc = shutdown(mysock, SHUT_WR);
 	rc = close(mysock);
 

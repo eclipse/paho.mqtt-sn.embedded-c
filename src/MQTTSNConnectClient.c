@@ -222,7 +222,7 @@ exit:
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic,
+int MQTTSNSerialize_willtopic1(unsigned char* buf, int buflen, int willQoS, unsigned char willRetain, MQTTSNString willTopic,
 		enum MQTTSN_msgTypes packet_type)
 {
 	unsigned char *ptr = buf;
@@ -263,7 +263,7 @@ exit:
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic)
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, unsigned char willRetain, MQTTSNString willTopic)
 {
 	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPICUPD);
 }
@@ -278,7 +278,7 @@ int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, in
   * @param willTopic the topic of the will message
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic)
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, unsigned char willRetain, MQTTSNString willTopic)
 {
 	return MQTTSNSerialize_willtopic1(buf, buflen, willQoS, willRetain, willTopic, MQTTSN_WILLTOPIC);
 }

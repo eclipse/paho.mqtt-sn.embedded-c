@@ -17,9 +17,9 @@
 #if !defined(MQTTSNSUBSCRIBE_H_)
 #define MQTTSNSUBSCRIBE_H_
 
-int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, unsigned short packetid, 
+int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned short packetid,
         MQTTSN_topicid* topicFilter);
-int MQTTSNDeserialize_subscribe(int* dup, int* qos, unsigned short* packetid,
+int MQTTSNDeserialize_subscribe(unsigned char* dup, int* qos, unsigned short* packetid,
         MQTTSN_topicid* topicFilter, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_suback(unsigned char* buf, int buflen, int qos, unsigned short topicid, unsigned short packetid,

@@ -48,7 +48,8 @@ int MQTTSNSerialize_subscribeLength(MQTTSN_topicid* topicFilter)
   * @param topic MQTTSN_topicid - the MQTT-SN topic in the subscribe
   * @return the length of the serialized data.  <= 0 indicates error
   */
-int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, int dup, int qos, unsigned short packetid, MQTTSN_topicid* topicFilter)
+int MQTTSNSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned short packetid,
+		MQTTSN_topicid* topicFilter)
 {
 	unsigned char *ptr = buf;
 	MQTTSNFlags flags;

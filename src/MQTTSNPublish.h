@@ -17,9 +17,9 @@
 #if !defined(MQTTSNPUBLISH_H_)
 #define MQTTSNPUBLISH_H_
 
-int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, int retained, unsigned short packetid,
+int MQTTSNSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		MQTTSN_topicid topic, unsigned char* payload, int payloadlen);
-int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, unsigned short* packetid,
+int MQTTSNDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid,
 		MQTTSN_topicid* topic, unsigned char** payload, int* payloadlen, unsigned char* buf, int len);
 
 int MQTTSNSerialize_puback(unsigned char* buf, int buflen, unsigned short topicid, unsigned short packetid,

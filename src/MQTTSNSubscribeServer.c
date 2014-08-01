@@ -29,7 +29,7 @@
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success
   */
-int MQTTSNDeserialize_subscribe(int* dup, int* qos, unsigned short* packetid,
+int MQTTSNDeserialize_subscribe(unsigned char* dup, int* qos, unsigned short* packetid,
         MQTTSN_topicid* topicFilter, unsigned char* buf, int buflen)
 {
 	MQTTSNFlags flags;

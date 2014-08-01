@@ -16,8 +16,6 @@
 
 #include "MQTTSNPacket.h"
 
-#include <sys/types.h>
-
 #if !defined(SOCKET_ERROR)
 	/** error in socket operation */
 	#define SOCKET_ERROR -1
@@ -108,7 +106,7 @@ int mysock = 0;
 char *host = "127.0.0.1";
 int port = 1884;
 
-int getdata(unsigned char* buf, size_t count)
+int getdata(unsigned char* buf, int count)
 {
 	int rc = recvfrom(mysock, buf, count, 0, NULL, NULL);
 	printf("received %d bytes count %d\n", rc, (int)count);
@@ -125,9 +123,10 @@ int main(int argc, char** argv)
 	unsigned char* payload = (unsigned char*)"mypayload";
 	int payloadlen = strlen((char*)payload);
 	int len = 0;
-	int dup = 0;
+	unsigned char dup = 0;
 	int qos = 1;
-	int retained = 0, packetid = 1;
+	unsigned char retained = 0;
+	short packetid = 1;
 	char *topicname = "a long topic name";
 	MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
 	unsigned short topicid;
@@ -168,7 +167,7 @@ int main(int argc, char** argv)
 	/* subscribe */
 	printf("Subscribing\n");
 	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topic.data.long_.name = "substopic";
+	topic.data.long_.name = topicname;
 	topic.data.long_.len = strlen(topic.data.long_.name);
 	len = MQTTSNSerialize_subscribe(buf, buflen, 0, 2, /*msgid*/ 1, &topic);
 	rc = sendPacketBuffer(mysock, host, port, buf, len);
@@ -217,8 +216,9 @@ int main(int argc, char** argv)
 	if (MQTTSNPacket_read(buf, buflen, getdata) == MQTTSN_PUBLISH)
 	{
 		unsigned short packet_id;
-		int dup, qos, retained, payloadlen;
+		int qos, payloadlen;
 		unsigned char* payload;
+		unsigned char dup, retained;
 		MQTTSN_topicid pubtopic;
 
 		if (MQTTSNDeserialize_publish(&dup, &qos, &retained, &packet_id, &pubtopic,

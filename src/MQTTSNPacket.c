@@ -83,7 +83,7 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
  * @param value the decoded length returned
  * @return the number of bytes read from the socket
  */
-int MQTTSNPacket_decode(unsigned char* buf, size_t buflen, int* value)
+int MQTTSNPacket_decode(unsigned char* buf, int buflen, int* value)
 {
 	int len = MQTTSNPACKET_READ_ERROR;
 #define MAX_NO_OF_LENGTH_BYTES 3
@@ -246,7 +246,7 @@ int MQTTSNstrlen(MQTTSNString MQTTSNString)
  * @param getfn pointer to a function which will read any number of bytes from the needed source
  * @return integer MQTT packet type, or MQTTSNPACKET_READ_ERROR on error
  */
-int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, size_t))
+int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int))
 {
 	int rc = MQTTSNPACKET_READ_ERROR;
 	const int MQTTSN_MIN_PACKET_LENGTH = 3;

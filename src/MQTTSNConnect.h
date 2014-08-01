@@ -25,9 +25,9 @@ typedef struct
 	  */
 	int struct_version;
 	MQTTSNString clientID;
-	int duration;
-	int cleansession;
-	int willFlag;
+	unsigned short duration;
+	unsigned char cleansession;
+	unsigned char willFlag;
 } MQTTSNPacket_connectData;
 
 #define MQTTSNPacket_connectData_initializer { {'M', 'Q', 'S', 'C'}, 0, {NULL, {0, NULL}}, 10, 1, 0 }
@@ -59,14 +59,14 @@ int MQTTSNDeserialize_willmsgupd(MQTTSNString* willMsg, unsigned char* buf, int 
 int MQTTSNSerialize_willmsgresp(unsigned char* buf, int buflen, int resp_rc);
 int MQTTSNDeserialize_willmsgresp(int* resp_rc, unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic);
-int MQTTSNDeserialize_willtopic(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willtopic(unsigned char* buf, int buflen, int willQoS, unsigned char willRetain, MQTTSNString willTopic);
+int MQTTSNDeserialize_willtopic(int* willQoS, unsigned char* willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willtopicreq(unsigned char* buf, int buflen);
 int MQTTSNDeserialize_willtopicreq(unsigned char* buf, int buflen);
 
-int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, int willRetain, MQTTSNString willTopic);
-int MQTTSNDeserialize_willtopicupd(int *willQoS, int *willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
+int MQTTSNSerialize_willtopicupd(unsigned char* buf, int buflen, int willQoS, unsigned char willRetain, MQTTSNString willTopic);
+int MQTTSNDeserialize_willtopicupd(int *willQoS, unsigned char *willRetain, MQTTSNString* willTopic, unsigned char* buf, int buflen);
 
 int MQTTSNSerialize_willtopicresp(unsigned char* buf, int buflen, int resp_rc);
 int MQTTSNDeserialize_willtopicresp(int* resp_rc, unsigned char* buf, int buflen);

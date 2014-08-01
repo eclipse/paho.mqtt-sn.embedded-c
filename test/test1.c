@@ -412,17 +412,17 @@ int test2(struct Options options)
 	unsigned char buf[100];
 	int buflen = sizeof(buf);
 
-	int dup = 0;
+	unsigned char dup = 0;
 	int qos = 2;
-	int retained = 0;
+	unsigned char retained = 0;
 	unsigned short msgid = 23;
 	MQTTSN_topicid topic;
 	unsigned char *payload = (unsigned char*)"kkhkhkjkj jkjjk jk jk ";
 	int payloadlen = strlen((char*)payload);
 
-	int dup2 = 1;
+	unsigned char dup2 = 1;
 	int qos2 = 1;
-	int retained2 = 1;
+	unsigned char retained2 = 1;
 	unsigned short msgid2 = 3243;
 	MQTTSN_topicid topic2;
 	unsigned char *payload2 = NULL;
@@ -511,7 +511,8 @@ int test3(struct Options options)
 	assert("good rc from deserialize willmsgreq", rc == 1, "rc was %d\n", rc);
 
 	memset(buf, '\0', sizeof(buf));
-	int willQoS = 1, willRetain = 1, willQoS1 = 0, willRetain1 = 0;
+	int willQoS = 1, willQoS1 = 0;
+	unsigned char willRetain = 1, willRetain1 = 0;
 	MQTTSNString willTopic = MQTTSNString_initializer, willTopic1 = MQTTSNString_initializer;
 	willTopic.cstring = "a will topic";
 	rc = MQTTSNSerialize_willtopic(buf, buflen, willQoS, willRetain, willTopic);
@@ -591,12 +592,12 @@ int test4(struct Options options)
 	unsigned char buf[100];
 	size_t buflen = sizeof(buf);
 
-	int dup = 0;
+	unsigned char dup = 0;
 	unsigned short packetid = 23;
 	MQTTSN_topicid topicFilter;
 	int req_qos = 2;
 
-	int dup2 = 1;
+	unsigned char dup2 = 1;
 	unsigned short packetid2 = 2223;
 	MQTTSN_topicid topicFilter2;
 	int req_qos2 = 0;

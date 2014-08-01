@@ -289,7 +289,7 @@ int sendPacketBuffer(int asocket, char* host, int port, unsigned char* buf, int 
 
 int mysock = 0;
 
-int getdata(unsigned char* buf, size_t count)
+int getdata(unsigned char* buf, int count)
 {
 	int rc = recvfrom(mysock, buf, count, 0, NULL, NULL);
 	//printf("received %d bytes count %d\n", rc, (int)count);

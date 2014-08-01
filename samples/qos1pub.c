@@ -108,7 +108,7 @@ int mysock = 0;
 char *host = "127.0.0.1";
 int port = 1884;
 
-int getdata(unsigned char* buf, size_t count)
+int getdata(unsigned char* buf, int count)
 {
 	int rc = recvfrom(mysock, buf, count, 0, NULL, NULL);
 	//printf("received %d bytes count %d\n", rc, (int)count);
@@ -128,7 +128,6 @@ int main(int argc, char** argv)
 	int dup = 0;
 	int qos = 1;
 	int retained = 0, packetid = 1;
-	char *topicname = "a long topic name";
 	MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
 
 	if (argc > 1)

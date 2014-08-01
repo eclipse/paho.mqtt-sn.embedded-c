@@ -51,7 +51,7 @@ int MQTTSNSerialize_publishLength(int payloadlen, MQTTSN_topicid topic, int qos)
   * @param payloadlen integer - the length of the MQTT payload
   * @return the length of the serialized data.  <= 0 indicates error
   */
-int MQTTSNSerialize_publish(unsigned char* buf, int buflen, int dup, int qos, int retained, unsigned short packetid,
+int MQTTSNSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		MQTTSN_topicid topic, unsigned char* payload, int payloadlen)
 {
 	unsigned char *ptr = buf;

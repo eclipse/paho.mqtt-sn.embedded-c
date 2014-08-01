@@ -33,7 +33,7 @@
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success
   */
-int MQTTSNDeserialize_publish(int* dup, int* qos, int* retained, unsigned short* packetid, MQTTSN_topicid* topic,
+int MQTTSNDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, MQTTSN_topicid* topic,
 		unsigned char** payload, int* payloadlen, unsigned char* buf, int buflen)
 {
 	MQTTSNFlags flags;
