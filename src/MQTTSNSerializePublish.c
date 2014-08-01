@@ -136,12 +136,11 @@ exit:
   * Serializes the ack packet into the supplied buffer.
   * @param buf the buffer into which the packet will be serialized
   * @param buflen the length in bytes of the supplied buffer
-  * @param type integer - the MQTT packet type
-  * @param dup integer - the MQTT dup flag
-  * @param packetid integer - the MQTT packet identifier
+  * @param type the MQTT-SN packet type
+  * @param packetid the MQTT-SN packet identifier
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_ack(unsigned char* buf, int buflen, unsigned short packet_type, int dup, unsigned short packetid)
+int MQTTSNSerialize_ack(unsigned char* buf, int buflen, unsigned short packet_type, unsigned short packetid)
 {
 	int rc = 0;
 	unsigned char *ptr = buf;
@@ -174,7 +173,7 @@ exit:
   */
 int MQTTSNSerialize_pubrec(unsigned char* buf, int buflen, unsigned short packetid)
 {
-	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBREC, 0, packetid);
+	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBREC, packetid);
 }
 
 
@@ -186,9 +185,9 @@ int MQTTSNSerialize_pubrec(unsigned char* buf, int buflen, unsigned short packet
   * @param packetid integer - the MQTT packet identifier
   * @return serialized length, or error if 0
   */
-int MQTTSNSerialize_pubrel(unsigned char* buf, int buflen, int dup, unsigned short packetid)
+int MQTTSNSerialize_pubrel(unsigned char* buf, int buflen, unsigned short packetid)
 {
-	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBREL, dup, packetid);
+	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBREL, packetid);
 }
 
 
@@ -201,7 +200,7 @@ int MQTTSNSerialize_pubrel(unsigned char* buf, int buflen, int dup, unsigned sho
   */
 int MQTTSNSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid)
 {
-	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBCOMP, 0, packetid);
+	return MQTTSNSerialize_ack(buf, buflen, MQTTSN_PUBCOMP, packetid);
 }
 
 
