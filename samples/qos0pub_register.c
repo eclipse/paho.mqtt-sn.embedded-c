@@ -15,8 +15,7 @@
  *    Sergio R. Caprile - clarifications and/or documentation extension
  *
  * Description:
- * Normal topic name is automatically registered at subscription, then
- * a message is published and the node receives it itself
+ * Normal topic name used to show registration process
  *******************************************************************************/
 
 #include <stdio.h>
@@ -34,13 +33,14 @@ int main(int argc, char** argv)
 	unsigned char buf[200];
 	int buflen = sizeof(buf);
 	MQTTSN_topicid topic;
+	MQTTSNString topicstr;
 	unsigned char* payload = (unsigned char*)"mypayload";
 	int payloadlen = strlen((char*)payload);
 	int len = 0;
-	unsigned char dup = 0;
-	int qos = 1;
-	unsigned char retained = 0;
-	short packetid = 1;
+	int dup = 0;
+	int qos = 0;
+	int retained = 0;
+	short packetid = 0;
 	char *topicname = "a long topic name";
 	char *host = "127.0.0.1";
 	int port = 1883;
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 
 	printf("Sending to hostname %s port %d\n", host, port);
 
-	options.clientID.cstring = "pub0sub1 MQTT-SN";
+	options.clientID.cstring = "myclientid";
 	len = MQTTSNSerialize_connect(buf, buflen, &options);
 	rc = transport_sendPacketBuffer(host, port, buf, len);
 
@@ -79,35 +79,32 @@ int main(int argc, char** argv)
 	else
 		goto exit;
 
-
-	/* subscribe */
-	printf("Subscribing\n");
-	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topic.data.long_.name = topicname;
-	topic.data.long_.len = strlen(topic.data.long_.name);
-	len = MQTTSNSerialize_subscribe(buf, buflen, 0, 2, packetid, &topic);
+	/* register topic name */
+	printf("Registering\n");
+	topicstr.cstring = topicname;
+	topicstr.lenstring.len = strlen(topicname);
+	len = MQTTSNSerialize_register(buf, buflen, 0, packetid, &topicstr);
 	rc = transport_sendPacketBuffer(host, port, buf, len);
 
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_SUBACK) 	/* wait for suback */
+	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_REGACK) 	/* wait for regack */
 	{
 		unsigned short submsgid;
-		int granted_qos;
 		unsigned char returncode;
 
-		rc = MQTTSNDeserialize_suback(&granted_qos, &topicid, &submsgid, &returncode, buf, buflen);
-		if (granted_qos != 2 || returncode != 0)
+		rc = MQTTSNDeserialize_regack(&topicid, &submsgid, &returncode, buf, buflen);
+		if (returncode != 0)
 		{
-			printf("granted qos != 2, %d return code %d\n", granted_qos, returncode);
+			printf("return code %d\n", returncode);
 			goto exit;
 		}
 		else
-			printf("suback topic id %d\n", topicid);
+			printf("regack topic id %d\n", topicid);
 	}
 	else
 		goto exit;
 
+	/* publish with obtained id */
 	printf("Publishing\n");
-	/* publish with short name */
 	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
 	topic.data.id = topicid;
 	++packetid;
@@ -115,48 +112,7 @@ int main(int argc, char** argv)
 			topic, payload, payloadlen);
 	rc = transport_sendPacketBuffer(host, port, buf, len);
 
-	/* wait for puback */
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_PUBACK)
-	{
-		unsigned short packet_id, topic_id;
-		unsigned char returncode;
-
-		if (MQTTSNDeserialize_puback(&topic_id, &packet_id, &returncode, buf, buflen) != 1 || returncode != MQTTSN_RC_ACCEPTED)
-			printf("Unable to publish, return code %d\n", returncode);
-		else 
-			printf("puback received, msgid %d topic id %d\n", packet_id, topic_id);
-	}
-	else
-		goto exit;
-
-	printf("Receive publish\n");
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_PUBLISH)
-	{
-		unsigned short packet_id;
-		int qos, payloadlen;
-		unsigned char* payload;
-		unsigned char dup, retained;
-		MQTTSN_topicid pubtopic;
-
-		if (MQTTSNDeserialize_publish(&dup, &qos, &retained, &packet_id, &pubtopic,
-				&payload, &payloadlen, buf, buflen) != 1)
-			printf("Error deserializing publish\n");
-		else 
-			printf("publish received, id %d qos %d\n", packet_id, qos);
-
-		if (qos == 1)
-		{
-			len = MQTTSNSerialize_puback(buf, buflen, pubtopic.data.id, packet_id, MQTTSN_RC_ACCEPTED);
-			rc = transport_sendPacketBuffer(host, port, buf, len);
-			if (rc == 0)
-				printf("puback sent\n");
-		}
-	}
-	else
-		goto exit;
-
-	len = MQTTSNSerialize_disconnect(buf, buflen, 0);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
+	printf("rc %d from send packet for publish length %d\n", rc, len);
 
 exit:
 	transport_close();

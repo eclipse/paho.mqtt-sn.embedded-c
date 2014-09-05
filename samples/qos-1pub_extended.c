@@ -15,7 +15,8 @@
  *    Sergio R. Caprile - clarifications and/or documentation extension
  *
  * Description:
- * Short topic name used to avoid registration process
+ * Extension to the specs in which a node can send a normal (long) topic name inside the
+ * payload area to avoid the registration process and the usage of short/predefined types
  *******************************************************************************/
 
 #include <stdio.h>
@@ -37,12 +38,12 @@ int main(int argc, char** argv)
 	int payloadlen = strlen((char*)payload);
 	int len = 0;
 	int dup = 0;
-	int qos = 1;
+	int qos = 3;
 	int retained = 0;
-	short packetid = 1;
+	short packetid = 0;
+	char *topicname = "a long topic name";
 	char *host = "127.0.0.1";
 	int port = 1883;
-	MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
 
 	mysock = transport_open();
 	if(mysock < 0)
@@ -56,51 +57,15 @@ int main(int argc, char** argv)
 
 	printf("Sending to hostname %s port %d\n", host, port);
 
-	options.clientID.cstring = "myclientid";
-	len = MQTTSNSerialize_connect(buf, buflen, &options);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
+	topic.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	topic.data.long_.name = topicname;
+	topic.data.long_.len = strlen(topicname);
 
-	/* wait for connack */
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_CONNACK)
-	{
-		int connack_rc = -1;
-
-		if (MQTTSNDeserialize_connack(&connack_rc, buf, buflen) != 1 || connack_rc != 0)
-		{
-			printf("Unable to connect, return code %d\n", connack_rc);
-			goto exit;
-		}
-		else 
-			printf("connected rc %d\n", connack_rc);
-	}
-	else
-		goto exit;
-
-	/* publish with short name */
-	topic.type = MQTTSN_TOPIC_TYPE_SHORT;
-	memcpy(topic.data.short_name, "tt", 2);
-	len = MQTTSNSerialize_publish(buf, buflen - len, dup, qos, retained, packetid,
+	len = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, packetid,
 			topic, payload, payloadlen);
+
 	rc = transport_sendPacketBuffer(host, port, buf, len);
 
-	/* wait for puback */
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_PUBACK)
-	{
-		unsigned short packet_id, topic_id;
-		unsigned char returncode;
-
-		if (MQTTSNDeserialize_puback(&topic_id, &packet_id, &returncode, buf, buflen) != 1 || returncode != MQTTSN_RC_ACCEPTED)
-			printf("Unable to publish, return code %d\n", returncode);
-		else 
-			printf("puback received, id %d\n", packet_id);
-	}
-	else
-		goto exit;
-
-	len = MQTTSNSerialize_disconnect(buf, buflen, 0);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
-
-exit:
 	transport_close();
 
 	return 0;
