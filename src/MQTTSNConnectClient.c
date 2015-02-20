@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corp.
+ * Copyright (c) 2014, 2015 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Ian Craggs - initial API and implementation and/or initial documentation
+ *    Nicholas Humfrey - Reformatting to make more consistent; bug 453862
  *******************************************************************************/
 
 #include "MQTTSNPacket.h"
@@ -67,8 +68,8 @@ int MQTTSNSerialize_connect(unsigned char* buf, int buflen, MQTTSNPacket_connect
 	writeMQTTSNString(&ptr, options->clientID);
 
 	rc = ptr - buf;
-
-	exit: FUNC_EXIT_RC(rc);
+exit:
+	FUNC_EXIT_RC(rc);
 	return rc;
 }
 
@@ -309,8 +310,8 @@ int MQTTSNSerialize_willmsg1(unsigned char* buf, int buflen, MQTTSNString willMs
 	writeMQTTSNString(&ptr, willMsg);
 
 	rc = ptr - buf;
-
-	exit: FUNC_EXIT_RC(rc);
+exit:
+	FUNC_EXIT_RC(rc);
 	return rc;
 }
 
