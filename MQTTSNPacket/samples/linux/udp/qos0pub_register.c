@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 #include "MQTTSNPacket.h"
-#include "transport.h"
+#include "lowlevel.h"
 
 
 int main(int argc, char** argv)
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 	MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
 	unsigned short topicid;
 
-	mysock = transport_open();
+	mysock = lowlevel_open();
 	if(mysock < 0)
 		return mysock;
 
@@ -61,10 +61,10 @@ int main(int argc, char** argv)
 
 	options.clientID.cstring = "myclientid";
 	len = MQTTSNSerialize_connect(buf, buflen, &options);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
+	rc = lowlevel_sendPacketBuffer(host, port, buf, len);
 
 	/* wait for connack */
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_CONNACK)
+	if (MQTTSNPacket_read(buf, buflen, lowlevel_getdata) == MQTTSN_CONNACK)
 	{
 		int connack_rc = -1;
 
@@ -84,9 +84,9 @@ int main(int argc, char** argv)
 	topicstr.cstring = topicname;
 	topicstr.lenstring.len = strlen(topicname);
 	len = MQTTSNSerialize_register(buf, buflen, 0, packetid, &topicstr);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
+	rc = lowlevel_sendPacketBuffer(host, port, buf, len);
 
-	if (MQTTSNPacket_read(buf, buflen, transport_getdata) == MQTTSN_REGACK) 	/* wait for regack */
+	if (MQTTSNPacket_read(buf, buflen, lowlevel_getdata) == MQTTSN_REGACK) 	/* wait for regack */
 	{
 		unsigned short submsgid;
 		unsigned char returncode;
@@ -110,12 +110,12 @@ int main(int argc, char** argv)
 	++packetid;
 	len = MQTTSNSerialize_publish(buf, buflen, dup, qos, retained, packetid,
 			topic, payload, payloadlen);
-	rc = transport_sendPacketBuffer(host, port, buf, len);
+	rc = lowlevel_sendPacketBuffer(host, port, buf, len);
 
 	printf("rc %d from send packet for publish length %d\n", rc, len);
 
 exit:
-	transport_close();
+	lowlevel_close();
 
 	return 0;
 }

@@ -16,7 +16,6 @@
 
 #include "StackTrace.h"
 #include "MQTTSNPacket.h"
-#include <string.h>
 
 int MQTTSNDeserialize_unsubscribe(unsigned short* packetid, MQTTSN_topicid* topicFilter,
 		unsigned char* buf, int buflen)
