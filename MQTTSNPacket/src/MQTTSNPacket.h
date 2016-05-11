@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Ian Craggs - initial API and implementation and/or initial documentation
+ *    TomoakiiYamaguchi - modify for C++
  *******************************************************************************/
 
 #ifndef MQTTSNPACKET_H_
@@ -35,15 +36,15 @@ enum MQTTSN_connackCodes
 	MQTTSN_RC_ACCEPTED,
 	MQTTSN_RC_REJECTED_CONGESTED,
 	MQTTSN_RC_REJECTED_INVALID_TOPIC_ID,
+	MQTTSN_RC_NOT_SUPPORTED
 };
 
-enum MQTTSN_topicTypes
+typedef enum
 {
 	MQTTSN_TOPIC_TYPE_NORMAL, /* topic id in publish, topic name in subscribe */
 	MQTTSN_TOPIC_TYPE_PREDEFINED,
 	MQTTSN_TOPIC_TYPE_SHORT,
-};
-
+}MQTTSN_topicTypes;
 
 enum MQTTSN_msgTypes
 {
@@ -60,7 +61,7 @@ enum MQTTSN_msgTypes
 
 typedef struct
 {
-	enum MQTTSN_topicTypes type;
+	MQTTSN_topicTypes type;
 	union
 	{
 		unsigned short id;
@@ -72,7 +73,6 @@ typedef struct
 		} long_;
 	} data;
 } MQTTSN_topicid;
-
 
 /**
  * Bitfields for the MQTT-SN flags byte.
@@ -126,7 +126,7 @@ int MQTTSNstrlen(MQTTSNString mqttsnstring);
 #include "MQTTSNUnsubscribe.h"
 #include "MQTTSNSearch.h"
 
-char* MQTTSNPacket_name(int ptype);
+const char* MQTTSNPacket_name(int ptype);
 int MQTTSNPacket_len(int length);
 
 int MQTTSNPacket_encode(unsigned char* buf, int length);
