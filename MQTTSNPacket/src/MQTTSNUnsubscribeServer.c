@@ -38,7 +38,7 @@ int MQTTSNDeserialize_unsubscribe(unsigned short* packetid, MQTTSN_topicid* topi
 	flags.all = readChar(&curdata);
 	*packetid = readInt(&curdata);
 
-	topicFilter->type = flags.bits.topicIdType;
+	topicFilter->type = (MQTTSN_topicTypes)flags.bits.topicIdType;
 	if (topicFilter->type == MQTTSN_TOPIC_TYPE_NORMAL)
 	{
 		topicFilter->data.long_.len = enddata - curdata;
