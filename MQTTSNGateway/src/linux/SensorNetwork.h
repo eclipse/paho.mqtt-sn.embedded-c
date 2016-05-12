@@ -97,7 +97,7 @@ public:
 	int unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendto);
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
-	int initialize(char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo);
+	int initialize(void);
 	SensorNetAddress* getSenderAddress(void)
 	{
 		return &_clientAddr;

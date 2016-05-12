@@ -38,31 +38,9 @@ ClientRecvTask::~ClientRecvTask()
  */
 void ClientRecvTask::initialize(int argc, char** argv)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-	uint16_t multicastPortNo = 0;
-	uint16_t unicastPortNo = 0;
-	char* ipAddress = NULL;
-
-	if (_gateway->getParam("MulticastIP", param) == 0)
+	if ( _sensorNetwork->initialize() < 0 )
 	{
-		ipAddress = strdup(param);
-	}
-	if (_gateway->getParam("MulticastPortNo", param) == 0)
-	{
-		multicastPortNo = atoi(param);
-	}
-	if (_gateway->getParam("GatewayPortNo", param) == 0)
-	{
-		unicastPortNo = atoi(param);
-	}
-	if ( _sensorNetwork->initialize(ipAddress, multicastPortNo, unicastPortNo) < 0 )
-	{
-		free(ipAddress);
 		throw Exception(" Can't open the sensor network.\n");
-	}
-	else
-	{
-		free(ipAddress);
 	}
 }
 

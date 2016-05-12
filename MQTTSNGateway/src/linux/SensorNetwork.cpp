@@ -26,6 +26,7 @@
 #include <string>
 #include <stdlib.h>
 #include "SensorNetwork.h"
+#include "MQTTSNGWProcess.h"
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -118,9 +119,23 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return UDPPort::recv(buf, bufLen, &_clientAddr);
 }
 
-int SensorNetwork::initialize(char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
+int SensorNetwork::initialize(void)
 {
-	return UDPPort::open(ipAddress, multiPortNo, uniPortNo);
+	char param[MQTTSNGW_PARAM_MAX];
+	uint16_t multicastPortNo = 0;
+	uint16_t unicastPortNo = 0;
+
+	if (theProcess->getParam("MulticastPortNo", param) == 0)
+	{
+		multicastPortNo = atoi(param);
+	}
+	if (theProcess->getParam("GatewayPortNo", param) == 0)
+	{
+		unicastPortNo = atoi(param);
+	}
+
+	theProcess->getParam("MulticastIP", param);
+	return UDPPort::open(param, multicastPortNo, unicastPortNo);
 }
 
 /*=========================================
