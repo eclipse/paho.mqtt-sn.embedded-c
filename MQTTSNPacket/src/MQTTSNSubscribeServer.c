@@ -53,7 +53,7 @@ int MQTTSNDeserialize_subscribe(unsigned char* dup, int* qos, unsigned short* pa
 
 	*packetid = readInt(&curdata);
 
-	topicFilter->type = flags.bits.topicIdType;
+	topicFilter->type = (MQTTSN_topicTypes)flags.bits.topicIdType;
 
 	if (topicFilter->type == MQTTSN_TOPIC_TYPE_NORMAL)
 	{
