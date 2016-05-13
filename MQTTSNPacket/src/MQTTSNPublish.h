@@ -41,5 +41,6 @@ int MQTTSNSerialize_regack(unsigned char* buf, int buflen, unsigned short topici
 		unsigned char return_code);
 int MQTTSNDeserialize_regack(unsigned short* topicid, unsigned short* packetid, unsigned char* return_code,
 		unsigned char* buf, int buflen);
+int MQTTSNSerialize_pubrel(unsigned char* buf, int buflen, unsigned short packetid);
 
 #endif /* MQTTSNPUBLISH_H_ */

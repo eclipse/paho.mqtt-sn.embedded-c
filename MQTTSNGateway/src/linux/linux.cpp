@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright (c) 2014, 2015 IBM Corp.
+/**************************************************************************************
+ * Copyright (c) 2016, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,214 +11,214 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Ian Craggs - initial API and implementation and/or initial documentation
- *******************************************************************************/
+ *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ **************************************************************************************/
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/param.h>
-#include <sys/time.h>
-#include <sys/select.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
-#include <errno.h>
 #include <fcntl.h>
-
-#include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 
+#include "MQTTSNGWDefines.h"
+#include "linux.h"
 
-class IPStack 
+using namespace std;
+
+using namespace MQTTSNGW;
+
+/*=====================================
+ Print Current Date & Time
+ =====================================*/
+char theCurrentTime[32];
+
+char* currentDateTime()
 {
-public:    
-    IPStack()
-    {
+	struct timeval now;
+	struct tm tstruct;
+	gettimeofday(&now, 0);
+	tstruct = *localtime(&now.tv_sec);
+	strftime(theCurrentTime, sizeof(theCurrentTime), "%Y%m%d %H%M%S", &tstruct);
+	sprintf(theCurrentTime + 15, " %03d", (int)now.tv_usec / 1000 );
+	return theCurrentTime;
+}
 
-    }
-    
-	int Socket_error(const char* aString)
-	{
-		int rc = 0;
-		//if (errno != EINTR && errno != EAGAIN && errno != EINPROGRESS && errno != EWOULDBLOCK)
-		//{
-			if (strcmp(aString, "shutdown") != 0 || (errno != ENOTCONN && errno != ECONNRESET))
-			{
-				if (errno != EINTR && errno != EAGAIN && errno != EINPROGRESS && errno != EWOULDBLOCK)
-				printf("Socket error %s in %s for socket %d\n", strerror(errno), aString, mysock);
-				rc = errno;
-			}
-		//}
-		return errno;
-	}
-
-    int connect(const char* hostname, int port)
-    {
-		int type = SOCK_STREAM;
-		struct sockaddr_in address;
-		int rc = -1;
-		sa_family_t family = AF_INET;
-		struct addrinfo *result = NULL;
-		struct addrinfo hints = {0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL, NULL};
-
-		if ((rc = getaddrinfo(hostname, NULL, &hints, &result)) == 0)
-		{
-			struct addrinfo* res = result;
-
-			/* prefer ip4 addresses */
-			while (res)
-			{
-				if (res->ai_family == AF_INET)
-				{
-					result = res;
-					break;
-				}
-				res = res->ai_next;
-			}
-
-			if (result->ai_family == AF_INET)
-			{
-				address.sin_port = htons(port);
-				address.sin_family = family = AF_INET;
-				address.sin_addr = ((struct sockaddr_in*)(result->ai_addr))->sin_addr;
-			}
-			else
-				rc = -1;
-
-			freeaddrinfo(result);
-		}
-
-		if (rc == 0)
-		{
-			mysock = socket(family, type, 0);
-			if (mysock != -1)
-			{
-				int opt = 1;
-
-				//if (setsockopt(mysock, SOL_SOCKET, SO_NOSIGPIPE, (void*)&opt, sizeof(opt)) != 0)
-				//	printf("Could not set SO_NOSIGPIPE for socket %d", mysock);
-				
-				rc = ::connect(mysock, (struct sockaddr*)&address, sizeof(address));
-			}
-		}
-
-        return rc;
-    }
-
-    int read(unsigned char* buffer, int len, int timeout_ms)
-    {
-		struct timeval interval = {timeout_ms / 1000, (timeout_ms % 1000) * 1000};
-		if (interval.tv_sec < 0 || (interval.tv_sec == 0 && interval.tv_usec <= 0))
-		{
-			interval.tv_sec = 0;
-			interval.tv_usec = 100;
-		}
-
-		setsockopt(mysock, SOL_SOCKET, SO_RCVTIMEO, (char *)&interval, sizeof(struct timeval));
-
-		int bytes = 0;
-		while (bytes < len)
-		{
-			int rc = ::recv(mysock, &buffer[bytes], (size_t)(len - bytes), 0);
-			if (rc == -1)
-			{
-				if (Socket_error("read") != 0)
-				{
-					bytes = -1;
-					break;
-				}
-			}
-			else
-				bytes += rc;
-		}
-		return bytes;
-    }
-    
-    int write(unsigned char* buffer, int len, int timeout)
-    {
-		struct timeval tv;
-
-		tv.tv_sec = 0;  /* 30 Secs Timeout */
-		tv.tv_usec = timeout * 1000;  // Not init'ing this can cause strange errors
-
-		setsockopt(mysock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
-		int	rc = ::write(mysock, buffer, len);
-		//printf("write rc %d\n", rc);
-		return rc;
-    }
-
-	int disconnect()
-	{
-		return ::close(mysock);
-	}
-    
-private:
-
-    int mysock; 
-    
-};
-
-
-class Countdown
+/*============================================
+ Timer
+ ============================================*/
+Timer::Timer(void)
 {
-public:
-    Countdown()
-    { 
-	
-    }
+	stop();
+}
 
-    Countdown(int ms)
-    { 
-		countdown_ms(ms);
-    }
-    
+Timer::~Timer(void)
+{
 
-    bool expired()
-    {
-		struct timeval now, res;
-		gettimeofday(&now, NULL);
-		timersub(&end_time, &now, &res);		
-		//printf("left %d ms\n", (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000);
-		//if (res.tv_sec > 0 || res.tv_usec > 0)
-		//	printf("expired %d %d\n", res.tv_sec, res.tv_usec);
-        return res.tv_sec < 0 || (res.tv_sec == 0 && res.tv_usec <= 0);
-    }
-    
+}
 
-    void countdown_ms(int ms)  
-    {
-		struct timeval now;
-		gettimeofday(&now, NULL);
-		struct timeval interval = {ms / 1000, (ms % 1000) * 1000};
-		//printf("interval %d %d\n", interval.tv_sec, interval.tv_usec);
-		timeradd(&now, &interval, &end_time);
-    }
+void Timer::start(uint32_t msecs)
+{
+	gettimeofday(&_startTime, 0);
+	_millis = msecs;
+}
 
-    
-    void countdown(int seconds)
-    {
-		struct timeval now;
-		gettimeofday(&now, NULL);
-		struct timeval interval = {seconds, 0};
-		timeradd(&now, &interval, &end_time);
-    }
+bool Timer::isTimeup(void)
+{
+	return isTimeup(_millis);
+}
 
-    
-    int left_ms()
-    {
-		struct timeval now, res;
-		gettimeofday(&now, NULL);
-		timersub(&end_time, &now, &res);
-		//printf("left %d ms\n", (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000);
-        return (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000;
-    }
-    
-private:
+bool Timer::isTimeup(uint32_t msecs)
+{
+	struct timeval curTime;
+	long secs, usecs;
+	if (_startTime.tv_sec == 0)
+	{
+		return false;
+	}
+	else
+	{
+		gettimeofday(&curTime, 0);
+		secs = (curTime.tv_sec - _startTime.tv_sec) * 1000;
+		usecs = (curTime.tv_usec - _startTime.tv_usec) / 1000.0;
+		return ((secs + usecs) > (long) msecs);
+	}
+}
 
-	struct timeval end_time;
-};
+void Timer::stop()
+{
+	_startTime.tv_sec = 0;
+	_millis = 0;
+}
+
+/*=====================================
+Class LightIndicator
+=====================================*/
+
+LightIndicator::LightIndicator()
+{
+	_greenStatus = false;
+	for ( int i = 0; i <= MAX_GPIO; i++)
+	{
+		_gpio[i] = 0;
+	}
+	init();
+}
+
+LightIndicator::~LightIndicator()
+{
+	for ( int i = 0; i <= MAX_GPIO; i++)
+	{
+		if ( _gpio[i] )
+		{
+			close( _gpio[i]);
+		}
+	}
+}
+
+void LightIndicator::greenLight(bool on)
+{
+	if (on)
+	{
+		if (!_greenStatus)
+		{
+			_greenStatus = true;
+			//Turn Green on & turn Red off
+			lit(LIGHT_INDICATOR_GREEN, "1");
+			lit(LIGHT_INDICATOR_RED, "0");
+		}
+	}
+	else
+	{
+		if (_greenStatus)
+		{
+			_greenStatus = false;
+			//Turn Green off & turn Red on
+			lit(LIGHT_INDICATOR_GREEN, "0");
+			lit(LIGHT_INDICATOR_RED, "1");
+		}
+	}
+}
+void LightIndicator::blueLight(bool on)
+{
+	if (on)
+	{
+		lit(LIGHT_INDICATOR_BLUE, "1");
+		if ( !_greenStatus )
+		{
+			greenLight(true);
+		}
+	}
+	else
+	{
+		lit(LIGHT_INDICATOR_BLUE, "0");
+	}
+}
+
+void LightIndicator::redLight(bool on)
+{
+	if (on)
+	{
+		lit(LIGHT_INDICATOR_RED, "1");
+	}
+	else
+	{
+		lit(LIGHT_INDICATOR_RED, "0");
+	}
+}
+
+void LightIndicator::allLightOff(void)
+{
+	lit(LIGHT_INDICATOR_RED, "0");
+	lit(LIGHT_INDICATOR_BLUE, "0");
+	lit(LIGHT_INDICATOR_GREEN, "0");
+	_greenStatus = false;
+}
+
+void LightIndicator::init()
+{
+	pinMode(LIGHT_INDICATOR_GREEN);
+	pinMode(LIGHT_INDICATOR_RED);
+	pinMode(LIGHT_INDICATOR_BLUE);
+}
+
+void LightIndicator::lit(int gpioNo, const char* onoff)
+{
+	if( _gpio[gpioNo] )
+	{
+		write(_gpio[gpioNo], onoff, 1);
+	}
+}
+
+void LightIndicator::pinMode(int gpioNo)
+{
+	 int fd = open("/sys/class/gpio/export", O_WRONLY);
+	if ( fd < 0 )
+	{
+		return;
+	}
+	char no[4];
+	sprintf(no,"%d", gpioNo);
+	write(fd, no, strlen(no));
+	close(fd);
+
+	char fileName[64];
+	sprintf( fileName, "/sys/class/gpio/gpio%d/direction", gpioNo);
+
+	fd = open(fileName, O_WRONLY);
+	if ( fd < 0 )
+	{
+		return;
+	}
+	write(fd,"out", 3);
+	close(fd);
+
+	sprintf( fileName, "/sys/class/gpio/gpio%d/value", gpioNo);
+	fd = open(fileName, O_WRONLY);
+	if ( fd > 0 )
+	{
+		_gpio[gpioNo] = fd;
+	}
+}
+
 
