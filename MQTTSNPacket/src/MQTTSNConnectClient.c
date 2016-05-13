@@ -116,7 +116,7 @@ int MQTTSNSerialize_disconnectLength(int duration)
 	int len = 0;
 
 	FUNC_ENTRY;
-	len = (duration >= 0) ? 3 : 1;
+	len = (duration > 0) ? 3 : 1;
 	FUNC_EXIT_RC(len);
 	return len;
 }
@@ -144,7 +144,7 @@ int MQTTSNSerialize_disconnect(unsigned char* buf, int buflen, int duration)
 	ptr += MQTTSNPacket_encode(ptr, len); /* write length */
 	writeChar(&ptr, MQTTSN_DISCONNECT);      /* write message type */
 
-	if (duration >= 0)
+	if (duration > 0)
 		writeInt(&ptr, duration);
 
 	rc = ptr - buf;

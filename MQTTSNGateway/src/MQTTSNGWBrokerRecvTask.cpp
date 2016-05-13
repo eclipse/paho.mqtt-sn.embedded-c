@@ -1,0 +1,193 @@
+/**************************************************************************************
+ * Copyright (c) 2016, Tomoaki Yamaguchi
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
+ *
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v10.html
+ * and the Eclipse Distribution License is available at
+ *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * Contributors:
+ *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ **************************************************************************************/
+
+#include "MQTTSNGWBrokerRecvTask.h"
+#include "MQTTSNGWClient.h"
+
+using namespace std;
+using namespace MQTTSNGW;
+
+char* currentDateTime(void);
+
+/*=====================================
+ Class BrokerRecvTask
+ =====================================*/
+BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
+{
+	_gateway = gateway;
+	_gateway->attach((Thread*)this);
+	_light = 0;
+}
+
+BrokerRecvTask::~BrokerRecvTask()
+{
+
+}
+
+/**
+ *  Initialize attributs of this class
+ */
+void BrokerRecvTask::initialize(int argc, char** argv)
+{
+	_light = _gateway->getLightIndicator();
+}
+
+/**
+ *  receive a MQTT messge from the broker and post a event.
+ */
+void BrokerRecvTask::run(void)
+{
+	struct timeval timeout;
+	MQTTGWPacket* packet = 0;
+	int rc;
+	Event* ev = 0;
+	LightIndicator* lightIndicator = _gateway->getLightIndicator();
+
+	fd_set rset;
+	fd_set wset;
+
+	while (true)
+	{
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 500000;    // 500 msec
+		FD_ZERO(&rset);
+		FD_ZERO(&wset);
+		int maxSock = 0;
+		int sockfd = 0;
+
+		/* Prepare sockets list to read */
+		Client* client = _gateway->getClientList()->getClient();
+
+		while (client > 0)
+		{
+			_light->blueLight(false);
+			if (client->getNetwork()->isValid())
+			{
+				sockfd = client->getNetwork()->getSock();
+				FD_SET(sockfd, &rset);
+				FD_SET(sockfd, &wset);
+				if (sockfd > maxSock)
+				{
+					maxSock = sockfd;
+				}
+			}
+			client = client->getNextClient();
+		}
+
+		if (maxSock == 0)
+		{
+			lightIndicator->greenLight(false);
+		}
+		else
+		{
+			/* Check sockets is ready to read */
+			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
+
+			if (activity > 0)
+			{
+				client = _gateway->getClientList()->getClient();
+
+				while (client > 0)
+				{
+					if (client->getNetwork()->isValid())
+					{
+						int sockfd = client->getNetwork()->getSock();
+						if (FD_ISSET(sockfd, &rset))
+						{
+							_light->blueLight(true);
+
+							packet = new MQTTGWPacket();
+							rc = 0;
+							/* read sockets */
+							rc = packet->recv(client->getNetwork());
+
+							if ( rc > 0 )
+							{
+								log(client, packet);
+
+								/* post a BrokerRecvEvent */
+								ev = new Event();
+								ev->setBrokerRecvEvent(client, packet);
+								_gateway->getPacketEventQue()->post(ev);
+								lightIndicator->greenLight(false);
+							}
+							else
+							{
+								if ( rc == 0 )
+								{
+									delete packet;
+									continue;
+								}
+								else if (rc == -1)
+								{
+									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s\n", ERRMSG_HEADER, errno, client->getClientId());
+								}
+								else if ( rc == -2 )
+								{
+									WRITELOG("%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s \n", ERRMSG_HEADER, client->getClientId());
+								}
+								else if ( rc == -3 )
+								{
+									WRITELOG("%s BrokerRecvTask can't create the packet %s\n", ERRMSG_HEADER, client->getClientId());
+								}
+
+								/* close the socket */
+								client->getNetwork()->disconnect();
+								rc = 0;
+								delete packet;
+							}
+						}
+					}
+					client = client->getNextClient();
+				}
+			}
+		}
+	}
+}
+
+/**
+ *  write message content into stdout or Ringbuffer
+ */
+void BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
+{
+	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char msgId[6];
+
+	switch (packet->getType())
+	{
+	case CONNACK:
+	case DISCONNECT:
+		WRITELOG(FORMAT_YE_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		break;
+	case PUBLISH:
+		WRITELOG(FORMAT_GR_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		break;
+	case PUBACK:
+	case PUBREC:
+	case PUBREL:
+	case PUBCOMP:
+	case SUBACK:
+	case UNSUBACK:
+		WRITELOG(FORMAT_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		break;
+	case PINGRESP:
+		WRITELOG(FORMAT_GR_NL, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		break;
+	default:
+		WRITELOG(FORMAT_GR_NL, currentDateTime(), "UNKOWN_TYPE", LEFTARROW, client->getClientId(), packet->print(pbuf));
+		break;
+	}
+}

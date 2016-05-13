@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1685199227">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1685199227" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -20,8 +21,18 @@
 							<builder buildPath="${workspace_loc:/MQTTSN-embedded-C}/Debug" id="cdt.managedbuild.target.gnu.builder.exe.debug.767762182" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.602829827" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.109068141" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
-								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1710260957" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1710260957" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1258567310" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.std.1716257027" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.flags.912033761" superClass="gnu.cpp.compiler.option.dialect.flags" value="-std=c++11" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.include.paths.199502827" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNGateway/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNGateway/src/linux"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNPacket/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNClient/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNClient/src/linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1124543722" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2017162618" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1941536725" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
@@ -34,14 +45,24 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.581660133" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.581660133" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
+								<option id="gnu.cpp.link.option.libs.438679445" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="pthread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="ssl"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="crypto"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1585612072" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1531154076" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1193873077" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -69,6 +90,15 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1903732701" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.15425920" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.857802503" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.flags.1486994668" superClass="gnu.cpp.compiler.option.dialect.flags" value="-std=c++11" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.include.paths.38104064" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNGateway/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNGateway/src/linux"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNPacket/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNClient/src"/>
+									<listOptionValue builtIn="false" value="/home/tomoaki/git/paho.mqtt-sn.embedded-c/MQTTSNClient/src/linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2127367048" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.246546722" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1094525037" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
@@ -81,14 +111,24 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1623573602" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1623573602" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
+								<option id="gnu.cpp.link.option.libs.1679944624" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="pthread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="ssl"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="crypto"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.736116662" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.release.67939689" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.651929038" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="samples|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|samples|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -97,15 +137,6 @@
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="MQTTSN-embedded-C.cdt.managedbuild.target.gnu.exe.317758410" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.246546722;cdt.managedbuild.tool.gnu.c.compiler.input.456127079">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2017162618;cdt.managedbuild.tool.gnu.c.compiler.input.814497727">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
@@ -117,4 +148,19 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2017162618;cdt.managedbuild.tool.gnu.c.compiler.input.814497727">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1903732701;cdt.managedbuild.tool.gnu.cpp.compiler.input.2127367048">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.109068141;cdt.managedbuild.tool.gnu.cpp.compiler.input.1124543722">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.246546722;cdt.managedbuild.tool.gnu.c.compiler.input.456127079">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>
