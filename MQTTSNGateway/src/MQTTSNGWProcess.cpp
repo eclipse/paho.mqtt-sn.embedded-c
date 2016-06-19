@@ -19,10 +19,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <Timer.h>
 #include <exception>
 #include "MQTTSNGWProcess.h"
 #include "Threading.h"
-#include "linux.h"
 
 using namespace std;
 using namespace MQTTSNGW;

@@ -29,7 +29,7 @@ $(SRCDIR)/MQTTSNGWProcess.cpp \
 $(SRCDIR)/MQTTSNGWPublishHandler.cpp \
 $(SRCDIR)/MQTTSNGWSubscribeHandler.cpp \
 $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
-$(SRCDIR)/$(OS)/$(OS).cpp  \
+$(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \
 $(SRCDIR)/$(OS)/Threading.cpp 
 

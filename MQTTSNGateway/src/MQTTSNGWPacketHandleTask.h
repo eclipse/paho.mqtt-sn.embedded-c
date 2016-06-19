@@ -17,6 +17,7 @@
 #ifndef MQTTSNGWPACKETHANDLETASK_H_
 #define MQTTSNGWPACKETHANDLETASK_H_
 
+#include <Timer.h>
 #include "MQTTSNGWDefines.h"
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWClient.h"
@@ -29,7 +30,6 @@
 #include "MQTTSNGWPublishHandler.h"
 #include "MQTTSNGWSubscribeHandler.h"
 #include "SensorNetwork.h"
-#include "linux.h"
 
 
 namespace MQTTSNGW

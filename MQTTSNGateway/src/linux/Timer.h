@@ -13,9 +13,11 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#ifndef MQTTSNGATEWAY_SRC_LINUX_LINUX_H_
-#define MQTTSNGATEWAY_SRC_LINUX_LINUX_H_
+#ifndef MQTTSNGATEWAY_SRC_LINUX_TIMER_H_
+#define MQTTSNGATEWAY_SRC_LINUX_TIMER_H_
 
+#include "MQTTSNGWDefines.h"
+#include <time.h>
 namespace MQTTSNGW
 {
 /*==========================================================
@@ -67,4 +69,4 @@ private:
 
 }
 
-#endif /* MQTTSNGATEWAY_SRC_LINUX_LINUX_H_ */
+#endif /* MQTTSNGATEWAY_SRC_LINUX_TIMER_H_ */

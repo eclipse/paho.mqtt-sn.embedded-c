@@ -20,12 +20,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-
+#include "Timer.h"
 #include "MQTTSNGWDefines.h"
-#include "linux.h"
 
 using namespace std;
-
 using namespace MQTTSNGW;
 
 /*=====================================

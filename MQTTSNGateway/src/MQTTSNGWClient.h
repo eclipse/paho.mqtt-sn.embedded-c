@@ -17,6 +17,7 @@
 #ifndef MQTTSNGWCLIENT_H_
 #define MQTTSNGWCLIENT_H_
 
+#include <Timer.h>    // Timer class
 #include "MQTTSNGWProcess.h"
 #include "MQTTGWPacket.h"
 #include "MQTTSNGWPacket.h"
@@ -24,7 +25,6 @@
 #include "Network.h"
 #include "SensorNetwork.h"
 #include "MQTTSNPacket.h"
-#include "linux.h"    // Timer class
 
 namespace MQTTSNGW
 {
