@@ -56,7 +56,7 @@ int MQTTSNDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retai
 	*qos = flags.bits.QoS;
 	*retained = flags.bits.retain;
 
-	topic->type = flags.bits.topicIdType;
+	topic->type = (MQTTSN_topicTypes)flags.bits.topicIdType;
 	if (topic->type == MQTTSN_TOPIC_TYPE_NORMAL && *qos == 3)
 	{
 		/* special arrangement for long topic names in QoS -1 publishes.  The length of the topic is in the topicid field */

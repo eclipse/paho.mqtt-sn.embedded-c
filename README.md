@@ -1,4 +1,4 @@
-# Eclipse Paho MQTT-SN Embedded C client
+# Eclipse Paho MQTT-SN Embedded C
 
 
 ## Project description:

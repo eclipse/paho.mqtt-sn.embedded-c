@@ -53,7 +53,7 @@ public:
 				rc = errno;
 			}
 		//}
-		return errno;
+		return rc;
 	}
 
     int connect(const char* hostname, int port)
@@ -97,7 +97,7 @@ public:
 			mysock = socket(family, type, 0);
 			if (mysock != -1)
 			{
-				int opt = 1;
+				//int opt = 1;
 
 				//if (setsockopt(mysock, SOL_SOCKET, SO_NOSIGPIPE, (void*)&opt, sizeof(opt)) != 0)
 				//	printf("Could not set SO_NOSIGPIPE for socket %d", mysock);

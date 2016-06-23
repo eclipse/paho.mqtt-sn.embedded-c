@@ -19,7 +19,7 @@
 
 #include <string.h>
 
-static char* packet_names[] =
+static const char* packet_names[] =
 {
 		"ADVERTISE", "SEARCHGW", "GWINFO", "RESERVED", "CONNECT", "CONNACK",
 		"WILLTOPICREQ", "WILLTOPIC", "WILLMSGREQ", "WILLMSG", "REGISTER", "REGACK",
@@ -35,7 +35,7 @@ static char* packet_names[] =
  * @param code MsgType code
  * @return the corresponding packet name
  */
-char* MQTTSNPacket_name(int code)
+const char* MQTTSNPacket_name(int code)
 {
 	return (code >= 0 && code <= MQTTSN_WILLMSGRESP) ? packet_names[code] : "UNKNOWN";
 }
@@ -50,7 +50,6 @@ int MQTTSNPacket_len(int length)
 {
 	return (length > 255) ? length + 3 : length + 1;
 }
-
 
 /**
  * Encodes the MQTT-SN message length
@@ -95,7 +94,7 @@ int MQTTSNPacket_decode(unsigned char* buf, int buflen, int* value)
 	if (buf[0] == 1)
 	{
 		unsigned char* bufptr = &buf[1];
-		if (buflen < 3)
+		if (buflen < MAX_NO_OF_LENGTH_BYTES)
 			goto exit;
 		*value = readInt(&bufptr);
 		len = 3;
@@ -188,7 +187,7 @@ void writeMQTTSNString(unsigned char** pptr, MQTTSNString MQTTSNString)
 {
 	if (MQTTSNString.lenstring.len > 0)
 	{
-		memcpy(*pptr, MQTTSNString.lenstring.data, MQTTSNString.lenstring.len);
+		memcpy(*pptr, (const unsigned char*)MQTTSNString.lenstring.data, MQTTSNString.lenstring.len);
 		*pptr += MQTTSNString.lenstring.len;
 	}
 	else if (MQTTSNString.cstring)
