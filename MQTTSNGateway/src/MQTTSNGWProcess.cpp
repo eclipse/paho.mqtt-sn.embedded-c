@@ -91,11 +91,14 @@ int Process::getParam(const char* parameter, char* value)
 	char str[MQTTSNGW_PARAM_MAX];
 	char param[MQTTSNGW_PARAM_MAX];
 	FILE *fp;
+
+	string filename = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CONFIG_FILE);
+
 	int i = 0, j = 0;
 
-	if ((fp = fopen(MQTTSNGW_CONFIG_FILE, "r")) == NULL)
+	if ((fp = fopen(filename.c_str(), "r")) == NULL)
 	{
-		WRITELOG("No config file:[%s]\n", MQTTSNGW_CONFIG_FILE);
+		WRITELOG("No config file:[%s]\n", filename.c_str());
 		return -1;
 	}
 

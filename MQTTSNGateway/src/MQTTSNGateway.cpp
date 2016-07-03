@@ -62,6 +62,11 @@ void Gateway::initialize(int argc, char** argv)
 		throw Exception( "Gateway::initialize: invalid Gateway Id");
 	}
 
+	if (getParam("GatewayName", param) == 0)
+	{
+		_params.gatewayName = (uint8_t*) strdup(param);
+	}
+
 	_params.mqttVersion = DEFAULT_MQTT_VERSION;
 	if (getParam("MQTTVersion", param) == 0)
 	{
@@ -100,7 +105,9 @@ void Gateway::initialize(int argc, char** argv)
 	{
 		if (!strcasecmp(param, "YES"))
 		{
-			if (!_clientList.authorize(MQTTSNGW_CLIENT_LIST))
+			string fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CLIENT_LIST);
+
+			if (!_clientList.authorize(fileName.c_str()))
 			{
 				throw Exception("Gateway::initialize: can't authorize clients.");
 			}
@@ -113,7 +120,7 @@ void Gateway::initialize(int argc, char** argv)
 void Gateway::run(void)
 {
 	_lightIndicator.redLight(true);
-	WRITELOG("%s MQTT-SN Gateway has been started. %s %s\n", currentDateTime(), _sensorNetwork.getType(), GATEWAY_VERSION);
+	WRITELOG("%s %s has been started. %s %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getType(), GATEWAY_VERSION);
 	if ( getClientList()->isAuthorized() )
 	{
 		WRITELOG("\n Client authentication is required by the configuration settings.\n");
