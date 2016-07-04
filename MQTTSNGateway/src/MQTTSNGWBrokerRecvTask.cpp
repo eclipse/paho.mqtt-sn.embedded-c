@@ -109,7 +109,10 @@ void BrokerRecvTask::run(void)
 							rc = packet->recv(client->getNetwork());
 							if ( rc > 0 )
 							{
-								log(client, packet);
+								if ( log(client, packet) == -1 )
+								{
+									continue;
+								}
 
 								/* post a BrokerRecvEvent */
 								ev = new Event();
@@ -139,7 +142,7 @@ void BrokerRecvTask::run(void)
 
 								/* disconnect the client */
 								client->disconnected();
-								client->getNetwork()->disconnect();
+								//client->getNetwork()->disconnect();
 								rc = 0;
 								delete packet;
 							}
@@ -161,10 +164,11 @@ void BrokerRecvTask::run(void)
 /**
  *  write message content into stdout or Ringbuffer
  */
-void BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
+int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 {
 	char pbuf[SIZEOF_LOG_PACKET * 3];
 	char msgId[6];
+	int rc = 0;
 
 	switch (packet->getType())
 	{
@@ -189,7 +193,8 @@ void BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 		WRITELOG(FORMAT_GR_NL, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
-		WRITELOG(FORMAT_GR_NL, currentDateTime(), "UNKOWN_TYPE", LEFTARROW, client->getClientId(), packet->print(pbuf));
+		rc = -1;
 		break;
 	}
+	return rc;
 }

@@ -23,7 +23,7 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION  "(Ver 0.1.1)"
+#define GATEWAY_VERSION  "(Ver 0.3.0)"
 
 /*=================================
  *    Log controls
@@ -37,8 +37,6 @@ namespace MQTTSNGW
 #define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size
 #define SIZEOF_LOG_PACKET           (128)  // Length of the packet log in bytes
 
-#define MQTTSNGW_CONFIG_FILE      "/usr/local/etc/mqttsnGateway/config/param.conf"
-#define MQTTSNGW_CLIENT_LIST      "/usr/local/etc/mqttsnGateway/config/clientList.conf"
 #define MQTTSNGW_TLS_CA_DIR       "/etc/ssl/certs"
 
 /*=================================

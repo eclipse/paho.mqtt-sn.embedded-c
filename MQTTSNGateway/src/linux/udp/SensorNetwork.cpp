@@ -208,12 +208,6 @@ int UDPPort::open(char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
 		D_NWSTACK("error can't bind unicast socket in UDPPort::open\n");
 		return -1;
 	}
-	if (setsockopt(_sockfdUnicast, IPPROTO_IP, IP_MULTICAST_LOOP, (char*) &loopch, sizeof(loopch)) < 0)
-	{
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
-		close();
-		return -1;
-	}
 
 	/*------ Create Multicast socket --------*/
 	_sockfdMulticast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -254,12 +248,6 @@ int UDPPort::open(char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
 		return -1;
 	}
 
-	if (setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
-	{
-		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
-		close();
-		return -1;
-	}
 	return 0;
 }
 

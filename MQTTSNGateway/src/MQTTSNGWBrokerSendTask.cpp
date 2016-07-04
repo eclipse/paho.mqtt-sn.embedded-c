@@ -112,12 +112,10 @@ void BrokerSendTask::run()
 		}
 		else
 		{
-			WRITELOG("%s BrokerSendTask can't send a packet.  errno=%d %s%s\n",
+			WRITELOG("%s BrokerSendTask can't send a packet to the broker errno=%d %s%s\n",
 				ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
-				WRITELOG("%s BrokerSendTask can't send a packet to the broker errno=%d %s%s\n",
-						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
-				client->disconnected();
-				client->getNetwork()->disconnect();
+			client->disconnected();
+			client->getNetwork()->disconnect();
 		}
 
 		_light->blueLight(false);
