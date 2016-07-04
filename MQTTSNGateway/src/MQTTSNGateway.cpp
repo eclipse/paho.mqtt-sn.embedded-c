@@ -51,6 +51,8 @@ void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 
+	MultiTaskProcess::initialize(argc, argv);
+
 	_params.gatewayId = 0;
 	if (getParam("GatewayID", param) == 0)
 	{
@@ -103,24 +105,20 @@ void Gateway::initialize(int argc, char** argv)
 
 	if (getParam("ClientAuthorization", param) == 0)
 	{
-		if (!strcasecmp(param, "YES"))
+		if (!_clientList.authorize(param))
 		{
-			string fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CLIENT_LIST);
-
-			if (!_clientList.authorize(fileName.c_str()))
-			{
-				throw Exception("Gateway::initialize: can't authorize clients.");
-			}
+			char buff[256];
+			sprintf(buff, "Gateway::initialize: can't open clients authorization file: [%s].", param);
+			throw Exception(buff);
 		}
+		WRITELOG("Using clientList file:[%s]\n", param);
 	}
-
-	MultiTaskProcess::initialize(argc, argv);
 }
 
 void Gateway::run(void)
 {
 	_lightIndicator.redLight(true);
-	WRITELOG("%s %s has been started. %s %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getType(), GATEWAY_VERSION);
+	WRITELOG("\n%s %s has been started. %s %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getType(), GATEWAY_VERSION);
 	if ( getClientList()->isAuthorized() )
 	{
 		WRITELOG("\n Client authentication is required by the configuration settings.\n");
@@ -128,7 +126,7 @@ void Gateway::run(void)
 
 	/* execute threads & wait StopProcessEvent MQTTSNGWPacketHandleTask posts by CTL-C */
 	MultiTaskProcess::run();
-	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
+	WRITELOG("%s %s stoped\n", currentDateTime(), _params.gatewayName);
 	_lightIndicator.allLightOff();
 }
 

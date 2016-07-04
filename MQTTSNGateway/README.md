@@ -17,6 +17,10 @@ MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into ../ directory.
 $ cd ../   
 $ ./MQTT-SNGateway
 ````   
+or you can specify the config file as follows:    
+```` 
+$ ./MQTT-SNGateway -f configFilePath/configFileName    
+```` 
         
 MQTT-SN clients should run in differnt from a host of the gateway. Other wise the gateway can't receive multicast packets form clients.    
 
@@ -31,7 +35,7 @@ BrokerPortNo=1883
 SecureConnection=NO    
 #BrokerPortNo=8883    
 #SecureConnection=YES    
-ClientAuthorization=NO    
+#ClientAuthorization=./clientList.conf    
 GatewayID=1    
 GatewayName=PahoGateway-01    
 KeepAlive=900    
@@ -53,11 +57,11 @@ SerialDevice=/dev/ttyUSB0
 Client should know the BroadcastIP and PortNo to send a SEARCHGW message.    
 **GatewayId** is defined by GWSEARCH message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
-when **ClientAuthorization** is YES, see MQTTSNGWClient.cpp line53, /usr/local/etc/mqttsnGateway/config/clientList.conf file is required. this file defines connect able clients by IPaddress and PortNo.    
+when **ClientAuthorization** is clientList file for authorization. see MQTTSNGWClient.cpp line53. this file defines connect able clients by IPaddress and PortNo in case of UDP.    
 
 
-### ** How to change the config files directory. **
-    
+### ** How to change the config directory. **
+Default pram.conf file and key files, rbmutex.key and ringbuffer.key, are created automatically in this directory.    
 The directory is defined in MQTTSNGWProcess.h line33.    
 change this value to new directory you want to use.
        
@@ -77,7 +81,8 @@ restart the gateway.
 open ssh terminal and execute LogMonitor.
 
 `$ ./MQTT-SNLogmonitor`    
-
+ 
+`$ ./MQTT-SNLogmonitor`      
 Now you can get the Log on your terminal.
 
 

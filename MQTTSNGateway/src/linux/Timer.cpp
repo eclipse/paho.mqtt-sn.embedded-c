@@ -184,7 +184,7 @@ void LightIndicator::lit(int gpioNo, const char* onoff)
 {
 	if( _gpio[gpioNo] )
 	{
-		write(_gpio[gpioNo], onoff, 1);
+		(void)write(_gpio[gpioNo], onoff, 1);
 	}
 }
 
@@ -197,7 +197,7 @@ void LightIndicator::pinMode(int gpioNo)
 	}
 	char no[4];
 	sprintf(no,"%d", gpioNo);
-	write(fd, no, strlen(no));
+	(void)write(fd, no, strlen(no));
 	close(fd);
 
 	char fileName[64];
@@ -208,7 +208,7 @@ void LightIndicator::pinMode(int gpioNo)
 	{
 		return;
 	}
-	write(fd,"out", 3);
+	(void)write(fd,"out", 3);
 	close(fd);
 
 	sprintf( fileName, "/sys/class/gpio/gpio%d/value", gpioNo);

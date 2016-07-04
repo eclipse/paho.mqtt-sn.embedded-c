@@ -23,7 +23,7 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION  "(Ver 0.2.0)"
+#define GATEWAY_VERSION  "(Ver 0.3.0)"
 
 /*=================================
  *    Log controls

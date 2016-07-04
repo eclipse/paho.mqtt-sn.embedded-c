@@ -70,6 +70,7 @@ public:
 private:
 	int _argc;
 	char** _argv;
+	string _configFile;
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;
 	Mutex _mt;
