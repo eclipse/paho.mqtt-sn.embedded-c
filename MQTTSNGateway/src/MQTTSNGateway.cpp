@@ -50,6 +50,7 @@ Gateway::~Gateway()
 void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
+	MultiTaskProcess::initialize(argc, argv);
 
 	_params.gatewayId = 0;
 	if (getParam("GatewayID", param) == 0)
@@ -113,8 +114,6 @@ void Gateway::initialize(int argc, char** argv)
 			}
 		}
 	}
-
-	MultiTaskProcess::initialize(argc, argv);
 }
 
 void Gateway::run(void)
