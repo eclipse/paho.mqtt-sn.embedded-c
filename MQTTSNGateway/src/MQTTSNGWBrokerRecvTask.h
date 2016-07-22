@@ -37,7 +37,7 @@ public:
 	void run(void);
 
 private:
-	void log(Client*, MQTTGWPacket*);
+	int log(Client*, MQTTGWPacket*);
 
 	Gateway* _gateway;
 	LightIndicator* _light;
