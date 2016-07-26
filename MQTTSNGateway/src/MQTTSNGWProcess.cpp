@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <Timer.h>
 #include <exception>
+#include <getopt.h>
 #include "MQTTSNGWProcess.h"
 #include "Threading.h"
 
@@ -74,6 +75,18 @@ void Process::initialize(int argc, char** argv)
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 	signal(SIGHUP, signalHandler);
+
+	_configFile = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CONFIG_FILE);
+
+	int opt;
+	while ((opt = getopt(_argc, _argv, "f:")) != -1)
+	{
+		if ( opt == 'f' )
+		{
+			_configFile = string(optarg);
+		}
+	}
+	WRITELOG("Using config file:[%s]\n", _configFile.c_str());
 }
 
 int Process::getArgc()
@@ -91,11 +104,12 @@ int Process::getParam(const char* parameter, char* value)
 	char str[MQTTSNGW_PARAM_MAX];
 	char param[MQTTSNGW_PARAM_MAX];
 	FILE *fp;
+
 	int i = 0, j = 0;
 
-	if ((fp = fopen(MQTTSNGW_CONFIG_FILE, "r")) == NULL)
+	if ((fp = fopen(_configFile.c_str(), "r")) == NULL)
 	{
-		WRITELOG("No config file:[%s]\n", MQTTSNGW_CONFIG_FILE);
+		WRITELOG("No config file:[%s]\n", _configFile.c_str());
 		return -1;
 	}
 

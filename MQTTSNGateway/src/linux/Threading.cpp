@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -235,6 +236,15 @@ void Semaphore::timedwait(uint16_t millsec)
  =========================================*/
 RingBuffer::RingBuffer()
 {
+	int fp = 0;
+	string fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_RINGBUFFER_KEY);
+	fp = open(fileName.c_str(), O_CREAT, 0);
+	close(fp);
+
+	fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_RB_MUTEX_KEY);
+	fp = open(fileName.c_str(), O_CREAT, 0);
+	close(fp);
+
 	key_t key = ftok(MQTTSNGW_RINGBUFFER_KEY, 1);
 
 	if ((_shmid = shmget(key, PROCESS_LOG_BUFFER_SIZE,

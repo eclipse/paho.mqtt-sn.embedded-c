@@ -59,6 +59,7 @@ public:
 private:
 	int _sockfd;
 	addrinfo* _addrinfo;
+	Mutex _mutex;
 };
 
 /*========================================

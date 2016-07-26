@@ -19,13 +19,12 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#include "MQTTSNGWDefines.h"
 
 namespace MQTTSNGW
 {
 
-#define MQTTSNGW_RINGBUFFER_KEY   "/usr/local/etc/mqttsnGateway/config/ringbuffer.key"
-#define MQTTSNGW_RB_MUTEX_KEY     "/usr/local/etc/mqttsnGateway/config/rbmutex.key"
+#define MQTTSNGW_RINGBUFFER_KEY   "ringbuffer.key"
+#define MQTTSNGW_RB_MUTEX_KEY     "rbmutex.key"
 #define MQTTSNGW_RB_SEMAPHOR_NAME "/rbsemaphor"
 
 /*=====================================

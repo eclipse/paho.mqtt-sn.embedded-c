@@ -4,6 +4,8 @@ APPL := mainGateway
 LPROGNAME := MQTT-SNLogmonitor
 LAPPL := mainLogmonitor
 
+CONFIG := MQTTSNGateway/param.conf
+
 SRCDIR := MQTTSNGateway/src
 SUBDIR := MQTTSNPacket/src
 
@@ -69,7 +71,7 @@ DEPS += $(CSRCS:%.c=$(OUTDIR)/%.d)
 
 .PHONY: install clean 
 
-all: $(PROG) 
+all: $(PROG) $(LPROG)
 
 monitor: $(LPROG)
 
@@ -102,5 +104,7 @@ clean:
 
 install:
 	cp -pf $(PROG) ../
+	cp -pf $(LPROG) ../
+	cp -pf $(CONFIG) ../
 	
 	

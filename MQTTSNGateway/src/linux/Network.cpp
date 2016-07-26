@@ -57,6 +57,7 @@ bool TCPStack::isValid()
 
 void TCPStack::close()
 {
+	_mutex.lock();
 	if (_sockfd > 0)
 	{
 		::close(_sockfd);
@@ -67,6 +68,7 @@ void TCPStack::close()
 			_addrinfo = 0;
 		}
 	}
+	_mutex.unlock();
 
 }
 

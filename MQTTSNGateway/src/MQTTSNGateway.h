@@ -143,6 +143,7 @@ typedef struct
 	uint8_t  gatewayId;
 	uint8_t  mqttVersion;
 	uint16_t maxInflightMsgs;
+	uint8_t* gatewayName;
 }GatewayParams;
 
 /*=====================================

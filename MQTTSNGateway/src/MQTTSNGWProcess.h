@@ -30,6 +30,11 @@ namespace MQTTSNGW
 /*=================================
  *    Parameters
  ==================================*/
+#define MQTTSNGW_CONFIG_DIRECTORY "./"
+
+#define MQTTSNGW_CONFIG_FILE      "param.conf"
+#define MQTTSNGW_CLIENT_LIST      "clientList.conf"
+
 #define MQTTSNGW_MAX_TASK           10  // number of Tasks
 #define PROCESS_LOG_BUFFER_SIZE  16384  // Ring buffer size for Logs
 #define MQTTSNGW_PARAM_MAX         128  // Max length of config records.
@@ -65,6 +70,7 @@ public:
 private:
 	int _argc;
 	char** _argv;
+	string _configFile;
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;
 	Mutex _mt;
