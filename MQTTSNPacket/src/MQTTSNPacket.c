@@ -65,10 +65,9 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
 	FUNC_ENTRY;
 	if (length > 255)
 	{
-		buf[rc++] = 0x01;
-		unsigned char *bufptr = &buf[rc];
-		writeInt(&bufptr, length);
-		rc += 2;
+		writeChar(&buf, 0x01);
+		writeInt(&buf, length);
+		rc += 3;
 	}
 	else
 		buf[rc++] = length;
