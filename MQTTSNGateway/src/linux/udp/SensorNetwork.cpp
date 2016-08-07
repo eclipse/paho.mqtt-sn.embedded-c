@@ -276,7 +276,7 @@ int UDPPort::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr
 	{
 		D_NWSTACK("errno == %d in UDPPort::sendto\n", errno);
 	}
-	D_NWSTACK("sendto %s:%u length = %d\n", inet_ntoa(dest.sin_addr), htons(addr->getPortNo()), status);
+	D_NWSTACK("sendto %s:%u length = %d\n", inet_ntoa(dest.sin_addr), ntohs(dest.sin_port), status);
 	return status;
 }
 
@@ -289,6 +289,7 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
 	fd_set recvfds;
 	int maxSock = 0;
+	int rc = 0;
 
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
@@ -307,13 +308,13 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 
 	if (FD_ISSET(_sockfdUnicast, &recvfds))
 	{
-		return recvfrom(_sockfdUnicast, buf, len, 0, addr);
+		rc = recvfrom(_sockfdUnicast, buf, len, 0, addr);
 	}
 	else if (FD_ISSET(_sockfdMulticast, &recvfds))
 	{
-		return recvfrom(_sockfdMulticast, buf, len, 0, &_grpAddr);
+		rc = recvfrom(_sockfdMulticast, buf, len, 0, &_grpAddr);
 	}
-	return 0;
+	return rc;
 }
 
 int UDPPort::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
@@ -330,7 +331,7 @@ int UDPPort::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, Sen
 		return -1;
 	}
 	addr->setAddress(sender.sin_addr.s_addr, sender.sin_port);
-	D_NWSTACK("recved from %s:%d length = %d\n", inet_ntoa(sender.sin_addr), htons(addr->getPortNo()), status);
+	D_NWSTACK("recved from %s:%d length = %d\n", inet_ntoa(sender.sin_addr),ntohs(sender.sin_port), status);
 	return status;
 }
 

@@ -187,7 +187,7 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 		break;
 	case SUBACK:
 	case UNSUBACK:
-		WRITELOG(FORMAT_YE_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PINGRESP:
 		WRITELOG(FORMAT_GR_NL, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));

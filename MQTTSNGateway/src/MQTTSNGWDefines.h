@@ -23,14 +23,14 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION  "(Ver 0.2.0)"
+#define GATEWAY_VERSION  "(Ver 0.2.1)"
 
 /*=================================
  *    Log controls
  ==================================*/
 //#define DEBUG          // print out log for debug
 //#define RINGBUFFER     // print out Packets log into shared memory
-
+//#define DEBUG_NWSTACK  // print out SensorNetwork log
 /*=================================
  *    Parametrs
  ==================================*/

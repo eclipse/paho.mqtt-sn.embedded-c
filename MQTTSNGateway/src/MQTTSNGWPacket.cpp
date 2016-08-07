@@ -78,7 +78,7 @@ int MQTTSNPacket::recv(SensorNetwork* network)
 {
 	uint8_t buf[MQTTSNGW_MAX_PACKET_SIZE];
 	int len = network->read((uint8_t*) buf, MQTTSNGW_MAX_PACKET_SIZE);
-	if (len >= 3)
+	if (len > 1)
 	{
 		len = desirialize(buf, len);
 	}

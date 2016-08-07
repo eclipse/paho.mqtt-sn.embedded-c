@@ -58,7 +58,7 @@ void ClientRecvTask::run()
 		MQTTSNPacket* packet = new MQTTSNPacket();
 		int packetLen = packet->recv(_sensorNetwork);
 
-		if (packetLen < 3 )
+		if (packetLen < 2 )
 		{
 			delete packet;
 			continue;
