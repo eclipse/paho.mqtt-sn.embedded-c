@@ -151,10 +151,10 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 		WRITELOG(FORMAT_WH_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PINGREQ:
-		WRITELOG(FORMAT_YE, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case DISCONNECT:
-		WRITELOG(FORMAT_YE, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
 		break;

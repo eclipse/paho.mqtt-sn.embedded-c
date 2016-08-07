@@ -163,7 +163,7 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
 		WRITELOG(FORMAT_WH_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_PINGREQ:
-		WRITELOG(FORMAT_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+		WRITELOG(FORMAT_YE_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	default:
 		WRITELOG(FORMAT_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
