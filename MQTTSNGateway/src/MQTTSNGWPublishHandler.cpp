@@ -67,10 +67,6 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 
 	if ( topicid.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
 	{
-		/*
-		 * 		ToDo:  PUBLISH predefined Topic procedures.
-		 */
-
 		if(msgId)
 		{
 			/* Reply PubAck to the client */
@@ -80,6 +76,54 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 			ev1->setClientSendEvent(client, pubAck);
 			_gateway->getClientSendQue()->post(ev1);
 		}
+
+#ifdef CLIENTS_OTA_AVAILABLE
+		if ( topicid.data.id == 0x0001 )
+		{
+			uint8_t clientId[MAX_CLIENTID_LENGTH + 1];
+
+			if ( payloadlen <= MAX_CLIENTID_LENGTH )
+			{
+				memcpy(clientId, payload, payloadlen);
+				clientId[payloadlen] = 0;
+				Client* cl = _gateway->getClientList()->getClient(clientId);
+
+				if ( cl )
+				{
+					//printf("OTA Client = %s\n",cl->getClientId());
+					MQTTSNPacket* pubota = new MQTTSNPacket();
+					pubota->setPUBLISH(0, 0, 0, 0, topicid, 0, 0);
+					cl->setOTAClient(client);
+					Event* evt = new Event();
+					evt->setClientSendEvent(cl, pubota);
+					_gateway->getClientSendQue()->post(evt);
+				}
+				else
+				{
+					MQTTSNPacket* publish = new MQTTSNPacket();
+					topicid.data.id = 0x0003;
+					publish->setPUBLISH(0, 0, 0, 0, topicid, clientId, (uint16_t)strlen((const char*)clientId));
+					Event* evt = new Event();
+					evt->setClientSendEvent(client, publish);
+					_gateway->getClientSendQue()->post(evt);
+				}
+			}
+		}
+		else if ( topicid.data.id == 0x0002 )
+		{
+			Client* cl = client->getOTAClient();
+			if ( cl )
+			{
+				//printf("OTA Manager = %s\n",cl->getClientId());
+				MQTTSNPacket* pubota = new MQTTSNPacket();
+				pubota->setPUBLISH(0, 0, 0, 0, topicid, payload, payloadlen);
+				client->setOTAClient(0);
+				Event* evt = new Event();
+				evt->setClientSendEvent(cl, pubota);
+				_gateway->getClientSendQue()->post(evt);
+			}
+		}
+#endif
 		return;
 	}
 
@@ -96,7 +140,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 		topic = client->getTopics()->getTopic(topicid.data.id);
 		if( !topic && msgId && qos > 0 )
 		{
-			/* Reply PubAck of INVALID_TOPIC_ID to the client */
+			/* Reply PubAck with INVALID_TOPIC_ID to the client */
 			MQTTSNPacket* pubAck = new MQTTSNPacket();
 			pubAck->setPUBACK( topicid.data.id, msgId, MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
 			Event* ev1 = new Event();

@@ -23,50 +23,16 @@
 
 namespace MQTTSNGW
 {
+/*=================================
+ *    Starting prompt
+ ==================================*/
+#define GATEWAY_VERSION " * Version: 0.3.2"
 
-/*==========================================================
- *           Log Formats
- ===========================================================*/
-#define BROKER      "Broker"
-#define GATEWAY     "Gateway"
-#define CLIENT      "Client"
-#define CLIENTS     "Clients"
-#define LEFTARROW   "<---"
-#define RIGHTARROW  "--->"
-
-
-#define FORMAT_WHITE_NL          "%s   %-18s%-6s%-26s%s\n"
-#define FORMAT_WH_NL           "\n%s   %-18s%-6s%-26s%s\n"
-#define FORMAT_WH_MSGID          "%s   %-11s%-5s  %-6s%-26s%s\n"
-#define FORMAT_WH_MSGID_NL     "\n%s   %-11s%-5s  %-6s%-26s%s\n"
-#define FORMAT_WH_GR             "%s   %-18s%-6s\x1b[0m\x1b[32m%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_WH_GR_MSGID       "%s   %-11s%-5s  %-6s\x1b[0m\x1b[32m%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_WH_GR_MSGID_NL  "\n%s   %-11s%-5s  %-6s\x1b[0m\x1b[32m%-26s\x1b[0m\x1b[37m%s\n"
-
-#define FORMAT_GR                "%s   \x1b[0m\x1b[32m%-18s%-6s\x1b[0m\x1b[37m%-26s%s\n"
-#define FORMAT_GR_NL           "\n%s   \x1b[0m\x1b[32m%-18s%-6s\x1b[0m\x1b[37m%-26s%s\n"
-#define FORMAT_GR_MSGID          "%s   \x1b[0m\x1b[32m%-11s%-5s  %-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_GR_MSGID_NL     "\n%s   \x1b[0m\x1b[32m%-11s%-5s  %-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_GR_WH_MSGID       "%s   \x1b[0m\x1b[32m%-11s%-5s  %-6s\x1b[0m\x1b[37m%-26s%s\n"
-#define FORMAT_GR_WH_MSGID_NL  "\n%s   \x1b[0m\x1b[32m%-11s%-5s  %-6s\x1b[0m\x1b[37m%-26s%s\n"
-
-#define FORMAT_YE                "%s   \x1b[0m\x1b[33m%-18s%-6s%-44s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_YE_NL           "\n%s   \x1b[0m\x1b[33m%-18s%-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_YE_WH             "%s   \x1b[0m\x1b[33m%-18s%-6s\x1b[0m\x1b[37m%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_YE_WH_NL        "\n%s   \x1b[0m\x1b[33m%-18s%-6s\x1b[0m\x1b[37m%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_YE_GR             "%s   \x1b[0m\x1b[33m%-18s%-6s\x1b[0m\x1b[32m%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_YE_GR_MSGID       "%s   \x1b[0m\x1b[33m%-11s%-5s  %-6s\x1b[0m\x1b[32m%-26s\x1b[0m\x1b[37m%s\n"
-
-#define FORMAT_CY_ANY            "%s   \x1b[0m\x1b[36m%-18s%-6s%-44s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_CY                "%s   \x1b[0m\x1b[36m%-18s%-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_CY_NL           "\n%s   \x1b[0m\x1b[36m%-18s%-6s%-26s\x1b[0m\x1b[37m%s\n"
-
-#define FORMAT_BL_NL           "\n%s   \x1b[0m\x1b[34m%-18s%-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_RED               "%s   \x1b[0m\x1b[31m%-18s%-6s%-44s\x1b[0m\x1b[37m%s\n"
-#define FORMAT_RED_NL          "\n%s   \x1b[0m\x1b[31m%-18s%-6s%-26s\x1b[0m\x1b[37m%s\n"
-#define ERRMSG_HEADER            "\x1b[0m\x1b[31mError:"
-#define ERRMSG_FOOTER            "\x1b[0m\x1b[37m"
-
+#define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
+#define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
+#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
+#define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
+#define PAHO_COPYRIGHT4 " ***************************************************************************"
 /*==========================================================
  *           Gateway default parameters
  ===========================================================*/
@@ -74,6 +40,42 @@ namespace MQTTSNGW
 #define DEFAULT_MAX_CLIENTS         (100)  // Number of Clients can be handled.
 #define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
 #define DEFAULT_INFLIGHTMESSAGE      (10)  // Number of inflight messages
+
+/*==========================================================
+ *           Log Formats
+ *
+ *           RED    : \x1b[0m\x1b[1;31m
+ *           green  : \x1b[0m\x1b[0;32m
+ *           yellow : \x1b[0m\x1b[0;33m
+ *           blue   : \x1b[0m\x1b[0;34m
+ *           white  : \x1b[0m\x1b[0;37m
+ ===========================================================*/
+#define CLIENT      "Client"
+#define CLIENTS     "Clients"
+#define LEFTARROW   "<---"
+#define RIGHTARROW  "--->"
+
+#define FORMAT_Y_G_G_NL        "\n%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_Y_G_G             "%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_Y_Y_G             "%s   \x1b[0m\x1b[0;33m%-18s%-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_Y_W_G             "%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;37m%-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_Y_Y_W             "%s   \x1b[0m\x1b[0;33m%-18s%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+
+#define FORMAT_G_MSGID_G_G_NL  "\n%s   \x1b[0m\x1b[0;32m%-11s%-5s  %-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_G_MSGID_G_G       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  %-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_G_MSGID_W_G       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  \x1b[0m\x1b[0;37m%-6s\x1b[0m\x1b[0;32m%-34.32 s\x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_G_MSGID_Y_W       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+
+#define FORMAT_W_MSGID_Y_W_NL  "\n%s   %-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_W_MSGID_Y_W       "%s   %-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_W_MSGID_W_G       "%s   %-11s%-5s  %-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_W_MSGID_G_G       "%s   %-11s%-5s  \x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+
+#define FORMAT_BL_NL           "\n%s   \x1b[0m\x1b[0;34m%-18s%-6s%-34.32s %s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_W_NL            "\n%s   %-18s%-6s%-34.32s %s\n"
+
+#define ERRMSG_HEADER            "\x1b[0m\x1b[1;31mError:"
+#define ERRMSG_FOOTER            "\x1b[0m\x1b[0;37m"
 
 /*=====================================
          Class Event

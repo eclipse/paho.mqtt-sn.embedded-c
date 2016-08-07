@@ -131,16 +131,16 @@ void BrokerSendTask::run()
  */
 void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char pbuf[(SIZEOF_LOG_PACKET + 5 )* 3];
 	char msgId[6];
 
 	switch (packet->getType())
 	{
 	case CONNECT:
-		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBLISH:
-		WRITELOG(FORMAT_WH_GR_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case SUBSCRIBE:
 	case UNSUBSCRIBE:
@@ -148,13 +148,13 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 	case PUBREC:
 	case PUBREL:
 	case PUBCOMP:
-		WRITELOG(FORMAT_WH_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PINGREQ:
-		WRITELOG(FORMAT_YE, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case DISCONNECT:
-		WRITELOG(FORMAT_YE, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
 		break;

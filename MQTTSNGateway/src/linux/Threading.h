@@ -72,6 +72,7 @@ class RingBuffer
 {
 public:
 	RingBuffer();
+	RingBuffer(const char* keyDirctory);
 	~RingBuffer();
 	void put(char* buffer);
 	int get(char* buffer, int bufferLength);

@@ -38,7 +38,7 @@ char* currentDateTime()
 	gettimeofday(&now, 0);
 	tstruct = *localtime(&now.tv_sec);
 	strftime(theCurrentTime, sizeof(theCurrentTime), "%Y%m%d %H%M%S", &tstruct);
-	sprintf(theCurrentTime + 15, " %03d", (int)now.tv_usec / 1000 );
+	sprintf(theCurrentTime + 15, ".%03d", (int)now.tv_usec / 1000 );
 	return theCurrentTime;
 }
 
