@@ -97,7 +97,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 		WRITELOG(FORMAT_GR_WH_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
 		break;
 	case MQTTSN_PINGRESP:
-		WRITELOG(FORMAT_CY, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_YE_WH, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
 		break;

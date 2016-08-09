@@ -246,6 +246,7 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 	/* send PINGREQ to the broker */
 	MQTTGWPacket* pingreq = new MQTTGWPacket();
 	pingreq->setHeader(PINGREQ);
-	Event* ev1 = new Event();
-	ev1->setBrokerSendEvent(client, pingreq);
+	Event* evt = new Event();
+	evt->setBrokerSendEvent(client, pingreq);
+	_gateway->getBrokerSendQue()->post(evt);
 }
