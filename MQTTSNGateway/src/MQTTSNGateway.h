@@ -74,7 +74,7 @@ namespace MQTTSNGW
 #define FORMAT_BL_NL           "\n%s   \x1b[0m\x1b[0;34m%-18s%-6s%-34.32s %s\x1b[0m\x1b[0;37m\n"
 #define FORMAT_W_NL            "\n%s   %-18s%-6s%-34.32s %s\n"
 
-#define ERRMSG_HEADER            "\x1b[0m\x1b[1;31mError:"
+#define ERRMSG_HEADER            "\x1b[0m\x1b[0;31mError:"
 #define ERRMSG_FOOTER            "\x1b[0m\x1b[0;37m"
 
 /*=====================================

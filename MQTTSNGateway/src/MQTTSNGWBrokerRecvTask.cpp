@@ -166,7 +166,7 @@ void BrokerRecvTask::run(void)
  */
 int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char pbuf[(SIZEOF_LOG_PACKET + 5 )* 3];
 	char msgId[6];
 	int rc = 0;
 
