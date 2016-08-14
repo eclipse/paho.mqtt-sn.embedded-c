@@ -505,23 +505,14 @@ char* MQTTGWPacket::getMsgId(char* pbuf)
 
 char* MQTTGWPacket::print(char* pbuf)
 {
+	uint8_t packetData[MQTTSNGW_MAX_PACKET_SIZE];
 	char* ptr = pbuf;
 	char** pptr = &pbuf;
-	char digit[4];
+	int len = getPacketData(packetData);
 
-	sprintf(*pptr, " %02X",(const unsigned char)_header.byte);
-	*pptr += 3;
-	int len = MQTTPacket_encode((char*) digit, _remainingLength);
 	for (int i = 0; i < len; i++)
 	{
-		sprintf(*pptr, " %02X", digit[i]);
-		*pptr += 3;
-	}
-
-	int size = _remainingLength > SIZEOF_LOG_PACKET ? SIZEOF_LOG_PACKET : _remainingLength;
-	for (int i = 0; i < size; i++)
-	{
-		sprintf(*pptr, " %02X", *(_data + i));
+		sprintf(*pptr, " %02X", packetData[i]);
 		*pptr += 3;
 	}
 	**pptr = 0;

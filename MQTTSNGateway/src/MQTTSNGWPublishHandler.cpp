@@ -163,10 +163,10 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	pub.payload = (char*)payload;
 	pub.payloadlen = payloadlen;
 
-	MQTTGWPacket* pulish = new MQTTGWPacket();
-	pulish->setPUBLISH(&pub);
+	MQTTGWPacket* publish = new MQTTGWPacket();
+	publish->setPUBLISH(&pub);
 	Event* ev1 = new Event();
-	ev1->setBrokerSendEvent(client, pulish);
+	ev1->setBrokerSendEvent(client, publish);
 	_gateway->getBrokerSendQue()->post(ev1);
 }
 
