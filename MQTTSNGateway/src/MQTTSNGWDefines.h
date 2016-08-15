@@ -33,7 +33,6 @@ namespace MQTTSNGW
 #define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size  (5+2+TopicLen+PayloadLen)
 #define SIZEOF_LOG_PACKET           (500)  // Length of the packet log in bytes
 
-//#define CLIENTS_OTA_AVAILABLE
 #define MQTTSNGW_TLS_CA_DIR       "/etc/ssl/certs"
 
 /*=================================

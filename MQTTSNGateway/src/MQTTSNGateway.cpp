@@ -134,8 +134,7 @@ void Gateway::run(void)
 	WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
 	WRITELOG("%s\n", GATEWAY_VERSION);
 	WRITELOG("%s\n", PAHO_COPYRIGHT4);
-	WRITELOG("\n%s %s has been started.\n                    MQTT-SN listening on %s\n",  \
-			  currentDateTime(), _params.gatewayName, _sensorNetwork.getDescription());
+	WRITELOG("\n%s %s has been started.\n                    listening on, %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getDescription());
 
 	if ( getClientList()->isAuthorized() )
 	{
@@ -143,6 +142,7 @@ void Gateway::run(void)
 	}
 
 	/* execute threads & wait StopProcessEvent MQTTSNGWPacketHandleTask posts by CTL-C */
+
 	MultiTaskProcess::run();
 	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
 	_lightIndicator.allLightOff();

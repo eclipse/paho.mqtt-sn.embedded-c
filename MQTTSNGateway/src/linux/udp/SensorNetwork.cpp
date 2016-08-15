@@ -129,17 +129,20 @@ int SensorNetwork::initialize(void)
 	if (theProcess->getParam("MulticastIP", param) == 0)
 	{
 		ip = param;
-		_description = param;
-		_description += " UDP Port ";
+		_description = "UDP Multicast ";
+		_description += param;
 	}
 	if (theProcess->getParam("MulticastPortNo", param) == 0)
 	{
 		multicastPortNo = atoi(param);
+		_description += ":";
 		_description += param;
 	}
 	if (theProcess->getParam("GatewayPortNo", param) == 0)
 	{
 		unicastPortNo = atoi(param);
+		_description += " and Gateway Port ";
+		_description += param;
 	}
 
 	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo);

@@ -77,8 +77,8 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 			_gateway->getClientSendQue()->post(ev1);
 		}
 
-#ifdef CLIENTS_OTA_AVAILABLE
-		if ( topicid.data.id == 0x0001 )
+#ifdef OTA_CLIENTS
+		if ( topicid.data.id == PREDEFINEDID_OTA_REQ )
 		{
 			uint8_t clientId[MAX_CLIENTID_LENGTH + 1];
 
@@ -101,7 +101,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 				else
 				{
 					MQTTSNPacket* publish = new MQTTSNPacket();
-					topicid.data.id = 0x0003;
+					topicid.data.id = PREDEFINEDID_OTA_NO_CLIENT;
 					publish->setPUBLISH(0, 0, 0, 0, topicid, clientId, (uint16_t)strlen((const char*)clientId));
 					Event* evt = new Event();
 					evt->setClientSendEvent(client, publish);
@@ -109,7 +109,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 				}
 			}
 		}
-		else if ( topicid.data.id == 0x0002 )
+		else if ( topicid.data.id == PREDEFINEDID_OTA_READY )
 		{
 			Client* cl = client->getOTAClient();
 			if ( cl )

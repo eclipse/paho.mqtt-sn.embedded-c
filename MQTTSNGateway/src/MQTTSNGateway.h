@@ -23,16 +23,6 @@
 
 namespace MQTTSNGW
 {
-/*=================================
- *    Starting prompt
- ==================================*/
-#define GATEWAY_VERSION " * Version: 0.3.2"
-
-#define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
-#define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
-#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
-#define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
-#define PAHO_COPYRIGHT4 " ***************************************************************************"
 /*==========================================================
  *           Gateway default parameters
  ===========================================================*/
@@ -41,6 +31,16 @@ namespace MQTTSNGW
 #define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
 #define DEFAULT_INFLIGHTMESSAGE      (10)  // Number of inflight messages
 
+/*=================================
+ *    Starting prompt
+ ==================================*/
+#define GATEWAY_VERSION " * Version: 0.3.3"
+
+#define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
+#define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
+#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
+#define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
+#define PAHO_COPYRIGHT4 " ***************************************************************************"
 /*==========================================================
  *           Log Formats
  *
@@ -76,6 +76,14 @@ namespace MQTTSNGW
 
 #define ERRMSG_HEADER            "\x1b[0m\x1b[0;31mError:"
 #define ERRMSG_FOOTER            "\x1b[0m\x1b[0;37m"
+
+/*=====================================
+      Predefined TopicId for OTA
+  ====================================*/
+//#define OTA_CLIENTS
+#define PREDEFINEDID_OTA_REQ       (0x0001)
+#define PREDEFINEDID_OTA_READY     (0x0002)
+#define PREDEFINEDID_OTA_NO_CLIENT (0x0003)
 
 /*=====================================
          Class Event
