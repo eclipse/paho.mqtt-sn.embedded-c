@@ -84,6 +84,11 @@ void BrokerSendTask::run()
 		client = ev->getClient();
 		packet = ev->getMQTTGWPacket();
 
+		if ( client->getNetwork()->isValid() && packet->getType() == CONNECT )
+		{
+			client->getNetwork()->close();
+		}
+
 		if ( !client->getNetwork()->isValid() )
 		{
 			/* connect to the broker and send a packet */

@@ -55,9 +55,9 @@ void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
 			qos = rc;
 		}
 		snPacket->setSUBACK(qos, topicId, msgId, returnCode);
-		Event* ev1 = new Event();
-		ev1->setClientSendEvent(client, snPacket);
-		_gateway->getClientSendQue()->post(ev1);
+		Event* evt = new Event();
+		evt->setClientSendEvent(client, snPacket);
+		_gateway->getClientSendQue()->post(evt);
 	}
 }
 
@@ -67,8 +67,8 @@ void MQTTGWSubscribeHandler::handleUnsuback(Client* client, MQTTGWPacket* packet
 	packet->getAck(&ack);
 	MQTTSNPacket* snPacket = new MQTTSNPacket();
 	snPacket->setUNSUBACK(ack.msgId);
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(client, snPacket);
-	_gateway->getClientSendQue()->post(ev1);
+	Event* evt = new Event();
+	evt->setClientSendEvent(client, snPacket);
+	_gateway->getClientSendQue()->post(evt);
 }
 

@@ -35,7 +35,6 @@ MQTTSNSubscribeHandler::~MQTTSNSubscribeHandler()
 
 void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packet)
 {
-	MQTTGWPacket* subscribe = new MQTTGWPacket();
 	uint8_t dup;
 	int qos;
 	uint16_t msgId;
@@ -86,6 +85,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 		}
 		else
 		{
+			MQTTGWPacket* subscribe = new MQTTGWPacket();
 			topic = client->getTopics()->getTopic(&topicFilter);
 			if (topic == 0)
 			{
@@ -132,6 +132,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 		}
 	}
 }
+
 void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* packet)
 {
 	uint16_t msgId;
@@ -161,9 +162,9 @@ void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* pac
 				Event* evsuback = new Event();
 				evsuback->setClientSendEvent(client, sUnsuback);
 				_gateway->getClientSendQue()->post(evsuback);
-				delete unsubscribe;
-				return;
 			}
+			delete unsubscribe;
+			return;
 		}
 		else
 		{

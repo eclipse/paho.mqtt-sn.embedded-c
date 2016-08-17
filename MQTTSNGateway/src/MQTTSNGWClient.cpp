@@ -837,7 +837,7 @@ Topic* Topics::getTopic(MQTTSN_topicid* topicid)
 	Topic* p = _first;
 	while (p)
 	{
-		if (p->_topicId == topicid->data.id)
+		if (strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0 )
 		{
 			return p;
 		}

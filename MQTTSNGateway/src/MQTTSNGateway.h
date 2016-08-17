@@ -44,38 +44,38 @@ namespace MQTTSNGW
 /*==========================================================
  *           Log Formats
  *
- *           RED    : \x1b[0m\x1b[1;31m
- *           green  : \x1b[0m\x1b[0;32m
- *           yellow : \x1b[0m\x1b[0;33m
- *           blue   : \x1b[0m\x1b[0;34m
- *           white  : \x1b[0m\x1b[0;37m
+ *           RED    : \033[0m\033[1;31m
+ *           green  : \033[0m\033[0;32m
+ *           yellow : \033[0m\033[0;33m
+ *           blue   : \033[0m\033[0;34m
+ *           white  : \033[0m\033[0;37m
  ===========================================================*/
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 
-#define FORMAT_Y_G_G_NL        "\n%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_Y_G_G             "%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_Y_Y_G             "%s   \x1b[0m\x1b[0;33m%-18s%-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_Y_W_G             "%s   \x1b[0m\x1b[0;33m%-18s\x1b[0m\x1b[0;37m%-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_Y_Y_W             "%s   \x1b[0m\x1b[0;33m%-18s%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_Y_G_G_NL        "\n%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_Y_G_G             "%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_Y_Y_G             "%s   \033[0m\033[0;33m%-18s%-6s\033[0m\033[0;32m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_Y_W_G             "%s   \033[0m\033[0;33m%-18s\033[0m\033[0;37m%-6s\033[0m\033[0;32m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_Y_Y_W             "%s   \033[0m\033[0;33m%-18s%-6s\033[0m\033[0;37m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
 
-#define FORMAT_G_MSGID_G_G_NL  "\n%s   \x1b[0m\x1b[0;32m%-11s%-5s  %-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_G_MSGID_G_G       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  %-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_G_MSGID_W_G       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  \x1b[0m\x1b[0;37m%-6s\x1b[0m\x1b[0;32m%-34.32 s\x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_G_MSGID_Y_W       "%s   \x1b[0m\x1b[0;32m%-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_G_MSGID_G_G_NL  "\n%s   \033[0m\033[0;32m%-11s%-5s  %-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_G_MSGID_G_G       "%s   \033[0m\033[0;32m%-11s%-5s  %-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_G_MSGID_W_G       "%s   \033[0m\033[0;32m%-11s%-5s  \033[0m\033[0;37m%-6s\033[0m\033[0;32m%-34.32 s\033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_G_MSGID_Y_W       "%s   \033[0m\033[0;32m%-11s%-5s  \033[0m\033[0;33m%-6s\033[0m\033[0;37m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
 
-#define FORMAT_W_MSGID_Y_W_NL  "\n%s   %-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_W_MSGID_Y_W       "%s   %-11s%-5s  \x1b[0m\x1b[0;33m%-6s\x1b[0m\x1b[0;37m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_W_MSGID_W_G       "%s   %-11s%-5s  %-6s\x1b[0m\x1b[0;32m%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
-#define FORMAT_W_MSGID_G_G       "%s   %-11s%-5s  \x1b[0m\x1b[0;32m%-6s%-34.32s \x1b[0m\x1b[0;34m%s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_W_MSGID_Y_W_NL  "\n%s   %-11s%-5s  \033[0m\033[0;33m%-6s\033[0m\033[0;37m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_W_MSGID_Y_W       "%s   %-11s%-5s  \033[0m\033[0;33m%-6s\033[0m\033[0;37m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_W_MSGID_W_G       "%s   %-11s%-5s  %-6s\033[0m\033[0;32m%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
+#define FORMAT_W_MSGID_G_G       "%s   %-11s%-5s  \033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
 
-#define FORMAT_BL_NL           "\n%s   \x1b[0m\x1b[0;34m%-18s%-6s%-34.32s %s\x1b[0m\x1b[0;37m\n"
+#define FORMAT_BL_NL           "\n%s   \033[0m\033[0;34m%-18s%-6s%-34.32s %s\033[0m\033[0;37m\n"
 #define FORMAT_W_NL            "\n%s   %-18s%-6s%-34.32s %s\n"
 
-#define ERRMSG_HEADER            "\x1b[0m\x1b[0;31mError:"
-#define ERRMSG_FOOTER            "\x1b[0m\x1b[0;37m"
+#define ERRMSG_HEADER            "\033[0m\033[0;31mError:"
+#define ERRMSG_FOOTER            "\033[0m\033[0;37m"
 
 /*=====================================
       Predefined TopicId for OTA
