@@ -83,6 +83,9 @@ int run(void)
 		theClient->run();
 	}
 	while (theClientMode);
+
+	delete theScreen;
+	delete theClient;
 	return 0;
 }
 

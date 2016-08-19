@@ -63,7 +63,7 @@ void LSubscribeManager::onConnect(void)
 	ASSERT("\033[0m\033[0;27m Attempting OnConnect.....\033[0m\033[0;37m\n");
 	if (_first == 0)
 	{
-		for (uint8_t i = 0; theOnPublishList[i].pubCallback; i++)
+		for (uint8_t i = 0; theOnPublishList[i].topic != 0; i++)
 		{
 			subscribe(theOnPublishList[i].topic, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
 		}

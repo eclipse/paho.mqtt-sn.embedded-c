@@ -48,7 +48,7 @@ LGwProxy::LGwProxy(){
 }
 
 LGwProxy::~LGwProxy(){
-
+	_topicTbl.clearTopic();
 }
 
 void LGwProxy::initialize(LUdpConfig netconf, LMqttsnConfig mqconf){

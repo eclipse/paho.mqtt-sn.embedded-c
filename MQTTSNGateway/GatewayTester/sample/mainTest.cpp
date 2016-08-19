@@ -21,10 +21,10 @@
 using namespace std;
 using namespace linuxAsyncClient;
 extern LMqttsnClient* theClient;
-extern int run(void);
 extern LScreen* theScreen;
+extern int run(void);
 
-/***********************************************************************
+/*
  *   Functions supported.
  *
  *   void PUBLISH    ( const char* topicName, uint8_t* payload,
@@ -40,9 +40,9 @@ extern LScreen* theScreen;
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
- *   void ASSERT( format, valiables, .....);    <== instead of printf()
+ *   void ASSERT( format, .....);    <== instead of printf()
  *
-************************************************************************/
+ */
 /*------------------------------------------------------
  *    UDP Configuration
  *------------------------------------------------------*/
@@ -50,7 +50,7 @@ UDPCONF  = {
 	"GatewayTester",     // ClientId
 	{225,1,1,1},         // Multicast group IP
 	1883,                // Multicast group Port
-	20000,               // Local PortNo
+	20001,               // Local PortNo
 };
 
 /*------------------------------------------------------
@@ -165,15 +165,15 @@ void disconnect(void)
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-			 TEST("Publish topic1",     publishTopic1),
-			 TEST("Publish topic2",     publishTopic2),
-			 TEST("Subscribe topic2",   subscribeTopic2),
-			 TEST("Publish topic2",     publishTopic2),
-			 TEST("Unsubscribe topic2", unsubscribe),
-			 TEST("Publish topic2",     publishTopic2),
-			 TEST("subscribe again", subscribechangeCallback),
-			 TEST("Publish topic2",     publishTopic2),
-			 TEST("Disconnect",         disconnect),
+			 TEST("Step1:Publish topic1",     publishTopic1),
+			 TEST("Step2:Publish topic2",     publishTopic2),
+			 TEST("Step3:Subscribe topic2",   subscribeTopic2),
+			 TEST("Step4:Publish topic2",     publishTopic2),
+			 TEST("Step5:Unsubscribe topic2", unsubscribe),
+			 TEST("Step6:Publish topic2",     publishTopic2),
+			 TEST("Step7:subscribe again",    subscribechangeCallback),
+			 TEST("Step8:Publish topic2",     publishTopic2),
+			 TEST("Step9:Disconnect",         disconnect),
 			 END_OF_TEST_LIST
 			};
 
@@ -200,5 +200,5 @@ void setup(void)
 
 int main(int argc, char** argv)
 {
-	run();
+	return run();
 }

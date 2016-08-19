@@ -21,11 +21,11 @@
 using namespace std;
 using namespace linuxAsyncClient;
 extern LMqttsnClient* theClient;
-extern int run(void);
 extern LScreen* theScreen;
+extern int run(void);
 
-/***********************************************************************
- *   Functions supported.
+/*
+ *   Functions supported :
  *
  *   void PUBLISH    ( const char* topicName, uint8_t* payload,
  *                     uint16_t len, uint8_t qos, bool retain = false );
@@ -42,7 +42,7 @@ extern LScreen* theScreen;
  *
  *   void ASSERT( format, valiables, .....);    <== instead of printf()
  *
-************************************************************************/
+ */
 
 /*------------------------------------------------------
  *    UDP Configuration
@@ -94,7 +94,7 @@ SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
 void test1(void)
 {
 	char payload[300];
-	sprintf(payload, "ESP8266-08b133 ");
+	sprintf(payload, "Client-01 ");
 	uint8_t qos = 0;
 	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
 }
@@ -133,7 +133,7 @@ TEST_LIST = {// e.g. TEST( Label, Test),
  *    unused for Test
  *------------------------------------------------------*/
 TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			//TASK(test1, 4);
+			TASK(test1, 4),
              END_OF_TASK_LIST
             };
 
@@ -150,11 +150,11 @@ void setup(void)
  *    main
  *======================================================*/
 
-/*   uncomment this one for a new test program
+/*   uncomment this
 
 int main(int argc, char** argv)
 {
-	run();
+	return run();
 }
 
 */
