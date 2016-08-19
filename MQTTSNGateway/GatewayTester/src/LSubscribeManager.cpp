@@ -40,6 +40,7 @@ extern LScreen* theScreen;
 LSubscribeManager::LSubscribeManager()
 {
 	_first = 0;
+	_last = 0;
 }
 
 LSubscribeManager::~LSubscribeManager()
