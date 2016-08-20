@@ -104,13 +104,12 @@ void LGwProxy::connect(){
 			pos += 2;
 			strncpy(pos, _clientId, clientIdLen);
 			_msg[ 6 + clientIdLen] = 0;
+			_status = GW_WAIT_CONNACK;
 			if (_willMsg && _willTopic){
 				if (strlen(_willMsg) && strlen(_willTopic)){
 					_msg[2] = _msg[2] | MQTTSN_FLAG_WILL;   // CONNECT
 					_status = GW_WAIT_WILLTOPICREQ;
 				}
-			}else{
-				_status = GW_WAIT_CONNACK;
 			}
 			writeGwMsg();
 			_connectRetry = MQTTSN_RETRY_COUNT;
@@ -166,7 +165,7 @@ int LGwProxy::getConnectResponce(void){
 			_connectRetry = MQTTSN_RETRY_COUNT;
 			_keepAliveTimer.start(_tkeepAlive * 1000);
 			_topicTbl.clearTopic();
-			ASSERT("\033[0m\033[0;32m\n\n Connected to the BrokerMQTTSN-embedded-C\033[0m\033[0;37m\n\n");
+			ASSERT("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
 			theClient->onConnect();  // SUBSCRIBEs are conducted
 		}else{
 			_status = GW_CONNECTING;
