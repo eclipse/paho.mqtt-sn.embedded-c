@@ -61,21 +61,28 @@ LPublishManager::~LPublishManager()
 
 void LPublishManager::publish(const char* topicName, Payload* payload, uint8_t qos, bool retain)
 {
-	PubElement* elm = add(topicName, 0, payload->getRowData(), payload->getLen(), qos, retain,
-			theClient->getGwProxy()->getNextMsgId());
-	if (elm->status == TOPICID_IS_READY)
-	{
-		sendPublish(elm);
-	}
-	else
-	{
-		theClient->getGwProxy()->registerTopic((char*) topicName, 0);
-	}
+	publish(topicName, payload->getRowData(), payload->getLen(), qos, retain);
 }
+
 
 void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain)
 {
-	PubElement* elm = add(topicName, 0, payload, len, qos, retain, theClient->getGwProxy()->getNextMsgId());
+	uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL;
+	if ( strlen(topicName) < 2 )
+	{
+		topicType = MQTTSN_TOPIC_TYPE_SHORT;
+	}
+	publish(topicName, payload, len, qos, topicType, retain);
+}
+
+void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, uint8_t topicType, bool retain)
+{
+	uint16_t msgId = 0;
+	if ( qos > 0 )
+	{
+		msgId = theClient->getGwProxy()->getNextMsgId();
+	}
+	PubElement* elm = add(topicName, 0, payload, len, qos, retain, msgId, topicType);
 	if (elm->status == TOPICID_IS_READY)
 	{
 		sendPublish(elm);
@@ -88,14 +95,22 @@ void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t 
 
 void LPublishManager::publish(uint16_t topicId, Payload* payload, uint8_t qos, bool retain)
 {
-	PubElement* elm = add(NULLCHAR, topicId, payload->getRowData(), payload->getLen(), qos, retain,
-			theClient->getGwProxy()->getNextMsgId());
-	sendPublish(elm);
+	publish(topicId, payload->getRowData(), payload->getLen(), qos, retain);
 }
 
 void LPublishManager::publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain)
 {
-	PubElement* elm = add(NULLCHAR, topicId, payload, len, qos, retain, theClient->getGwProxy()->getNextMsgId());
+	publish(topicId, payload, len, qos, retain);
+}
+
+void LPublishManager::publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, uint8_t topicType, bool retain)
+{
+	uint16_t msgId = 0;
+	if ( qos > 0 )
+	{
+		msgId = theClient->getGwProxy()->getNextMsgId();
+	}
+	PubElement* elm = add(NULLCHAR, topicId, payload, len, qos, retain, msgId, topicType);
 	sendPublish(elm);
 }
 
@@ -382,7 +397,7 @@ void LPublishManager::delElement(PubElement* elm)
  }*/
 
 PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos,
-		uint8_t retain, uint16_t msgId)
+		uint8_t retain, uint16_t msgId, uint8_t topicType)
 {
 	PubElement* last = _first;
 	PubElement* prev = _first;
@@ -398,21 +413,8 @@ PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_
 	}
 
 	elm->topicName = topicName;
+	elm->flag |= topicType;
 
-	if (strlen(topicName) == 2)
-	{
-		topicId = 0;
-		elm->flag |= MQTTSN_TOPIC_TYPE_SHORT;
-	}
-	else if (strlen(topicName) > 2)
-	{
-		topicId = theClient->getTopicTable()->getTopicId((char*) topicName);
-		elm->flag |= MQTTSN_TOPIC_TYPE_NORMAL;
-	}
-	else
-	{
-		elm->flag |= MQTTSN_TOPIC_TYPE_PREDEFINED;
-	}
 	if (qos == 0)
 	{
 		elm->flag |= MQTTSN_FLAG_QOS_0;

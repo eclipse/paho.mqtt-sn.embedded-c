@@ -255,7 +255,15 @@ void LSubscribeManager::responce(const uint8_t* msg)
 SubElement* LSubscribeManager::add(uint8_t msgType, const char* topicName, uint16_t topicId, uint8_t topicType,
 		uint8_t qos, TopicCallback callback)
 {
-	SubElement* elm = getElement(topicName, msgType);
+	SubElement* elm = 0;
+	if (topicName )
+	{
+		elm = getElement(topicName, msgType);
+	}
+	else
+	{
+		elm = getElement(topicId, topicType);
+	}
 	if ( elm  == 0 )
 	{
 		elm = (SubElement*) calloc(1, sizeof(SubElement));

@@ -25,7 +25,7 @@ extern LScreen* theScreen;
 extern int run(void);
 
 /*
- *   Functions supported :
+ *   MQTT-SN Functions supported :
  *
  *   void PUBLISH    ( const char* topicName, uint8_t* payload,
  *                     uint16_t len, uint8_t qos, bool retain = false );

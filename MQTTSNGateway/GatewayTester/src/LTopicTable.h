@@ -64,9 +64,10 @@ public:
       void     setTopicId(const char* topic, uint16_t id, uint8_t topicType);
       bool     setCallback(const char* topic, TopicCallback callback);
       bool     setCallback(uint16_t topicId, uint8_t type, TopicCallback callback);
-      int      execCallback(uint16_t  topicId, uint8_t* payload, uint16_t payloadlen, uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL);
-      LTopic*   add(const char* topic, uint16_t id = 0, uint8_t type = MQTTSN_TOPIC_TYPE_NORMAL, TopicCallback callback = 0, uint8_t alocFlg = 0);
-      LTopic*   match(const char* topic);
+      int      execCallback(uint16_t topicId, uint8_t* payload, uint16_t payloadlen, uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL);
+      LTopic*  add(const char* topic, uint16_t id = 0, uint8_t type = MQTTSN_TOPIC_TYPE_NORMAL, TopicCallback callback = 0, uint8_t alocFlg = 0);
+      LTopic*  add(uint16_t topicId, uint16_t id, uint8_t type, TopicCallback callback, uint8_t alocFlg);
+      LTopic*  match(const char* topic);
       void     clearTopic(void);
       void     remove(uint16_t topicId);
 
