@@ -281,16 +281,16 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 
 void LPublishManager::published(uint8_t* msg, uint16_t msglen)
 {
+	uint16_t topicId = getUint16(msg + 2);
+
 	if (msg[1] & MQTTSN_FLAG_QOS_1)
 	{
-		sendPubAck(getUint16(msg + 2), getUint16(msg + 4), MQTTSN_RC_ACCEPTED);
+		sendPubAck(topicId, getUint16(msg + 4), MQTTSN_RC_ACCEPTED);
 	}
-
-	uint16_t msgId = getUint16(msg + 2);
 
 	if ((msg[1] & 0x03) == MQTTSN_TOPIC_TYPE_PREDEFINED)
 	{
-		if (msgId == 0x0001)
+		if (topicId == 0x0001)
 		{
 			theOTAflag = true;
 		}
@@ -298,7 +298,7 @@ void LPublishManager::published(uint8_t* msg, uint16_t msglen)
 	else
 	{
 		_publishedFlg = NEG_TASK_INDEX;
-		theClient->getTopicTable()->execCallback(msgId, msg + 6, msglen - 6, msg[1] & 0x03);
+		theClient->getTopicTable()->execCallback(topicId, msg + 6, msglen - 6, msg[1] & 0x03);
 		_publishedFlg = SAVE_TASK_INDEX;
 	}
 }

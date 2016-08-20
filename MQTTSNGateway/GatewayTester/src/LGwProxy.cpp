@@ -32,6 +32,16 @@ extern LScreen* theScreen;
 /*=====================================
         Class GwProxy
  ======================================*/
+static const char* packet_names[] =
+{
+		"ADVERTISE", "SEARCHGW", "GWINFO", "RESERVED", "CONNECT", "CONNACK",
+		"WILLTOPICREQ", "WILLTOPIC", "WILLMSGREQ", "WILLMSG", "REGISTER", "REGACK",
+		"PUBLISH", "PUBACK", "PUBCOMP", "PUBREC", "PUBREL", "RESERVED",
+		"SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK", "PINGREQ", "PINGRESP",
+		"DISCONNECT", "RESERVED", "WILLTOPICUPD", "WILLTOPICRESP", "WILLMSGUPD",
+		"WILLMSGRESP"
+};
+
 LGwProxy::LGwProxy(){
 	_nextMsgId = 0;
 	_status = GW_LOST;
@@ -302,12 +312,15 @@ uint16_t LGwProxy::registerTopic(char* topicName, uint16_t topicId){
 
 int LGwProxy::writeMsg(const uint8_t* msg){
 	uint16_t len;
+	uint8_t pos;
 	uint8_t  rc;
 
 	if (msg[0] == 0x01){
 		len = getUint16(msg + 1);
+		pos = 2;
 	}else{
 		len = msg[0];
+		pos = 1;
 	}
 
 	if (msg[0] == 3 && msg[1] == MQTTSN_TYPE_SEARCHGW){
@@ -317,6 +330,10 @@ int LGwProxy::writeMsg(const uint8_t* msg){
 	}
 
 	if (rc > 0){
+		if ( msg[pos] >= MQTTSN_TYPE_ADVERTISE && msg[pos] <= MQTTSN_TYPE_WILLMSGRESP )
+		{
+			ASSERT("  send %s\n", packet_names[msg[pos]]);
+		}
 		return rc;
 	}
 	//_status = GW_LOST;
@@ -346,6 +363,10 @@ int LGwProxy::readMsg(void){
 	}else{
 		_mqttsnMsg += 1;
 		len -= 1;
+	}
+	if ( *_mqttsnMsg >= MQTTSN_TYPE_ADVERTISE && *_mqttsnMsg <= MQTTSN_TYPE_WILLMSGRESP )
+	{
+		ASSERT("  recv %s\n", packet_names[*_mqttsnMsg]);
 	}
 	return len;
 }

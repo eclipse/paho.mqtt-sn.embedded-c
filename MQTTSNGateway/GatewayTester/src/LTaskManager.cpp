@@ -108,7 +108,7 @@ void LTaskManager::run(void){
 				}
 				if ( !cancelFlg )
 				{
-					ASSERT("\033[0m\033[0;32m\n**** %s complete ****\033[0m\033[0;37m\n", _tests[i].testLabel);
+					ASSERT("\033[0m\033[0;32m\n**** %s complete ****\033[0m\033[0;37m\n\n", _tests[i].testLabel);
 				}
 			}
 			ASSERT("\033[0m\033[0;32m\n\n#########  All tests complete!  ###########\033[0m\033[0;37m\n\n");
