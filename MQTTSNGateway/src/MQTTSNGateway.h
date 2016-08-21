@@ -81,9 +81,9 @@ namespace MQTTSNGW
       Predefined TopicId for OTA
   ====================================*/
 //#define OTA_CLIENTS
-#define PREDEFINEDID_OTA_REQ       (0x0001)
-#define PREDEFINEDID_OTA_READY     (0x0002)
-#define PREDEFINEDID_OTA_NO_CLIENT (0x0003)
+#define PREDEFINEDID_OTA_REQ       (0x0ff0)
+#define PREDEFINEDID_OTA_READY     (0x0ff1)
+#define PREDEFINEDID_OTA_NO_CLIENT (0x0ff2)
 
 /*=====================================
          Class Event
