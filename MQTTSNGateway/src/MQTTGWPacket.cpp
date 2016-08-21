@@ -277,9 +277,17 @@ int MQTTGWPacket::getPUBLISH(Publish* pub)
 	pub->topiclen = readInt((char**) &ptr);
 	pub->topic = (char*) _data + 2;
 	ptr += pub->topiclen;
-	pub->msgId = readInt(&ptr);
+	if (_header.bits.qos > 0)
+	{
+		pub->msgId = readInt(&ptr);
+		pub->payloadlen = _remainingLength - pub->topiclen - 4;
+	}
+	else
+	{
+		pub->msgId = 0;
+		pub->payloadlen = _remainingLength - pub->topiclen - 2;
+	}
 	pub->payload = ptr;
-	pub->payloadlen = _remainingLength - pub->topiclen - 4;
 	return 1;
 }
 
@@ -393,7 +401,14 @@ int MQTTGWPacket::setPUBLISH(Publish* pub)
 		writeInt(&ptr, pub->topiclen);
 		memcpy(ptr, pub->topic, pub->topiclen);
 		ptr += pub->topiclen;
-		writeInt(&ptr, pub->msgId);
+		if ( _header.bits.qos > 0 )
+		{
+			writeInt(&ptr, pub->msgId);
+		}
+		else
+		{
+			_remainingLength -= 2;
+		}
 		memcpy(ptr, pub->payload, pub->payloadlen);
 		return 1;
 	}
