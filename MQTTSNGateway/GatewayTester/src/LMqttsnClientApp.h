@@ -178,7 +178,9 @@ struct LUdpConfig{
 #define MQTTSN_RC_REJECTED_INVALID_TOPIC_ID 0x02
 #define MQTTSN_RC_REJECTED_NOT_SUPPORTED    0x03
 
-#define MQTTSN_TOPICID_PREDEFINED_TIME      0x01
+#define PREDEFINEDID_OTA_REQ       (0x0ff0)
+#define PREDEFINEDID_OTA_READY     (0x0ff1)
+#define PREDEFINEDID_OTA_NO_CLIENT (0x0ff2)
 
 /*=================================
  *    Starting prompt

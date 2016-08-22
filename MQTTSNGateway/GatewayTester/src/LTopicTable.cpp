@@ -195,9 +195,8 @@ int LTopicTable::execCallback(uint16_t  topicId, uint8_t* payload, uint16_t payl
 }
 
 
-LTopic* LTopicTable::add(const char* topicName, uint16_t id, uint8_t type, TopicCallback callback, uint8_t alocFlg){
-	LTopic* last = _first;
-	LTopic* prev = _first;
+LTopic* LTopicTable::add(const char* topicName, uint16_t id, uint8_t type, TopicCallback callback, uint8_t alocFlg)
+{
 	LTopic* elm;
 
     if (topicName){
@@ -209,34 +208,29 @@ LTopic* LTopicTable::add(const char* topicName, uint16_t id, uint8_t type, Topic
 	if (elm == 0){
 		elm = new LTopic();
 		if(elm == 0){
-			return 0;
+			goto exit;
 		}
-		if ( last == 0){
+		if ( _last == 0){
 			_first = elm;
 			_last = elm;
 		}
+		else
+		{
+			elm->_prev = _last;
+			_last->_next = elm;
+			_last = elm;
+		}
+
 		elm->_topicStr =  const_cast <char*>(topicName);
 		elm->_topicId = id;
-        elm->_topicType = type;
+		elm->_topicType = type;
 		elm->_callback = callback;
 		elm->_malocFlg = alocFlg;
 		elm->_prev = 0;
-
-		while(last){
-			prev = last;
-			if(prev->_next != 0){
-				last = prev->_next;
-			}else{
-				prev->_next = elm;
-				elm->_prev = prev;
-				elm->_next = 0;
-				last = 0;
-				_last = elm;
-			}
-		}
 	}else{
 		elm->_callback = callback;
 	}
+exit:
 	return elm;
 }
 
@@ -245,24 +239,28 @@ void LTopicTable::remove(uint16_t topicId)
 	LTopic* elm = getTopic(topicId);
 
 	if (elm){
-		if (elm->_prev == 0){
+		if (elm->_prev == 0)
+		{
 			_first = elm->_next;
-			if (elm->_next != 0){
-				elm->_next->_prev = 0;
+			if (elm->_next == 0)
+			{
+				_last = 0;
 			}
 			else
 			{
-				_last = elm;
+				elm->_next->_prev = 0;
+				_last = elm->_next;
 			}
-			delete elm;
-		}else{
-			elm->_prev->_next = elm->_next;
-			if (elm->_next == 0)
-			{
-				_last = elm;
-			}
-			delete elm;
 		}
+		else
+		{
+			if ( elm->_next == 0 )
+			{
+				_last = elm->_prev;
+			}
+			elm->_prev->_next = elm->_next;
+		}
+		delete elm;
 	}
 }
 
@@ -270,11 +268,11 @@ LTopic* LTopicTable::match(const char* topicName){
 	LTopic* elm = _first;
 	while(elm){
 		if (elm->isMatch(topicName)){
-			return elm;
+			break;
 		}
 		elm = elm->_next;
 	}
-	return 0;
+	return elm;
 }
 
 

@@ -60,8 +60,10 @@ MQTTSNCONF = {
 	300,            //KeepAlive (seconds)
 	true,           //Clean session
 	false,          //EndDevice
-	"willTopic",    //WillTopic
-	"willMessage"   //WillMessage
+	//"willTopic",    //WillTopic
+	//"willMessage"   //WillMessage
+	"",
+	""
 };
 
 /*------------------------------------------------------

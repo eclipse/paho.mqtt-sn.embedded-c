@@ -160,7 +160,7 @@ int LGwProxy::getConnectResponce(void){
 	}else if (_mqttsnMsg[0] == MQTTSN_TYPE_WILLMSGREQ && _status == GW_WAIT_WILLMSGREQ){
 		_status = GW_SEND_WILLMSG;
 	}else if (_mqttsnMsg[0] == MQTTSN_TYPE_CONNACK && _status == GW_WAIT_CONNACK){
-		if (_mqttsnMsg[1] == 0x00){
+		if (_mqttsnMsg[1] == MQTTSN_RC_ACCEPTED){
 			_status = GW_CONNECTED;
 			_connectRetry = MQTTSN_RETRY_COUNT;
 			_keepAliveTimer.start(_tkeepAlive * 1000);

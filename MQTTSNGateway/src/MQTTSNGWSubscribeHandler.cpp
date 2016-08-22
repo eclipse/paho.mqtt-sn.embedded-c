@@ -56,8 +56,9 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 
 				switch (topicFilter.data.id)
 				{
-				case 1:  // check topicIds are defined.
-				case 2:
+				case PREDEFINEDID_OTA_REQ:  // check topicIds are defined.
+				case PREDEFINEDID_OTA_READY:
+				case PREDEFINEDID_OTA_NO_CLIENT:
 					break;
 				default:
 					rc = MQTTSN_RC_REJECTED_INVALID_TOPIC_ID;

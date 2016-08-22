@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "LMqttsnClientApp.h"
 #include "LTimer.h"
@@ -40,6 +41,7 @@ const char* NULLCHAR = "";
 LPublishManager::LPublishManager()
 {
 	_first = 0;
+	_last = 0;
 	_elmCnt = 0;
 	_publishedFlg = SAVE_TASK_INDEX;
 }
@@ -100,17 +102,12 @@ void LPublishManager::publish(uint16_t topicId, Payload* payload, uint8_t qos, b
 
 void LPublishManager::publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain)
 {
-	publish(topicId, payload, len, qos, retain);
-}
-
-void LPublishManager::publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, uint8_t topicType, bool retain)
-{
 	uint16_t msgId = 0;
 	if ( qos > 0 )
 	{
 		msgId = theClient->getGwProxy()->getNextMsgId();
 	}
-	PubElement* elm = add(NULLCHAR, topicId, payload, len, qos, retain, msgId, topicType);
+	PubElement* elm = add(NULLCHAR, topicId, payload, len, qos, retain, msgId, MQTTSN_TOPIC_TYPE_PREDEFINED);
 	sendPublish(elm);
 }
 
@@ -237,7 +234,7 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 		{
 			if (elm->status == WAIT_PUBACK)
 			{
-				ASSERT("\033[0m\033[0;32m Topic \"%s\" was Published. \033[0m\033[0;37m\n\n", elm->topicName);
+				ASSERT("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
 				remove(elm); // PUBLISH Done
 			}
 		}
@@ -273,7 +270,7 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 		}
 		if (elm->status == WAIT_PUBCOMP)
 		{
-			ASSERT("\033[0m\033[0;32m Topic \"%s\" was Published. \033[0m\033[0;37m\n\n", elm->topicName);
+			ASSERT("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
 			remove(elm);  // PUBLISH Done
 		}
 	}
@@ -288,19 +285,9 @@ void LPublishManager::published(uint8_t* msg, uint16_t msglen)
 		sendPubAck(topicId, getUint16(msg + 4), MQTTSN_RC_ACCEPTED);
 	}
 
-	if ((msg[1] & 0x03) == MQTTSN_TOPIC_TYPE_PREDEFINED)
-	{
-		if (topicId == 0x0001)
-		{
-			theOTAflag = true;
-		}
-	}
-	else
-	{
-		_publishedFlg = NEG_TASK_INDEX;
-		theClient->getTopicTable()->execCallback(topicId, msg + 6, msglen - 6, msg[1] & 0x03);
-		_publishedFlg = SAVE_TASK_INDEX;
-	}
+	_publishedFlg = NEG_TASK_INDEX;
+	theClient->getTopicTable()->execCallback(topicId, msg + 6, msglen - 6, msg[1] & 0x03);
+	_publishedFlg = SAVE_TASK_INDEX;
 }
 
 void LPublishManager::checkTimeout(void)
@@ -333,14 +320,14 @@ PubElement* LPublishManager::getElement(uint16_t msgId)
 	{
 		if (elm->msgId == msgId)
 		{
-			return elm;
+			break;
 		}
 		else
 		{
 			elm = elm->next;
 		}
 	}
-	return 0;
+	return elm;
 }
 
 PubElement* LPublishManager::getElement(const char* topicName)
@@ -350,35 +337,43 @@ PubElement* LPublishManager::getElement(const char* topicName)
 	{
 		if (strcmp(elm->topicName, topicName) == 0)
 		{
-			return elm;
+			break;
 		}
 		else
 		{
 			elm = elm->next;
 		}
 	}
-	return 0;
+	return elm;
 }
 
 void LPublishManager::remove(PubElement* elm)
 {
 	if (elm)
-	{
-		if (elm->prev == 0)
 		{
-			_first = elm->next;
-			if (elm->next != 0)
+			if (elm->prev == 0)
 			{
-				elm->next->prev = 0;
+				_first = elm->next;
+				if (elm->next == 0)
+				{
+					_last = 0;
+				}
+				else
+				{
+					elm->next->prev = 0;
+					_last = elm->next;
+				}
 			}
+			else
+			{
+				if ( elm->next == 0 )
+				{
+					_last = elm->prev;
+				}
+				elm->prev->next = elm->next;
+			}
+			delElement(elm);
 		}
-		else
-		{
-			elm->prev->next = elm->next;
-		}
-		delElement(elm);
-		_elmCnt--;
-	}
 }
 
 void LPublishManager::delElement(PubElement* elm)
@@ -387,7 +382,11 @@ void LPublishManager::delElement(PubElement* elm)
 	{
 		theClient->getTaskManager()->done(elm->taskIndex);
 	}
-	free(elm->payload);
+	_elmCnt--;
+	if ( elm->payload )
+	{
+		free(elm->payload);
+	}
 	free(elm);
 }
 
@@ -399,17 +398,22 @@ void LPublishManager::delElement(PubElement* elm)
 PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos,
 		uint8_t retain, uint16_t msgId, uint8_t topicType)
 {
-	PubElement* last = _first;
-	PubElement* prev = _first;
 	PubElement* elm = (PubElement*) calloc(1, sizeof(PubElement));
 
 	if (elm == 0)
 	{
-		return 0;
+		return elm;
 	}
-	if (last == 0)
+	if (_last == 0)
 	{
 		_first = elm;
+		_last = elm;
+	}
+	else
+	{
+		elm->prev = _last;
+		_last->next = elm;
+		_last = elm;
 	}
 
 	elm->topicName = topicName;
@@ -438,12 +442,6 @@ PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_
 		elm->topicId = topicId;
 	}
 
-	elm->payload = (uint8_t*) malloc(len);
-	if (elm->payload == 0)
-	{
-		return 0;
-	}
-	memcpy(elm->payload, payload, len);
 	elm->payloadlen = len;
 	elm->msgId = msgId;
 	elm->retryCount = MQTTSN_RETRY_COUNT;
@@ -459,21 +457,14 @@ PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_
 		theClient->getTaskManager()->suspend(elm->taskIndex);
 	}
 
-	while (last)
+	elm->payload = (uint8_t*) malloc(len);
+	if (elm->payload == 0)
 	{
-		prev = last;
-		if (prev->next != 0)
-		{
-			last = prev->next;
-		}
-		else
-		{
-			prev->next = elm;
-			elm->prev = prev;
-			elm->next = 0;
-			last = 0;
-		}
+		delElement(elm);
+		return 0;
 	}
+	memcpy(elm->payload, payload, len);
+
 	++_elmCnt;
 	return elm;
 }

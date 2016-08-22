@@ -49,6 +49,7 @@ private:
 	void remove(RegQueElement* elm);
 	void send(RegQueElement* elm);
 	RegQueElement* _first;
+	RegQueElement* _last;
 };
 }
 

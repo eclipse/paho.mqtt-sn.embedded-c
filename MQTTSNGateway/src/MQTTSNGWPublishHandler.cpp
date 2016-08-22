@@ -90,7 +90,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 
 				if ( cl )
 				{
-					//printf("OTA Client = %s\n",cl->getClientId());
+					WRITELOG("\033[0m\033[0;33m OTA Client : %s\033[0m\033[0;37m\n",cl->getClientId());
 					MQTTSNPacket* pubota = new MQTTSNPacket();
 					pubota->setPUBLISH(0, 0, 0, 0, topicid, 0, 0);
 					cl->setOTAClient(client);
@@ -114,7 +114,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 			Client* cl = client->getOTAClient();
 			if ( cl )
 			{
-				//printf("OTA Manager = %s\n",cl->getClientId());
+				WRITELOG("\033[0m\033[0;33m OTA Manager : %s\033[0m\033[0;37m\n",cl->getClientId());
 				MQTTSNPacket* pubota = new MQTTSNPacket();
 				pubota->setPUBLISH(0, 0, 0, 0, topicid, payload, payloadlen);
 				client->setOTAClient(0);
