@@ -101,7 +101,7 @@ void ClientRecvTask::run()
 				packet->getCONNECT(&data);
 
 				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, _gateway->getGWParams()->secureConnection);
 
 				if (!client)
 				{

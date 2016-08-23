@@ -71,7 +71,7 @@ public:
     float    get_float(uint8_t index);
     const char* get_str(uint8_t index, uint16_t* len);
 
-	void 	 getPayload(uint8_t* payload, uint16_t payloadLen);
+	void 	 setRowData(uint8_t* payload, uint16_t payloadLen);
 	uint16_t getAvailableLength();
 private:
 	uint8_t* getBufferPos(uint8_t index);

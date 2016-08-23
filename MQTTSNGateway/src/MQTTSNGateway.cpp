@@ -25,8 +25,7 @@ char* currentDateTime(void);
 /*=====================================
  Class Gateway
  =====================================*/
-Gateway::Gateway() :
-		MultiTaskProcess()
+Gateway::Gateway()
 {
 	theMultiTaskProcess = this;
 	theProcess = this;
@@ -122,6 +121,16 @@ void Gateway::initialize(int argc, char** argv)
 			}
 		}
 	}
+
+	if (getParam("SecureConnection", param) == 0)
+	{
+		_params.secureConnection = !strcasecmp(param, "YES");
+	}
+	else
+	{
+		_params.secureConnection = false;
+	}
+
 }
 
 void Gateway::run(void)

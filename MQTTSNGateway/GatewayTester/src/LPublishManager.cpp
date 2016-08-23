@@ -166,7 +166,7 @@ void LPublishManager::sendPublish(PubElement* elm)
 		elm->status = WAIT_PUBREC;
 	}
 
-	elm->sendUTC = LTimer::getUnixTime();
+	elm->sendUTC = time(NULL);
 	elm->retryCount--;
 }
 
@@ -258,7 +258,7 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 		{
 			sendPubRel(elm);
 			elm->status = WAIT_PUBCOMP;
-			elm->sendUTC = LTimer::getUnixTime();
+			elm->sendUTC = time(NULL);
 		}
 	}
 	else if (msg[0] == MQTTSN_TYPE_PUBCOMP)
@@ -295,7 +295,7 @@ void LPublishManager::checkTimeout(void)
 	PubElement* elm = _first;
 	while (elm)
 	{
-		if (elm->sendUTC > 0 && elm->sendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime())
+		if (elm->sendUTC > 0 && elm->sendUTC + MQTTSN_TIME_RETRY < time(NULL))
 		{
 			if (elm->retryCount >= 0)
 			{

@@ -120,10 +120,10 @@ void LTaskManager::run(void){
 			theClient->getGwProxy()->getMessage();
 			for (_index = 0; _tasks[_index].callback > 0; _index++)
 			{
-				if ((_tasks[_index].prevTime + _tasks[_index].interval < LTimer::getUnixTime()) &&
+				if ((_tasks[_index].prevTime + _tasks[_index].interval <= time(NULL)) &&
 					 _tasks[_index].count == 0)
 				{
-					_tasks[_index].prevTime = LTimer::getUnixTime();
+					_tasks[_index].prevTime = time(NULL);
 					(_tasks[_index].callback)();
 				}
 			}

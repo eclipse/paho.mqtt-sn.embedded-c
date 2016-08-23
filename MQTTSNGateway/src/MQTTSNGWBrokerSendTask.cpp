@@ -35,6 +35,7 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 	_gateway->attach((Thread*)this);
 	_host = 0;
 	_service = 0;
+	_serviceSecure = 0;
 	_light = 0;
 }
 
@@ -47,6 +48,10 @@ BrokerSendTask::~BrokerSendTask()
 	if (_service)
 	{
 		free(_service);
+	}
+	if (_serviceSecure)
+	{
+		free(_serviceSecure);
 	}
 }
 
@@ -65,6 +70,10 @@ void BrokerSendTask::initialize(int argc, char** argv)
 	{
 		_service = strdup(param);
 	}
+	if (_gateway->getParam("BrokerSecurePortNo", param) == 0)
+		{
+			_serviceSecure = strdup(param);
+		}
 	_light = _gateway->getLightIndicator();
 }
 
@@ -92,7 +101,13 @@ void BrokerSendTask::run()
 		if ( !client->getNetwork()->isValid() )
 		{
 			/* connect to the broker and send a packet */
-			if ( !client->getNetwork()->connect(_host, _service) )
+			char* service = _service;
+			if (client->isSecureNetwork())
+			{
+				service = _serviceSecure;
+			}
+
+			if ( !client->getNetwork()->connect(_host, service) )
 			{
 				/* disconnect the broker and chage the client's status */
 				WRITELOG("%s BrokerSendTask can't open the socket.  errno=%d %s%s\n",

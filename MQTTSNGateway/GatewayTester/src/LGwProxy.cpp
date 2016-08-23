@@ -34,12 +34,12 @@ extern LScreen* theScreen;
  ======================================*/
 static const char* packet_names[] =
 {
-		"ADVERTISE", "SEARCHGW", "GWINFO", "RESERVED", "CONNECT", "CONNACK",
-		"WILLTOPICREQ", "WILLTOPIC", "WILLMSGREQ", "WILLMSG", "REGISTER", "REGACK",
-		"PUBLISH", "PUBACK", "PUBCOMP", "PUBREC", "PUBREL", "RESERVED",
-		"SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK", "PINGREQ", "PINGRESP",
-		"DISCONNECT", "RESERVED", "WILLTOPICUPD", "WILLTOPICRESP", "WILLMSGUPD",
-		"WILLMSGRESP"
+	"ADVERTISE", "SEARCHGW", "GWINFO", "RESERVED", "CONNECT", "CONNACK",
+	"WILLTOPICREQ", "WILLTOPIC", "WILLMSGREQ", "WILLMSG", "REGISTER", "REGACK",
+	"PUBLISH", "PUBACK", "PUBCOMP", "PUBREC", "PUBREL", "RESERVED",
+	"SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK", "PINGREQ", "PINGRESP",
+	"DISCONNECT", "RESERVED", "WILLTOPICUPD", "WILLTOPICRESP", "WILLMSGUPD",
+	"WILLMSGRESP"
 };
 
 LGwProxy::LGwProxy(){
@@ -131,14 +131,14 @@ int LGwProxy::getConnectResponce(void){
 	int len = readMsg();
 
 	if (len == 0){
-		if (_sendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime()){
+		if (_sendUTC + MQTTSN_TIME_RETRY < time(NULL)){
 			if (_msg[1] == MQTTSN_TYPE_CONNECT)
 			{
 				_connectRetry--;
 			}
 			if (--_retryCount > 0){
 				writeMsg((const uint8_t*)_msg);  // Not writeGwMsg() : not to reset the counter.
-				_sendUTC = LTimer::getUnixTime();
+				_sendUTC = time(NULL);
 			}else{
 				_sendUTC = 0;
 				if ( _status > GW_SEARCHING && _connectRetry > 0){
@@ -196,7 +196,7 @@ void LGwProxy::disconnect(uint16_t secs){
 
 	_retryCount = MQTTSN_RETRY_COUNT;
 	writeMsg((const uint8_t*)_msg);
-	_sendUTC = LTimer::getUnixTime();
+	_sendUTC = time(NULL);
 
 	while ( _status != GW_DISCONNECTED && _status != GW_SLEPT){
 		if (getDisconnectResponce() < 0){
@@ -211,10 +211,10 @@ int LGwProxy::getDisconnectResponce(void){
 	int len = readMsg();
 
 	if (len == 0){
-		if (_sendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime()){
+		if (_sendUTC + MQTTSN_TIME_RETRY < time(NULL)){
 			if (--_retryCount >= 0){
 				writeMsg((const uint8_t*)_msg);
-				_sendUTC = LTimer::getUnixTime();
+				_sendUTC = time(NULL);
 			}else{
 				_status = GW_LOST;
 				_gwId = 0;
@@ -343,7 +343,7 @@ int LGwProxy::writeMsg(const uint8_t* msg){
 void LGwProxy::writeGwMsg(void){
 	_retryCount = MQTTSN_RETRY_COUNT;
 	writeMsg((const uint8_t*)_msg);
-	_sendUTC = LTimer::getUnixTime();
+	_sendUTC = time(NULL);
 }
 
 int LGwProxy::readMsg(void){
@@ -413,12 +413,12 @@ void LGwProxy::checkPingReq(void){
         _pingRetryCount = MQTTSN_RETRY_COUNT;
 
 		writeMsg((const uint8_t*)msg);
-        _pingSendUTC = LTimer::getUnixTime();
+        _pingSendUTC = time(NULL);
 	}else if (_pingStatus == GW_WAIT_PINGRESP){
-        if (_pingSendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime()){
+        if (_pingSendUTC + MQTTSN_TIME_RETRY < time(NULL)){
     		if (--_pingRetryCount > 0){
 				writeMsg((const uint8_t*)msg);
-				_pingSendUTC = LTimer::getUnixTime();
+				_pingSendUTC = time(NULL);
 			}else{
 				_status = GW_LOST;
 				_gwId = 0;

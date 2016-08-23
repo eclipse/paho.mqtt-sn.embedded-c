@@ -274,8 +274,8 @@ const char* Payload::get_str(uint8_t index, uint16_t* len){
 		}else if(*val == MSGPACK_STR8){
 			*len = *(val + 1);
 			return (const char*)(val + 2);
-		}else if(*val & MSGPACK_FIXSTR){
-			*len = *val & (~MSGPACK_FIXSTR);
+		}else if( (*val & 0xf0) == MSGPACK_FIXSTR ){
+			*len = *val & 0x0f;
 			return (const char*)(val + 1);
 		}
 	}
@@ -318,11 +318,11 @@ uint8_t* Payload::getBufferPos(uint8_t index){
 			break;
 		default:
 			if((*pos < MSGPACK_POSINT) ||
-				((*pos & MSGPACK_NEGINT) == MSGPACK_NEGINT) ||
-				((*pos & MSGPACK_ARRAY15) == MSGPACK_ARRAY15)) {
+				((*pos & 0xf0) == MSGPACK_NEGINT) ||
+				((*pos & 0xf0) == MSGPACK_ARRAY15)) {
 				pos++;
-			}else if((*pos & MSGPACK_FIXSTR) == MSGPACK_FIXSTR){
-				pos += *pos & (~MSGPACK_FIXSTR);
+			}else if((*pos & 0xf0) == MSGPACK_FIXSTR){
+				pos += (*pos & 0x0f) + 1;
 			}
 		}
 		/*
@@ -334,7 +334,7 @@ uint8_t* Payload::getBufferPos(uint8_t index){
 	return bpos;
 }
 
-void Payload::getPayload(uint8_t* payload, uint16_t payloadLen){
+void Payload::setRowData(uint8_t* payload, uint16_t payloadLen){
     if(_memDlt){
 			free(_buff);
 			_memDlt = 0;

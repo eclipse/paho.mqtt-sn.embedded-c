@@ -143,7 +143,7 @@ void LSubscribeManager::send(SubElement* elm)
 	theClient->getGwProxy()->connect();
 	theClient->getGwProxy()->writeMsg(msg);
 	theClient->getGwProxy()->resetPingReqTimer();
-	elm->sendUTC = LTimer::getUnixTime();
+	elm->sendUTC = time(NULL);
 	elm->retryCount--;
 }
 
@@ -182,7 +182,7 @@ void LSubscribeManager::checkTimeout(void)
 
 	while (elm)
 	{
-		if (elm->sendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime())
+		if (elm->sendUTC + MQTTSN_TIME_RETRY < time(NULL))
 		{
 			if (elm->retryCount >= 0)
 			{

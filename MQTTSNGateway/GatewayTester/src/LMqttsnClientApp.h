@@ -59,7 +59,7 @@ typedef signed int     int32_t;
 struct LMqttsnConfig{
 	uint16_t keepAlive;
 	bool     cleanSession;
-	bool     sleep;
+	uint32_t sleepDuration;
 	const char* willTopic;
 	const char* willMsg;
     uint8_t  willQos;

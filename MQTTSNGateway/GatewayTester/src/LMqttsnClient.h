@@ -39,7 +39,6 @@ struct OnPublishList
 	uint8_t qos;
 };
 
-#define GETUTC() LTimer::getUnixTime()
 /*========================================
        Class LMqttsnClient
  =======================================*/
@@ -59,7 +58,8 @@ public:
     void initialize(LUdpConfig netconf, LMqttsnConfig mqconf);
     void run(void);
     void addTask(bool test);
-    void setSleepMode(bool mode);
+    void setSleepDuration(uint32_t duration);
+    void sleep(void);
 	const char* getClientId(void);
     LGwProxy*          getGwProxy(void);
     LPublishManager*   getPublishManager(void);
@@ -72,6 +72,7 @@ private:
     LPublishManager   _pubMgr;
     LSubscribeManager _subMgr;
     LGwProxy          _gwProxy;
+    uint32_t          _sleepDuration;
 };
 
 

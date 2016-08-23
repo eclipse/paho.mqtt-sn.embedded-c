@@ -138,7 +138,7 @@ void LRegisterManager::send(RegQueElement* elm)
 	strcpy((char*) msg + 6, elm->topicName);
 	theClient->getGwProxy()->connect();
 	theClient->getGwProxy()->writeMsg(msg);
-	elm->sendUTC = LTimer::getUnixTime();
+	elm->sendUTC = time(NULL);
 	elm->retryCount--;
 }
 
@@ -229,7 +229,7 @@ uint8_t LRegisterManager::checkTimeout(void)
 	RegQueElement* sav;
 	while (elm)
 	{
-		if (elm->sendUTC + MQTTSN_TIME_RETRY < LTimer::getUnixTime())
+		if (elm->sendUTC + MQTTSN_TIME_RETRY < time(NULL))
 		{
 			if (elm->retryCount >= 0)
 			{

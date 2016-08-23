@@ -60,9 +60,11 @@ UDPCONF  = {
 MQTTSNCONF = {
 	60,             //KeepAlive (seconds)
 	true,           //Clean session
-	false,          //EndDevice
+	0,              //Sleep duration in msecs
 	"willTopic",    //WillTopic
-	"willMessage"   //WillMessage
+	"willMessage",  //WillMessage
+    0,              //WillQos
+    false           //WillRetain
 };
 
 /*------------------------------------------------------

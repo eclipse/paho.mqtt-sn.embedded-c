@@ -31,7 +31,7 @@ using namespace MQTTSNGW;
  =====================================*/
 char theCurrentTime[32];
 
-char* currentDateTime()
+const char* currentDateTime()
 {
 	struct timeval now;
 	struct tm tstruct;

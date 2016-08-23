@@ -105,6 +105,7 @@ LMqttsnClient::~LMqttsnClient()
 void LMqttsnClient::initialize(LUdpConfig netconf, LMqttsnConfig mqconf)
 {
 	_gwProxy.initialize(netconf, mqconf);
+	setSleepDuration(mqconf.sleepDuration);
 }
 
 void LMqttsnClient::addTask(bool clientMode)
@@ -173,8 +174,6 @@ void LMqttsnClient::publish(uint16_t topicId, uint8_t* payload, uint16_t len, ui
 	_pubMgr.publish(topicId, payload, len, qos, retain);
 }
 
-
-
 void LMqttsnClient::subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos)
 {
 	_subMgr.subscribe(topicName, onPublish, qos);
@@ -199,6 +198,17 @@ void LMqttsnClient::run()
 {
 	_gwProxy.connect();
 	_taskMgr.run();
+	sleep();
+}
+
+void LMqttsnClient::sleep(void)
+{
+
+}
+
+void LMqttsnClient::setSleepDuration(uint32_t duration)
+{
+	_sleepDuration = duration;
 }
 
 void LMqttsnClient::onConnect(void)

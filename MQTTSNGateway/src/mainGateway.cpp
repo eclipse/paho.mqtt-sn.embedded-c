@@ -25,10 +25,8 @@ using namespace MQTTSNGW;
 /*
  *  Gateway Process
  *
- *	Configure file "/usr/local/etc/mqttsnGateway/config/param.conf"
- *  Clientlist file "/usr/local/etc/mqttsnGateway/config/clientList.conf"
  *  Certificate file "/etc/ssl/certs"
- *	These are defined in MQTTSNGWDefines.h
+ *	This is defined in MQTTSNGWDefines.h
  */
 Gateway* gateway = new Gateway();
 PacketHandleTask* t0 = new PacketHandleTask(gateway);
@@ -39,8 +37,9 @@ BrokerSendTask* t4 = new BrokerSendTask(gateway);
 
 int main(int argc, char** argv)
 {
-	theProcess->initialize(argc, argv);
-	theProcess->run();
+	gateway->initialize(argc, argv);
+	gateway->run();
+	delete gateway;
 	return 0;
 }
 

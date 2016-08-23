@@ -196,7 +196,7 @@ int MQTTGWPacket::recv(Network* network)
 		}
 		if (network->recv(&c, 1) == -1)
 		{
-			return -2;
+			return -1;
 		}
 		_remainingLength += (c & 127) * multiplier;
 		multiplier *= 128;

@@ -63,8 +63,3 @@ void LTimer::stop(){
   _millis = 0;
 }
 
-uint32_t LTimer::getUnixTime(){
-	struct timeval curTime;
-	gettimeofday(&curTime, 0);
-	return curTime.tv_sec;
-}
