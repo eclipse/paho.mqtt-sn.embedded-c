@@ -66,7 +66,7 @@ int MQTTSNSerialize_unsuback(unsigned char* buf, int buflen, unsigned short pack
 	int rc = 0;
 
 	FUNC_ENTRY;
-	if ((len = MQTTSNPacket_len(7)) > buflen)
+	if ((len = MQTTSNPacket_len(3)) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;
 		goto exit;
