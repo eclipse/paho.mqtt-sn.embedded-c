@@ -53,14 +53,20 @@ Process::Process()
 {
 	_argc = 0;
 	_argv = 0;
-	_rbsem = new Semaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
-	_rb = new RingBuffer();
+	_configDir = MQTTSNGW_CONFIG_DIRECTORY;
+	_configFile = MQTTSNGW_CONFIG_FILE;
 }
 
 Process::~Process()
 {
-	delete _rb;
-	delete _rbsem;
+	if (_rb )
+	{
+		delete _rb;
+	}
+	if ( _rbsem )
+	{
+		delete _rbsem;
+	}
 }
 
 void Process::run()
@@ -76,17 +82,26 @@ void Process::initialize(int argc, char** argv)
 	signal(SIGTERM, signalHandler);
 	signal(SIGHUP, signalHandler);
 
-	_configFile = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CONFIG_FILE);
-
 	int opt;
 	while ((opt = getopt(_argc, _argv, "f:")) != -1)
 	{
 		if ( opt == 'f' )
 		{
-			_configFile = string(optarg);
+			string config = string(optarg);
+			size_t pos = 0;
+			if ( (pos = config.find_last_of("/")) == string::npos )
+			{
+				_configFile = config;
+			}
+			else
+			{
+				_configDir = config.substr(0, pos + 1);
+				_configFile = config.substr(pos + 1, config.size() - pos - 1);
+			}
 		}
 	}
-	WRITELOG("Using config file:[%s]\n", _configFile.c_str());
+	_rbsem = new Semaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
+	_rb = new RingBuffer(_configDir.c_str());
 }
 
 int Process::getArgc()
@@ -106,10 +121,11 @@ int Process::getParam(const char* parameter, char* value)
 	FILE *fp;
 
 	int i = 0, j = 0;
+	string config = _configDir + _configFile;
 
-	if ((fp = fopen(_configFile.c_str(), "r")) == NULL)
+	if ((fp = fopen(config.c_str(), "r")) == NULL)
 	{
-		WRITELOG("No config file:[%s]\n", _configFile.c_str());
+		WRITELOG("No config file:[%s]\n", config.c_str());
 		return -1;
 	}
 
@@ -193,6 +209,16 @@ void Process::resetRingBuffer()
 int Process::checkSignal(void)
 {
 	return theSignaled;
+}
+
+const string* Process::getConfigDirName(void)
+{
+	return &_configDir;
+}
+
+const string* Process::getConfigFileName(void)
+{
+	return &_configFile;
 }
 
 /*=====================================

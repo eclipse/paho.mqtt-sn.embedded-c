@@ -168,6 +168,17 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 	if ( !client->isWaitWillMsg() )
 	{
 		DEBUGLOG("     MQTTSNConnectionHandler::handleWillmsg  WaitWillMsgFlg is off.\n");
+		if ( !client->isSecureNetwork() )
+		{
+			/* create CONNACK message */
+			MQTTSNPacket* connack =  new MQTTSNPacket();
+			connack->setCONNACK(MQTTSN_RC_REJECTED_CONGESTED);
+
+			/* return to the client */
+			Event* evt = new Event();
+			evt->setClientSendEvent(client, connack);
+			_gateway->getClientSendQue()->post(evt);
+		}
 		return;
 	}
 
@@ -186,9 +197,9 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 		mqttPacket->setCONNECT(connectData, (unsigned char*)_gateway->getGWParams()->loginId, (unsigned char*)_gateway->getGWParams()->password);
 
 		/* Send CONNECT to the broker */
-		Event* ev1 = new Event();
-		ev1->setBrokerSendEvent(client, mqttPacket);
-		_gateway->getBrokerSendQue()->post(ev1);
+		Event* evt = new Event();
+		evt->setBrokerSendEvent(client, mqttPacket);
+		_gateway->getBrokerSendQue()->post(evt);
 	}
 }
 

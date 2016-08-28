@@ -4,7 +4,8 @@ APPL := mainGateway
 LPROGNAME := MQTT-SNLogmonitor
 LAPPL := mainLogmonitor
 
-CONFIG := MQTTSNGateway/param.conf
+CONFIG := MQTTSNGateway/gateway.conf
+CLIENTS := MQTTSNGateway/clients.conf
 
 SRCDIR := MQTTSNGateway/src
 SUBDIR := MQTTSNPacket/src
@@ -106,5 +107,6 @@ install:
 	cp -pf $(PROG) ../
 	cp -pf $(LPROG) ../
 	cp -pf $(CONFIG) ../
+	cp -pf $(CLIENTS) ../
 	
 	

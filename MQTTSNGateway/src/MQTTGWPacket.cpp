@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2009, 2014 IBM Corp.
+ * Copyright (c) 2009, 2014 IBM Corp. Tomoaki YAMAGUCHI
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -196,7 +196,7 @@ int MQTTGWPacket::recv(Network* network)
 		}
 		if (network->recv(&c, 1) == -1)
 		{
-			return -2;
+			return -1;
 		}
 		_remainingLength += (c & 127) * multiplier;
 		multiplier *= 128;
@@ -212,7 +212,11 @@ int MQTTGWPacket::recv(Network* network)
 	/* read Payload */
 	int remlen = network->recv(_data, _remainingLength);
 
-	if (remlen == -1 || remlen != _remainingLength )
+	if (remlen == -1 )
+	{
+		return -1;
+	}
+	else if ( remlen != _remainingLength )
 	{
 		return -2;
 	}
@@ -277,9 +281,17 @@ int MQTTGWPacket::getPUBLISH(Publish* pub)
 	pub->topiclen = readInt((char**) &ptr);
 	pub->topic = (char*) _data + 2;
 	ptr += pub->topiclen;
-	pub->msgId = readInt(&ptr);
+	if (_header.bits.qos > 0)
+	{
+		pub->msgId = readInt(&ptr);
+		pub->payloadlen = _remainingLength - pub->topiclen - 4;
+	}
+	else
+	{
+		pub->msgId = 0;
+		pub->payloadlen = _remainingLength - pub->topiclen - 2;
+	}
 	pub->payload = ptr;
-	pub->payloadlen = _remainingLength - pub->topiclen - 4;
 	return 1;
 }
 
@@ -393,7 +405,14 @@ int MQTTGWPacket::setPUBLISH(Publish* pub)
 		writeInt(&ptr, pub->topiclen);
 		memcpy(ptr, pub->topic, pub->topiclen);
 		ptr += pub->topiclen;
-		writeInt(&ptr, pub->msgId);
+		if ( _header.bits.qos > 0 )
+		{
+			writeInt(&ptr, pub->msgId);
+		}
+		else
+		{
+			_remainingLength -= 2;
+		}
 		memcpy(ptr, pub->payload, pub->payloadlen);
 		return 1;
 	}
@@ -505,23 +524,14 @@ char* MQTTGWPacket::getMsgId(char* pbuf)
 
 char* MQTTGWPacket::print(char* pbuf)
 {
+	uint8_t packetData[MQTTSNGW_MAX_PACKET_SIZE];
 	char* ptr = pbuf;
 	char** pptr = &pbuf;
-	char digit[4];
+	int len = getPacketData(packetData);
 
-	sprintf(*pptr, " %02X",(const unsigned char)_header.byte);
-	*pptr += 3;
-	int len = MQTTPacket_encode((char*) digit, _remainingLength);
 	for (int i = 0; i < len; i++)
 	{
-		sprintf(*pptr, " %02X", digit[i]);
-		*pptr += 3;
-	}
-
-	int size = _remainingLength > SIZEOF_LOG_PACKET ? SIZEOF_LOG_PACKET : _remainingLength;
-	for (int i = 0; i < size; i++)
-	{
-		sprintf(*pptr, " %02X", *(_data + i));
+		sprintf(*pptr, " %02X", packetData[i]);
 		*pptr += 3;
 	}
 	**pptr = 0;

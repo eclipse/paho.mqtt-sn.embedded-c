@@ -13,33 +13,34 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#include "MQTTSNGateway.h"
-#include "MQTTSNGWBrokerRecvTask.h"
-#include "MQTTSNGWBrokerSendTask.h"
-#include "MQTTSNGWClientRecvTask.h"
-#include "MQTTSNGWClientSendTask.h"
-#include "MQTTSNGWPacketHandleTask.h"
 
-using namespace MQTTSNGW;
+#ifndef TIMER_H_
+#define TIMER_H_
 
-/*
- *  Gateway Process
- *
- *  Certificate file "/etc/ssl/certs"
- *	This is defined in MQTTSNGWDefines.h
- */
-Gateway* gateway = new Gateway();
-PacketHandleTask* t0 = new PacketHandleTask(gateway);
-ClientRecvTask* t1 = new ClientRecvTask(gateway);
-ClientSendTask* t2 = new ClientSendTask(gateway);
-BrokerRecvTask* t3 = new BrokerRecvTask(gateway);
-BrokerSendTask* t4 = new BrokerSendTask(gateway);
+#include <sys/time.h>
 
-int main(int argc, char** argv)
-{
-	gateway->initialize(argc, argv);
-	gateway->run();
-	delete gateway;
-	return 0;
-}
+#include "LMqttsnClientApp.h"
 
+namespace linuxAsyncClient {
+
+/*============================================
+                LTimer
+ ============================================*/
+class LTimer{
+public:
+    LTimer();
+    ~LTimer();
+    void start(uint32_t msec = 0);
+    bool isTimeUp(uint32_t msec);
+    bool isTimeUp(void);
+    void stop(void);
+    void changeUTC(void){};
+    static void setUnixTime(uint32_t utc){};
+private:
+    struct timeval _startTime;
+    uint32_t _millis;
+};
+
+} /* end of namespace */
+
+#endif /* TIMER_H_ */

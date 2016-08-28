@@ -25,12 +25,10 @@ char* currentDateTime(void);
 /*=====================================
  Class Gateway
  =====================================*/
-Gateway::Gateway() :
-		MultiTaskProcess()
+Gateway::Gateway()
 {
 	theMultiTaskProcess = this;
 	theProcess = this;
-	resetRingBuffer();
 	_params.loginId = 0;
 	_params.password = 0;
 }
@@ -51,6 +49,7 @@ void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	MultiTaskProcess::initialize(argc, argv);
+	resetRingBuffer();
 
 	_params.gatewayId = 0;
 	if (getParam("GatewayID", param) == 0)
@@ -102,30 +101,57 @@ void Gateway::initialize(int argc, char** argv)
 		_params.password = (uint8_t*) strdup(param);
 	}
 
-	if (getParam("ClientAuthorization", param) == 0)
+	if (getParam("ClientAuthentication", param) == 0)
 	{
+		string fileName;
 		if (!strcasecmp(param, "YES"))
 		{
-			string fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_CLIENT_LIST);
+			if (getParam("ClientList", param) == 0)
+			{
+				fileName = string(param);
+			}
+			else
+			{
+				fileName = *getConfigDirName() + string(MQTTSNGW_CLIENT_LIST);
+			}
 
 			if (!_clientList.authorize(fileName.c_str()))
 			{
-				throw Exception("Gateway::initialize: can't authorize clients.");
+				throw Exception("Gateway::initialize: No client list which defined by configuration.");
 			}
 		}
 	}
+
+	if (getParam("SecureConnection", param) == 0)
+	{
+		_params.secureConnection = !strcasecmp(param, "YES");
+	}
+	else
+	{
+		_params.secureConnection = false;
+	}
+
 }
 
 void Gateway::run(void)
 {
 	_lightIndicator.redLight(true);
-	WRITELOG("%s %s has been started. %s %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getType(), GATEWAY_VERSION);
+	WRITELOG("\n%s", PAHO_COPYRIGHT4);
+	WRITELOG("\n%s\n", PAHO_COPYRIGHT0);
+	WRITELOG("%s\n", PAHO_COPYRIGHT1);
+	WRITELOG("%s\n", PAHO_COPYRIGHT2);
+	WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
+	WRITELOG("%s\n", GATEWAY_VERSION);
+	WRITELOG("%s\n", PAHO_COPYRIGHT4);
+	WRITELOG("\n%s %s has been started.\n                    listening on, %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getDescription());
+
 	if ( getClientList()->isAuthorized() )
 	{
-		WRITELOG("\n Client authentication is required by the configuration settings.\n");
+		WRITELOG("\nClient authentication is required by the configuration settings.\n\n");
 	}
 
 	/* execute threads & wait StopProcessEvent MQTTSNGWPacketHandleTask posts by CTL-C */
+
 	MultiTaskProcess::run();
 	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
 	_lightIndicator.allLightOff();

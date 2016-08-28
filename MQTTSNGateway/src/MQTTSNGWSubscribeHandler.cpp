@@ -35,7 +35,6 @@ MQTTSNSubscribeHandler::~MQTTSNSubscribeHandler()
 
 void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packet)
 {
-	MQTTGWPacket* subscribe = new MQTTGWPacket();
 	uint8_t dup;
 	int qos;
 	uint16_t msgId;
@@ -57,8 +56,9 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 
 				switch (topicFilter.data.id)
 				{
-				case 1:  // check topicIds are defined.
-				case 2:
+				case PREDEFINEDID_OTA_REQ:  // check topicIds are defined.
+				case PREDEFINEDID_OTA_READY:
+				case PREDEFINEDID_OTA_NO_CLIENT:
 					break;
 				default:
 					rc = MQTTSN_RC_REJECTED_INVALID_TOPIC_ID;
@@ -86,6 +86,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 		}
 		else
 		{
+			MQTTGWPacket* subscribe = new MQTTGWPacket();
 			topic = client->getTopics()->getTopic(&topicFilter);
 			if (topic == 0)
 			{
@@ -132,6 +133,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 		}
 	}
 }
+
 void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* packet)
 {
 	uint16_t msgId;
@@ -161,9 +163,9 @@ void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* pac
 				Event* evsuback = new Event();
 				evsuback->setClientSendEvent(client, sUnsuback);
 				_gateway->getClientSendQue()->post(evsuback);
-				delete unsubscribe;
-				return;
 			}
+			delete unsubscribe;
+			return;
 		}
 		else
 		{

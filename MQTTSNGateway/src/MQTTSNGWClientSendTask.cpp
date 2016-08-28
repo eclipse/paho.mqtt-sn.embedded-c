@@ -71,21 +71,22 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	{
 	case MQTTSN_ADVERTISE:
 	case MQTTSN_GWINFO:
-		WRITELOG(FORMAT_CY_NL, currentDateTime(), packet->getName(), RIGHTARROW, CLIENTS, packet->print(pbuf));
+	case MQTTSN_PINGRESP:
+		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, CLIENTS, packet->print(pbuf));
 		break;
 	case MQTTSN_CONNACK:
 	case MQTTSN_DISCONNECT:
-		WRITELOG(FORMAT_YE_WH, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
-		break;
 	case MQTTSN_WILLTOPICREQ:
 	case MQTTSN_WILLMSGREQ:
+		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		break;
 	case MQTTSN_WILLTOPICRESP:
 	case MQTTSN_WILLMSGRESP:
-		WRITELOG(FORMAT_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case MQTTSN_REGISTER:
 	case MQTTSN_PUBLISH:
-		WRITELOG(FORMAT_GR_WH_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
 		break;
 	case MQTTSN_REGACK:
 	case MQTTSN_PUBACK:
@@ -94,10 +95,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	case MQTTSN_PUBCOMP:
 	case MQTTSN_SUBACK:
 	case MQTTSN_UNSUBACK:
-		WRITELOG(FORMAT_GR_WH_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
-		break;
-	case MQTTSN_PINGRESP:
-		WRITELOG(FORMAT_YE_WH, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
 		break;
 	default:
 		break;

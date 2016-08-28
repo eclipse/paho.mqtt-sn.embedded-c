@@ -166,7 +166,7 @@ void BrokerRecvTask::run(void)
  */
 int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char pbuf[(SIZEOF_LOG_PACKET + 5 )* 3];
 	char msgId[6];
 	int rc = 0;
 
@@ -174,23 +174,23 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 	{
 	case CONNACK:
 	case DISCONNECT:
-		WRITELOG(FORMAT_YE_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBLISH:
-		WRITELOG(FORMAT_GR_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBACK:
 	case PUBREC:
 	case PUBREL:
 	case PUBCOMP:
-		WRITELOG(FORMAT_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case SUBACK:
 	case UNSUBACK:
-		WRITELOG(FORMAT_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PINGRESP:
-		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
 		rc = -1;

@@ -53,12 +53,12 @@ void SensorNetAddress::setAddress(uint32_t IpAddr, uint16_t port)
 
 /**
  *  convert Text data to SensorNetAddress
- *  @param  buf is pointer of PortNo@IP_Address format text
+ *  @param  buf is pointer of IP_Address:PortNo format text
  *  @return success = 0,  Invalid format = -1
  */
 int SensorNetAddress::setAddress(string* data)
 {
-	size_t pos = data->find_first_of("@");
+	size_t pos = data->find_first_of(":");
 
 	if ( pos == string::npos )
 	{
@@ -67,8 +67,8 @@ int SensorNetAddress::setAddress(string* data)
 		return -1;
 	}
 
-	string port = data->substr(0, pos);
-	string ip = data->substr(pos + 1);
+	string ip = data->substr(0, pos);
+	string port = data->substr(pos + 1);
 	int portNo = 0;
 
 	if ((portNo = atoi(port.c_str())) == 0 || (_IpAddr = inet_addr(ip.c_str())) == INADDR_NONE)
@@ -124,23 +124,33 @@ int SensorNetwork::initialize(void)
 	char param[MQTTSNGW_PARAM_MAX];
 	uint16_t multicastPortNo = 0;
 	uint16_t unicastPortNo = 0;
+	string ip;
 
+	if (theProcess->getParam("MulticastIP", param) == 0)
+	{
+		ip = param;
+		_description = "UDP Multicast ";
+		_description += param;
+	}
 	if (theProcess->getParam("MulticastPortNo", param) == 0)
 	{
 		multicastPortNo = atoi(param);
+		_description += ":";
+		_description += param;
 	}
 	if (theProcess->getParam("GatewayPortNo", param) == 0)
 	{
 		unicastPortNo = atoi(param);
+		_description += " and Gateway Port ";
+		_description += param;
 	}
 
-	theProcess->getParam("MulticastIP", param);
-	return UDPPort::open(param, multicastPortNo, unicastPortNo);
+	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo);
 }
 
-const char* SensorNetwork::getType(void)
+const char* SensorNetwork::getDescription(void)
 {
-	return "UDP";
+	return _description.c_str();
 }
 
 /*=========================================
@@ -173,7 +183,7 @@ void UDPPort::close(void)
 	}
 }
 
-int UDPPort::open(char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
+int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
 {
 	char loopch = 0;
 	const int reuse = 1;

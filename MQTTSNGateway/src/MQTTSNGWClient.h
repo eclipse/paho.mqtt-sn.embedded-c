@@ -284,6 +284,8 @@ public:
 	bool isWaitWillMsg(void);
 
 	Client* getNextClient(void);
+	Client* getOTAClient(void);
+	void    setOTAClient(Client* cl);
 
 private:
 	PacketQue<MQTTSNPacket> _clientSleepPacketQue;
@@ -316,7 +318,7 @@ private:
 
 	Client* _nextClient;
 	Client* _prevClient;
-
+	Client* _otaClient;
 };
 
 /*=====================================
@@ -330,6 +332,7 @@ public:
 	bool authorize(const char* fileName);
 	void erase(Client*);
 	Client* getClient(SensorNetAddress* addr);
+	Client* getClient(uint8_t* clientId);
 	Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine,
 			bool secure);
 	uint16_t getClientCount(void);

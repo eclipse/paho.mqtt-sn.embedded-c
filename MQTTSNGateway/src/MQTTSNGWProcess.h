@@ -32,8 +32,8 @@ namespace MQTTSNGW
  ==================================*/
 #define MQTTSNGW_CONFIG_DIRECTORY "./"
 
-#define MQTTSNGW_CONFIG_FILE      "param.conf"
-#define MQTTSNGW_CLIENT_LIST      "clientList.conf"
+#define MQTTSNGW_CONFIG_FILE      "gateway.conf"
+#define MQTTSNGW_CLIENT_LIST      "clients.conf"
 
 #define MQTTSNGW_MAX_TASK           10  // number of Tasks
 #define PROCESS_LOG_BUFFER_SIZE  16384  // Ring buffer size for Logs
@@ -66,10 +66,12 @@ public:
 	int getParam(const char* parameter, char* value);
 	const char* getLog(void);
 	int checkSignal(void);
-
+	const string* getConfigDirName(void);
+	const string* getConfigFileName(void);
 private:
 	int _argc;
 	char** _argv;
+	string _configDir;
 	string _configFile;
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;

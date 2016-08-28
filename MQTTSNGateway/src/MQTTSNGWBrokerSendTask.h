@@ -40,6 +40,7 @@ private:
 	Gateway* _gateway;
 	char* _host;
 	char* _service;
+	char* _serviceSecure;
 	LightIndicator* _light;
 };
 

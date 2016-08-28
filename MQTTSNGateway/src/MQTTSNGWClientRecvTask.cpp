@@ -101,7 +101,7 @@ void ClientRecvTask::run()
 				packet->getCONNECT(&data);
 
 				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, _gateway->getGWParams()->secureConnection);
 
 				if (!client)
 				{
@@ -137,36 +137,34 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
 	switch (packet->getType())
 	{
 	case MQTTSN_SEARCHGW:
-		WRITELOG(FORMAT_CY_NL, currentDateTime(), packet->getName(), LEFTARROW, CLIENT, packet->print(pbuf));
+	case MQTTSN_PINGREQ:
+		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, CLIENT, packet->print(pbuf));
 		break;
 	case MQTTSN_CONNECT:
-		WRITELOG(FORMAT_YE_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;
-	case MQTTSN_WILLTOPIC:
-	case MQTTSN_WILLMSG:
 	case MQTTSN_DISCONNECT:
 	case MQTTSN_WILLTOPICUPD:
 	case MQTTSN_WILLMSGUPD:
-		WRITELOG(FORMAT_WHITE_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+	case MQTTSN_WILLTOPIC:
+	case MQTTSN_WILLMSG:
+		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_PUBLISH:
 	case MQTTSN_REGISTER:
 	case MQTTSN_SUBSCRIBE:
 	case MQTTSN_UNSUBSCRIBE:
-		WRITELOG(FORMAT_WH_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
+		WRITELOG(FORMAT_G_MSGID_G_G_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_REGACK:
 	case MQTTSN_PUBACK:
 	case MQTTSN_PUBREC:
 	case MQTTSN_PUBREL:
 	case MQTTSN_PUBCOMP:
-		WRITELOG(FORMAT_WH_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	case MQTTSN_PINGREQ:
-		WRITELOG(FORMAT_YE_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+		WRITELOG(FORMAT_G_MSGID_G_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	default:
-		WRITELOG(FORMAT_WH_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+		WRITELOG(FORMAT_W_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	}
 }

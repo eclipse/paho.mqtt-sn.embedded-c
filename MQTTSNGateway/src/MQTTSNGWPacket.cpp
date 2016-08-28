@@ -391,6 +391,7 @@ char* MQTTSNPacket::getMsgId(char* pbuf)
 	case MQTTSN_PUBREC:
 	case MQTTSN_PUBREL:
 	case MQTTSN_PUBCOMP:
+	case MQTTSN_UNSUBACK:
 		sprintf(pbuf, " %02X%02X", _buf[2], _buf[3]);
 		break;
 	case MQTTSN_SUBSCRIBE:
@@ -399,7 +400,6 @@ char* MQTTSNPacket::getMsgId(char* pbuf)
 		sprintf(pbuf, " %02X%02X", _buf[p + 2], _buf[p + 3]);
 		break;
 	case MQTTSN_SUBACK:
-	case MQTTSN_UNSUBACK:
 		sprintf(pbuf, " %02X%02X", _buf[5], _buf[6]);
 		break;
 	default:

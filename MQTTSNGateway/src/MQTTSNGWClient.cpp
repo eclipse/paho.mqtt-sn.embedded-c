@@ -72,7 +72,7 @@ ClientList::~ClientList()
 bool ClientList::authorize(const char* fileName)
 {
 	FILE* fp;
-	char buf[258];
+	char buf[MAX_CLIENTID_LENGTH + 256];
 	size_t pos;;
 	bool secure;
 	bool stable;
@@ -85,7 +85,7 @@ bool ClientList::authorize(const char* fileName)
 
 	if ((fp = fopen(fileName, "r")) != 0)
 	{
-		while (fgets(buf, 256, fp) != 0)
+		while (fgets(buf, MAX_CLIENTID_LENGTH + 254, fp) != 0)
 		{
 			if (*buf == '#')
 			{
@@ -173,6 +173,25 @@ Client* ClientList::getClient(SensorNetAddress* addr)
 Client* ClientList::getClient(void)
 {
 	return _firstClient;
+}
+
+Client* ClientList::getClient(uint8_t* clientId)
+{
+	_mutex.lock();
+	Client* client = _firstClient;
+
+	while (client != 0)
+	{
+		//printf("ClientList: clientId = %s\n", client->getClientId());
+		if (strcmp((const char*)client->getClientId(), (const char*)clientId) == 0 )
+		{
+			_mutex.unlock();
+			return client;
+		}
+		client = client->_nextClient;
+	}
+	_mutex.unlock();
+	return 0;
 }
 
 Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine, bool secure)
@@ -644,6 +663,16 @@ const char* Client::getStatus(void)
 	return theClientStatus[_status];
 }
 
+Client* Client::getOTAClient(void)
+{
+	return _otaClient;
+}
+
+void Client::setOTAClient(Client* cl)
+{
+	_otaClient =cl;
+}
+
 /*=====================================
  Class Topic
  ======================================*/
@@ -808,7 +837,7 @@ Topic* Topics::getTopic(MQTTSN_topicid* topicid)
 	Topic* p = _first;
 	while (p)
 	{
-		if (p->_topicId == topicid->data.id)
+		if (strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0 )
 		{
 			return p;
 		}
