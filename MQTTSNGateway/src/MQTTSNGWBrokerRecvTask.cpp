@@ -117,7 +117,10 @@ void BrokerRecvTask::run(void)
 								/* post a BrokerRecvEvent */
 								ev = new Event();
 								ev->setBrokerRecvEvent(client, packet);
-								_gateway->getPacketEventQue()->post(ev);
+								if ( _gateway->getPacketEventQue()->post(ev) == 1 )
+								{
+									delete ev;
+								}
 							}
 							else
 							{

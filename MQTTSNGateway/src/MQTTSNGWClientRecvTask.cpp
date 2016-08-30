@@ -76,7 +76,10 @@ void ClientRecvTask::run()
 			log(0, packet);
 			ev = new Event();
 			ev->setBrodcastEvent(packet);
-			_gateway->getPacketEventQue()->post(ev);
+			if ( _gateway->getPacketEventQue()->post(ev) == 1 )
+			{
+				delete ev;
+			}
 			continue;
 		}
 
@@ -89,7 +92,10 @@ void ClientRecvTask::run()
 			log(client, packet);
 			ev = new Event();
 			ev->setClientRecvEvent(client,packet);
-			_gateway->getPacketEventQue()->post(ev);
+			if ( _gateway->getPacketEventQue()->post(ev) == 1 )
+			{
+				delete ev;
+			}
 		}
 		else
 		{
@@ -116,7 +122,10 @@ void ClientRecvTask::run()
 				client->setClientAddress(_sensorNetwork->getSenderAddress());
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
-				_gateway->getPacketEventQue()->post(ev);
+				if ( _gateway->getPacketEventQue()->post(ev) == 1 )
+				{
+					delete ev;
+				}
 			}
 			else
 			{

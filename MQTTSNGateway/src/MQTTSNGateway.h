@@ -16,10 +16,9 @@
 #ifndef MQTTSNGATEWAY_H_
 #define MQTTSNGATEWAY_H_
 
-#include "MQTTSNGWProcess.h"
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
-#include "MQTTGWPacket.h"
 
 namespace MQTTSNGW
 {
@@ -133,6 +132,7 @@ public:
 	~EventQue();
 	Event* wait(void);
 	Event* timedwait(uint16_t millsec);
+	void setMaxSize(uint16_t maxSize);
 	int post(Event*);
 	int size();
 
@@ -140,6 +140,7 @@ private:
 	Que<Event> _que;
 	Mutex      _mutex;
 	Semaphore  _sem;
+	uint16_t   _maxSize;
 };
 
 /*

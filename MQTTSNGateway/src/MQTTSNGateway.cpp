@@ -15,8 +15,8 @@
  **************************************************************************************/
 
 #include "MQTTSNGateway.h"
-#include "MQTTSNGWProcess.h"
 #include "SensorNetwork.h"
+#include "MQTTSNGWProcess.h"
 
 using namespace MQTTSNGW;
 
@@ -31,6 +31,7 @@ Gateway::Gateway()
 	theProcess = this;
 	_params.loginId = 0;
 	_params.password = 0;
+	_packetEventQue.setMaxSize(DEFAULT_INFLIGHTMESSAGE * DEFAULT_MAX_CLIENTS);
 }
 
 Gateway::~Gateway()
@@ -197,12 +198,17 @@ GatewayParams* Gateway::getGWParams(void)
  =====================================*/
 EventQue::EventQue()
 {
-
+	_maxSize = 0;
 }
 
 EventQue::~EventQue()
 {
 
+}
+
+void  EventQue::setMaxSize(uint16_t maxSize)
+{
+	_maxSize = maxSize;
 }
 
 Event* EventQue::wait(void)
@@ -249,14 +255,15 @@ Event* EventQue::timedwait(uint16_t millsec)
 
 int EventQue::post(Event* ev)
 {
-	if ( ev )
+	if ( ev  && ( _maxSize == 0 || size() < _maxSize ) )
 	{
 		_mutex.lock();
 		_que.post(ev);
 		_sem.post();
 		_mutex.unlock();
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 int EventQue::size()
