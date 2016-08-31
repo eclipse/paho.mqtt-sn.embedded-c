@@ -14,15 +14,17 @@
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
 
-#include "SensorNetwork.h"
-#include "MQTTSNGWProcess.h"
-#include "Threading.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "SensorNetwork.h"
+#include "MQTTSNGWProcess.h"
+#include "Threading.h"
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -32,8 +34,8 @@ using namespace MQTTSNGW;
  ============================================*/
 SensorNetAddress::SensorNetAddress()
 {
-	memset(_address64, 0, sizeof(_address64));
-	memset(_address16, 0, sizeof(_address16));
+	memset(_address64, 0, 8);
+	memset(_address16, 0, 2);
 }
 
 SensorNetAddress::~SensorNetAddress()
@@ -110,19 +112,24 @@ int SensorNetwork::initialize(void)
 	char param[MQTTSNGW_PARAM_MAX];
 	uint16_t baudrate = 9600;
 
-	if (theProcess->getParam("Baudrate", param) == 0)
+	if (theProcess->getParam("XBee Baudrate", param) == 0)
 	{
 		baudrate = (uint16_t)atoi(param);
 	}
+	_description = "Baudrate ";
+	sprintf(param ,"%d", baudrate);
+	_description += param;
 
 	theProcess->getParam("SerialDevice", param);
+	_description = "SerialDevice ";
+	_description += param;
 
 	return XBee::open(param, baudrate);
 }
 
-const char* SensorNetwork::getType(void)
+const char* SensorNetwork::getDescription(void)
 {
-	return "XBee";
+	return _description.c_str();
 }
 
 /*===========================================

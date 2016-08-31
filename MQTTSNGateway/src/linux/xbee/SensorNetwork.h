@@ -124,8 +124,7 @@ public:
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
 	int initialize(void);
-	const char* getType(void);
-
+	const char* getDescription(void);
 	SensorNetAddress* getSenderAddress(void)
 	{
 		return &_clientAddr;
@@ -134,6 +133,7 @@ public:
 
 private:
 	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.
+	string _description;
 };
 
 }
