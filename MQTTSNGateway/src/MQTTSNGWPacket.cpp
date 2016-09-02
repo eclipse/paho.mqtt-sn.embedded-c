@@ -354,7 +354,7 @@ char* MQTTSNPacket::print(char* pbuf)
 	int value = 0;
 
 	int i = MQTTSNPacket_decode(_buf, _bufLen, &value);
-	int size = _bufLen > SIZEOF_LOG_PACKET ? SIZEOF_LOG_PACKET : _bufLen;
+	int size = _bufLen > SIZE_OF_LOG_PACKET ? SIZE_OF_LOG_PACKET : _bufLen;
 
 	for (; i < size; i++)
 	{

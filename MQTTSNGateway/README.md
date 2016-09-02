@@ -28,11 +28,14 @@ $ ./MQTT-SNGateway [-f Config file name]
 
 BrokerName=iot.eclipse.org
 BrokerPortNo=1883
-SecureConnection=NO
-#BrokerPortNo=8883
-#SecureConnection=YES
+BrokerSecurePortNo=8883    
+
 ClientAuthentication=NO
-ClientList=clients.conf
+#ClientsList=/path/to/your_clients.conf    
+    
+RootCAfile=/path/to/your_Root_CA.crt    
+RootCApath=/path/to/your_certs_directory/    
+    
 GatewayID=1
 GatewayName=PahoGateway-01
 KeepAlive=900
@@ -49,12 +52,12 @@ Baudrate=38400
 SerialDevice=/dev/ttyUSB0
 ```
 
-**BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. If the Broker have to connected via TLS, set BrokerPortNo=8883 and **SecureConnection=YES**.     
+**BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
 **MulticastIP** and **MulticastPortNo** is a multicast address for ADVERTISE, GWSEARCH and GWINFO messages. Gateway is waiting GWSEARCH multicast message and when receiving it send GWINFO message via Broadcast address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom(),
 Client should know the BroadcastIP and PortNo to send a SEARCHGW message.    
 **GatewayId** is defined by GWSEARCH message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
-when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientList is required. This file defines connect allowed clients by ClientId, IPaddress and PortNo.    
+when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId, IPaddress and PortNo.    
 
 
 

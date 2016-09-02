@@ -89,7 +89,6 @@ void BrokerRecvTask::run(void)
 		{
 			/* Check sockets is ready to read */
 			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
-
 			if (activity > 0)
 			{
 				client = _gateway->getClientList()->getClient();
@@ -110,6 +109,7 @@ void BrokerRecvTask::run(void)
 							if ( rc > 0 )
 							{
 								if ( log(client, packet) == -1 )
+
 								{
 									continue;
 								}
@@ -169,7 +169,7 @@ void BrokerRecvTask::run(void)
  */
 int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[(SIZEOF_LOG_PACKET + 5 )* 3];
+	char pbuf[(SIZE_OF_LOG_PACKET + 5 )* 3];
 	char msgId[6];
 	int rc = 0;
 

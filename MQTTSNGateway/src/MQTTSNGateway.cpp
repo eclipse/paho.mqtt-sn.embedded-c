@@ -17,7 +17,7 @@
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
-
+#include <string.h>
 using namespace MQTTSNGW;
 
 char* currentDateTime(void);
@@ -31,7 +31,7 @@ Gateway::Gateway()
 	theProcess = this;
 	_params.loginId = 0;
 	_params.password = 0;
-	_packetEventQue.setMaxSize(DEFAULT_INFLIGHTMESSAGE * DEFAULT_MAX_CLIENTS);
+	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
 Gateway::~Gateway()
@@ -107,7 +107,7 @@ void Gateway::initialize(int argc, char** argv)
 		string fileName;
 		if (!strcasecmp(param, "YES"))
 		{
-			if (getParam("ClientList", param) == 0)
+			if (getParam("ClientsList", param) == 0)
 			{
 				fileName = string(param);
 			}
@@ -118,20 +118,10 @@ void Gateway::initialize(int argc, char** argv)
 
 			if (!_clientList.authorize(fileName.c_str()))
 			{
-				throw Exception("Gateway::initialize: No client list which defined by configuration.");
+				throw Exception("Gateway::initialize: No client list defined by configuration.");
 			}
 		}
 	}
-
-	if (getParam("SecureConnection", param) == 0)
-	{
-		_params.secureConnection = !strcasecmp(param, "YES");
-	}
-	else
-	{
-		_params.secureConnection = false;
-	}
-
 }
 
 void Gateway::run(void)

@@ -24,9 +24,6 @@ using namespace MQTTSNGW;
 
 /*
  *  Gateway Process
- *
- *  Certificate file "/etc/ssl/certs"
- *	This is defined in MQTTSNGWDefines.h
  */
 Gateway* gateway = new Gateway();
 PacketHandleTask* t0 = new PacketHandleTask(gateway);

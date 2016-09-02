@@ -16,6 +16,7 @@
 
 #include "MQTTSNGWClientRecvTask.h"
 #include "MQTTSNGateway.h"
+#include <string.h>
 char* currentDateTime(void);
 /*=====================================
  Class ClientRecvTask
@@ -107,7 +108,7 @@ void ClientRecvTask::run()
 				packet->getCONNECT(&data);
 
 				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, _gateway->getGWParams()->secureConnection);
+				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false); //_gateway->getGWParams()->secureConnection);
 
 				if (!client)
 				{
@@ -139,7 +140,7 @@ void ClientRecvTask::run()
 
 void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
 {
-	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	char msgId[6];
 	const char* clientId = client ? (const char*)client->getClientId() :"Non Active Client !" ;
 
