@@ -132,7 +132,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 	{
 		/* client is sleeping. save PUBLISH */
 		client->setClientSleepPacket(snPacket);
-		WRITELOG(FORMAT_YE_NL, currentDateTime(), packet->getName(),
+		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
 		RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
 		int type = 0;
 		if (pub.header.bits.qos == 1)

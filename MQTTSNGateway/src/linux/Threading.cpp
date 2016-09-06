@@ -236,12 +236,17 @@ void Semaphore::timedwait(uint16_t millsec)
  =========================================*/
 RingBuffer::RingBuffer()
 {
+	RingBuffer(MQTTSNGW_CONFIG_DIRECTORY);
+}
+
+RingBuffer::RingBuffer(const char* keyDirectory)
+{
 	int fp = 0;
-	string fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_RINGBUFFER_KEY);
+	string fileName = keyDirectory + string(MQTTSNGW_RINGBUFFER_KEY);
 	fp = open(fileName.c_str(), O_CREAT, 0);
 	close(fp);
 
-	fileName = string(MQTTSNGW_CONFIG_DIRECTORY) + string(MQTTSNGW_RB_MUTEX_KEY);
+	fileName = keyDirectory + string(MQTTSNGW_RB_MUTEX_KEY);
 	fp = open(fileName.c_str(), O_CREAT, 0);
 	close(fp);
 

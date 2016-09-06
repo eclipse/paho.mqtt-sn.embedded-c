@@ -35,6 +35,7 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 	_gateway->attach((Thread*)this);
 	_host = 0;
 	_service = 0;
+	_serviceSecure = 0;
 	_light = 0;
 }
 
@@ -47,6 +48,10 @@ BrokerSendTask::~BrokerSendTask()
 	if (_service)
 	{
 		free(_service);
+	}
+	if (_serviceSecure)
+	{
+		free(_serviceSecure);
 	}
 }
 
@@ -65,6 +70,10 @@ void BrokerSendTask::initialize(int argc, char** argv)
 	{
 		_service = strdup(param);
 	}
+	if (_gateway->getParam("BrokerSecurePortNo", param) == 0)
+		{
+			_serviceSecure = strdup(param);
+		}
 	_light = _gateway->getLightIndicator();
 }
 
@@ -84,10 +93,21 @@ void BrokerSendTask::run()
 		client = ev->getClient();
 		packet = ev->getMQTTGWPacket();
 
+		if ( client->getNetwork()->isValid() && packet->getType() == CONNECT )
+		{
+			client->getNetwork()->close();
+		}
+
 		if ( !client->getNetwork()->isValid() )
 		{
 			/* connect to the broker and send a packet */
-			if ( !client->getNetwork()->connect(_host, _service) )
+			char* service = _service;
+			if (client->isSecureNetwork())
+			{
+				service = _serviceSecure;
+			}
+
+			if ( !client->getNetwork()->connect(_host, service) )
 			{
 				/* disconnect the broker and chage the client's status */
 				WRITELOG("%s BrokerSendTask can't open the socket.  errno=%d %s%s\n",
@@ -137,10 +157,10 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 	switch (packet->getType())
 	{
 	case CONNECT:
-		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBLISH:
-		WRITELOG(FORMAT_WH_GR_MSGID_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case SUBSCRIBE:
 	case UNSUBSCRIBE:
@@ -148,13 +168,13 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 	case PUBREC:
 	case PUBREL:
 	case PUBCOMP:
-		WRITELOG(FORMAT_WH_GR_MSGID, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PINGREQ:
-		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case DISCONNECT:
-		WRITELOG(FORMAT_YE_GR, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
 		break;

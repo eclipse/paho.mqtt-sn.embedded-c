@@ -31,7 +31,6 @@ namespace MQTTSNGW
   #define D_NWSTACK(...)
 #endif
 
-#define SENSORNETWORK_TYPE "UDP"
 /*===========================================
  Class  SensorNetAddreess
  ============================================*/
@@ -67,7 +66,7 @@ public:
 	UDPPort();
 	virtual ~UDPPort();
 
-	int open(char* ipAddress, uint16_t multiPortNo,	uint16_t uniPortNo);
+	int open(const char* ipAddress, uint16_t multiPortNo,	uint16_t uniPortNo);
 	void close(void);
 	int unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* sendToAddr);
 	int broadcast(const uint8_t* buf, uint32_t length);
@@ -99,7 +98,7 @@ public:
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
 	int initialize(void);
-	const char* getType(void);
+	const char* getDescription(void);
 	SensorNetAddress* getSenderAddress(void)
 	{
 		return &_clientAddr;
@@ -108,6 +107,7 @@ public:
 
 private:
 	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.
+	string _description;
 };
 
 }
