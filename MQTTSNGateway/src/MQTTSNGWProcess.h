@@ -71,8 +71,8 @@ public:
 private:
 	int _argc;
 	char** _argv;
-	string _configDir;
-	string _configFile;
+	string  _configDir;
+	string  _configFile;
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;
 	Mutex _mt;

@@ -94,6 +94,7 @@ public:
 	int unicast(const uint8_t* buf, uint16_t length, SensorNetAddress* sendToAddr);
 	int broadcast(const uint8_t* buf, uint16_t length);
 	int recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr);
+	void setApiMode(uint8_t mode);
 
 private:
 	int readApiFrame(uint8_t* recvData);
@@ -105,10 +106,10 @@ private:
 	Mutex _meutex;
 	SerialPort* _serialPort;
 	uint8_t _frameId;
-
 	uint8_t _respCd;
 	uint8_t _respId;
 	uint8_t _dataLen;
+	uint8_t _apiMode;
 };
 
 /*===========================================
@@ -125,11 +126,7 @@ public:
 	int read(uint8_t* buf, uint16_t bufLen);
 	int initialize(void);
 	const char* getDescription(void);
-	SensorNetAddress* getSenderAddress(void)
-	{
-		return &_clientAddr;
-	}
-
+	SensorNetAddress* getSenderAddress(void);
 
 private:
 	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.

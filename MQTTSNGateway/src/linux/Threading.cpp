@@ -511,7 +511,7 @@ void Thread::stopProcess(void)
 	_stopProcessEvent->post();
 }
 
-void Thread::testThreadCancel(void)
+void Thread::cancel(void)
 {
-	pthread_testcancel();
+	pthread_cancel(_threadID);
 }
