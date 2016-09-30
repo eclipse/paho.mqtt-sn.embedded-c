@@ -33,14 +33,15 @@ BrokerSecurePortNo=8883
 ClientAuthentication=NO
 #ClientsList=/path/to/your_clients.conf    
     
-RootCAfile=/path/to/your_Root_CA.crt    
-RootCApath=/path/to/your_certs_directory/    
+#RootCAfile=/path/to/your_Root_CA.crt    
+#RootCApath=/path/to/your_certs_directory/   
+#CertsDirectory=/path/to/your_client_certs_directory/
     
 GatewayID=1
 GatewayName=PahoGateway-01
 KeepAlive=900
-#LoginID=
-#Password=
+#LoginID=your_ID
+#Password=your_Password
 
 # UDP
 GatewayPortNo=10000
@@ -50,6 +51,7 @@ MulticastPortNo=1883
 # XBee
 Baudrate=38400
 SerialDevice=/dev/ttyUSB0
+ApiMode=2
 ```
 
 **BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       

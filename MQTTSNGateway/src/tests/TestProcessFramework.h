@@ -11,31 +11,40 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#include "MQTTSNGateway.h"
-#include "MQTTSNGWBrokerRecvTask.h"
-#include "MQTTSNGWBrokerSendTask.h"
-#include "MQTTSNGWClientRecvTask.h"
-#include "MQTTSNGWClientSendTask.h"
-#include "MQTTSNGWPacketHandleTask.h"
+#ifndef TESTPROCESSFRAMEWORK_H_
+#define TESTPROCESSFRAMEWORK_H_
 
-using namespace MQTTSNGW;
+#include "MQTTSNGWProcess.h"
 
-/*
- *  Gateway Process
- */
-Gateway* gw = new Gateway();
-PacketHandleTask  task1(gw);
-ClientRecvTask    task2(gw);
-ClientSendTask    task3(gw);
-BrokerRecvTask    task4(gw);
-BrokerSendTask    task5(gw);
 
-int main(int argc, char** argv)
+namespace MQTTSNGW
 {
-	gw->initialize(argc, argv);
-	gw->run();
-	delete gw;
-	return 0;
+class TestProcessFramework: public MultiTaskProcess{
+public:
+	TestProcessFramework();
+	~TestProcessFramework();
+	virtual void initialize(int argc, char** argv);
+	void run(void);
+
+private:
+
+};
+
+class TestQue
+{
+public:
+	TestQue();
+	~TestQue();
+	void post(int*);
+	int* front(void);
+	void pop(void);
+	int size(void);
+	void setMaxSize(int maxsize);
+private:
+	Que<int> _que;
+};
 }
+
+#endif /* TESTPROCESSFRAMEWORK_H_ */

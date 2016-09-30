@@ -152,6 +152,7 @@ SensorNetAddress* SensorNetwork::getSenderAddress(void)
 XBee::XBee(){
     _serialPort = new SerialPort();
     _respCd = 0;
+    _respId = 0;
     _dataLen = 0;
     _frameId = 0;
     _apiMode = 2;
