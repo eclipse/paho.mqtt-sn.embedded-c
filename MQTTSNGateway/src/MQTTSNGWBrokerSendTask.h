@@ -22,7 +22,6 @@
 
 namespace MQTTSNGW
 {
-#define ERRNO_APL_04  14    // Task Initialize Error
 /*=====================================
      Class BrokerSendTask
  =====================================*/

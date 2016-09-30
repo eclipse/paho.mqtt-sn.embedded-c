@@ -502,7 +502,7 @@ bool Thread::equals(pthread_t *t1, pthread_t *t2)
 
 int Thread::start(void)
 {
-	Runnable *runnable = this;
+	Runnable* runnable = this;
 	return pthread_create(&_threadID, 0, _run, runnable);
 }
 

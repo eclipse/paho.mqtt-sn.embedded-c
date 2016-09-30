@@ -22,7 +22,6 @@
 namespace MQTTSNGW
 {
 
-#define ERRNO_APL_03  13    // Task Initialize Error
 /*=====================================
  Class BrokerRecvTask
  =====================================*/

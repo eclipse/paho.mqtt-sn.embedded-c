@@ -188,7 +188,7 @@ GatewayParams* Gateway::getGWParams(void)
  =====================================*/
 EventQue::EventQue()
 {
-	_maxSize = 0;
+
 }
 
 EventQue::~EventQue()
@@ -198,7 +198,7 @@ EventQue::~EventQue()
 
 void  EventQue::setMaxSize(uint16_t maxSize)
 {
-	_maxSize = maxSize;
+	_que.setMaxSize((int)maxSize);
 }
 
 Event* EventQue::wait(void)
@@ -245,15 +245,12 @@ Event* EventQue::timedwait(uint16_t millsec)
 
 int EventQue::post(Event* ev)
 {
-	if ( ev  && ( _maxSize == 0 || size() < _maxSize ) )
-	{
-		_mutex.lock();
-		_que.post(ev);
-		_sem.post();
-		_mutex.unlock();
-		return 0;
-	}
-	return 1;
+	int rc = 0;
+	_mutex.lock();
+	rc = _que.post(ev);
+	_sem.post();
+	_mutex.unlock();
+	return rc;
 }
 
 int EventQue::size()

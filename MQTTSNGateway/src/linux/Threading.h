@@ -19,6 +19,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include "MQTTSNGWDefines.h"
 
 namespace MQTTSNGW
 {
