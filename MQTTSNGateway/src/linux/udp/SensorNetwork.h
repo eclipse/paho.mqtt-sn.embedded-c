@@ -99,11 +99,7 @@ public:
 	int read(uint8_t* buf, uint16_t bufLen);
 	int initialize(void);
 	const char* getDescription(void);
-	SensorNetAddress* getSenderAddress(void)
-	{
-		return &_clientAddr;
-	}
-
+	SensorNetAddress* getSenderAddress(void);
 
 private:
 	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.

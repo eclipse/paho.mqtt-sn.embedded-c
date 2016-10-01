@@ -153,6 +153,11 @@ const char* SensorNetwork::getDescription(void)
 	return _description.c_str();
 }
 
+SensorNetAddress* SensorNetwork::getSenderAddress(void)
+{
+	return &_clientAddr;
+}
+
 /*=========================================
  Class udpStack
  =========================================*/

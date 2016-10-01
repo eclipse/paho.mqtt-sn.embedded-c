@@ -71,26 +71,27 @@ public:
 	Network(bool secure);
 	virtual ~Network();
 
-	bool connect(const char* host, const char* service);
-	void disconnect();
-	int send(const uint8_t* buf, uint16_t length);
-	int recv(uint8_t* buf, uint16_t len);
+	bool connect(const char* host, const char* port, const char* caPath, const char* caFile, const char* sert, const char* prvkey);
+	bool connect(const char* host, const char* port);
+	void disconnect(void);
+	void close(void);
+	int  send(const uint8_t* buf, uint16_t length);
+	int  recv(uint8_t* buf, uint16_t len);
 
-	bool isValid();
-	bool isSecure();
-	int getSock();
-	SSL* getSSL();
+	bool isValid(void);
+	bool isSecure(void);
+	int  getSock(void);
 
 private:
 	static SSL_CTX* _ctx;
 	static int _numOfInstance;
-	static SSL_SESSION* _session;
 
+	SSL_SESSION* _session;
 	SSL* _ssl;
 	bool _secureFlg;
-	bool _disconReq;
 	Mutex _mutex;
 	bool _busy;
+	bool _sslValid;
 };
 
 #endif /* NETWORK_H_ */

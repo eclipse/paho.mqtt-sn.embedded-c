@@ -26,6 +26,7 @@
 #include "MQTTSNGWConnectionHandler.h"
 #include "MQTTSNGWPublishHandler.h"
 #include "MQTTSNGWSubscribeHandler.h"
+#include <string.h>
 
 using namespace std;
 using namespace MQTTSNGW;

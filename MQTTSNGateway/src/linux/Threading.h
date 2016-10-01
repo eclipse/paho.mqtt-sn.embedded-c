@@ -19,6 +19,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include "MQTTSNGWDefines.h"
 
 namespace MQTTSNGW
 {
@@ -131,7 +132,7 @@ public:
 	static bool equals(pthread_t*, pthread_t*);
 	virtual void initialize(int argc, char** argv);
 	void stopProcess(void);
-	void testThreadCancel(void);
+	void cancel(void);
 private:
 	pthread_t _threadID;
 	Semaphore* _stopProcessEvent;

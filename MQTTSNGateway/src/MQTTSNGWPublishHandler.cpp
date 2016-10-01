@@ -19,7 +19,7 @@
 #include "MQTTGWPacket.h"
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWClient.h"
-
+#include <string.h>
 using namespace std;
 using namespace MQTTSNGW;
 

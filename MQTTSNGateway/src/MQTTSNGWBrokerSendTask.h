@@ -22,7 +22,6 @@
 
 namespace MQTTSNGW
 {
-#define ERRNO_APL_04  14    // Task Initialize Error
 /*=====================================
      Class BrokerSendTask
  =====================================*/
@@ -39,8 +38,11 @@ private:
 
 	Gateway* _gateway;
 	char* _host;
-	char* _service;
-	char* _serviceSecure;
+	char* _port;
+	char* _portSecure;
+	char* _rootCApath;
+	char* _rootCAfile;
+	char* _certDirectory;
 	LightIndicator* _light;
 };
 

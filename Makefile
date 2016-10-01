@@ -4,6 +4,9 @@ APPL := mainGateway
 LPROGNAME := MQTT-SNLogmonitor
 LAPPL := mainLogmonitor
 
+TESTPROGNAME := testPFW
+TESTAPPL := mainTestProcessFramework
+
 CONFIG := MQTTSNGateway/gateway.conf
 CLIENTS := MQTTSNGateway/clients.conf
 
@@ -12,6 +15,7 @@ SUBDIR := MQTTSNPacket/src
 
 OS := linux
 SENSORNET := udp
+TEST := tests
 
 CPPSRCS :=  \
 $(SRCDIR)/MQTTGWConnectionHandler.cpp \
@@ -34,7 +38,10 @@ $(SRCDIR)/MQTTSNGWSubscribeHandler.cpp \
 $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
 $(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \
-$(SRCDIR)/$(OS)/Threading.cpp 
+$(SRCDIR)/$(OS)/Threading.cpp \
+$(SRCDIR)/$(TEST)/TestProcessFramework.cpp \
+$(SRCDIR)/$(TEST)/TestTask.cpp
+
 
 CSRCS := $(SUBDIR)/MQTTSNConnectClient.c \
 $(SUBDIR)/MQTTSNConnectServer.c \
@@ -51,13 +58,14 @@ $(SUBDIR)/MQTTSNUnsubscribeServer.c
 CXX := g++ 
 CPPFLAGS += 
 
-INCLUDES += -IMQTTSNGateway/src \
--IMQTTSNGateway/src/$(OS) \
--IMQTTSNGateway/src/$(OS)/$(SENSORNET) \
--IMQTTSNPacket/src
+INCLUDES += -I$(SRCDIR) \
+-I$(SRCDIR)/$(OS) \
+-I$(SRCDIR)/$(OS)/$(SENSORNET) \
+-I$(SUBDIR) \
+-I$(SRCDIR)/$(TEST)
 
 DEFS :=
-LIBS +=
+LIBS += -L/usr/local/lib
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
 LDADD := -lpthread -lssl -lcrypto
@@ -65,16 +73,20 @@ OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGNAME)
 LPROG := $(OUTDIR)/$(LPROGNAME)
+TPROG := $(OUTDIR)/$(TESTPROGNAME)
+
 OBJS := $(CPPSRCS:%.cpp=$(OUTDIR)/%.o)
 OBJS += $(CSRCS:%.c=$(OUTDIR)/%.o) 
 DEPS := $(CPPSRCS:%.cpp=$(OUTDIR)/%.d)
 DEPS += $(CSRCS:%.c=$(OUTDIR)/%.d)
 
-.PHONY: install clean 
+.PHONY: install clean
 
-all: $(PROG) $(LPROG)
+all: $(PROG) $(LPROG) $(TPROG)
 
 monitor: $(LPROG)
+
+test: $(TPROG)
 
 -include $(DEPS)
 
@@ -84,11 +96,19 @@ $(PROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(APPL).o
 $(LPROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(LAPPL).o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS) $(LDADD)
 
+$(TPROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(TEST)/$(TESTAPPL).o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS) $(LDADD)
+
+
 $(OUTDIR)/$(SRCDIR)/%.o:$(SRCDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 $(OUTDIR)/$(SRCDIR)/$(APPL).o:$(SRCDIR)/$(APPL).cpp
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+
+$(OUTDIR)/$(SRCDIR)/$(TEST)/$(TESTAPPL).o:$(SRCDIR)/$(TEST)/$(TESTAPPL).cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
@@ -108,5 +128,6 @@ install:
 	cp -pf $(LPROG) ../
 	cp -pf $(CONFIG) ../
 	cp -pf $(CLIENTS) ../
+
 	
 	

@@ -14,15 +14,16 @@
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
 
-#include "SensorNetwork.h"
-#include "MQTTSNGWProcess.h"
-#include "Threading.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "SensorNetwork.h"
+#include "MQTTSNGWProcess.h"
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -32,8 +33,8 @@ using namespace MQTTSNGW;
  ============================================*/
 SensorNetAddress::SensorNetAddress()
 {
-	memset(_address64, 0, sizeof(_address64));
-	memset(_address16, 0, sizeof(_address16));
+	memset(_address64, 0, 8);
+	memset(_address16, 0, 2);
 }
 
 SensorNetAddress::~SensorNetAddress()
@@ -109,20 +110,40 @@ int SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint16_t baudrate = 9600;
+	uint8_t apimode = 2;
+
+	if (theProcess->getParam("ApiMode", param) == 0)
+	{
+		apimode = (uint8_t)atoi(param);
+	}
+	setApiMode(apimode);
+	_description = "API mode ";
+	sprintf(param, "%d", apimode);
+	_description += param;
 
 	if (theProcess->getParam("Baudrate", param) == 0)
 	{
 		baudrate = (uint16_t)atoi(param);
 	}
+	_description += ", Baudrate ";
+	sprintf(param ,"%d", baudrate);
+	_description += param;
 
 	theProcess->getParam("SerialDevice", param);
+	_description += ", SerialDevice ";
+	_description += param;
 
 	return XBee::open(param, baudrate);
 }
 
-const char* SensorNetwork::getType(void)
+const char* SensorNetwork::getDescription(void)
 {
-	return "XBee";
+	return _description.c_str();
+}
+
+SensorNetAddress* SensorNetwork::getSenderAddress(void)
+{
+	return &_clientAddr;
 }
 
 /*===========================================
@@ -131,8 +152,10 @@ const char* SensorNetwork::getType(void)
 XBee::XBee(){
     _serialPort = new SerialPort();
     _respCd = 0;
+    _respId = 0;
     _dataLen = 0;
     _frameId = 0;
+    _apiMode = 2;
 }
 
 XBee::~XBee(){
@@ -333,7 +356,7 @@ int XBee::send(const uint8_t* payload, uint8_t pLen, SensorNetAddress* addr){
 
 void XBee::send(uint8_t c)
 {
-  if(c == START_BYTE || c == ESCAPE || c == XON || c == XOFF){
+  if(_apiMode == 2 && (c == START_BYTE || c == ESCAPE || c == XON || c == XOFF)){
 	  _serialPort->send(ESCAPE);
 	  _serialPort->send(c ^ 0x20);
   }else{
@@ -345,7 +368,7 @@ int XBee::recv(uint8_t* buf)
 {
 	if (_serialPort->recv(buf) )
 	{
-		if ( *buf == ESCAPE)
+		if ( *buf == ESCAPE && _apiMode == 2 )
 		{
 			_serialPort->recv(buf);
 			*buf = 0x20 ^ *buf;
@@ -353,6 +376,11 @@ int XBee::recv(uint8_t* buf)
 		return 0;
 	}
 	return -1;
+}
+
+void XBee::setApiMode(uint8_t mode)
+{
+	_apiMode = mode;
 }
 
 /*=========================================
