@@ -19,6 +19,7 @@
 
 #include <exception>
 #include <string>
+#include <signal.h>
 #include "MQTTSNGWDefines.h"
 #include "Threading.h"
 
@@ -71,8 +72,8 @@ public:
 private:
 	int _argc;
 	char** _argv;
-	string _configDir;
-	string _configFile;
+	string  _configDir;
+	string  _configFile;
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;
 	Mutex _mt;
@@ -164,6 +165,7 @@ public:
 		_head = 0;
 		_tail = 0;
 		_cnt = 0;
+		_maxSize = 0;
 	}
 
 	~Que()
@@ -213,28 +215,33 @@ public:
 
 	int post(T* t)
 	{
-		QueElement<T>* elm = new QueElement<T>(t);
-		if ( _head )
+		if ( t && ( _maxSize == 0 || size() < _maxSize ))
 		{
-			if ( _tail == _head )
+			QueElement<T>* elm = new QueElement<T>(t);
+			if ( _head )
 			{
+				if ( _tail == _head )
+				{
+					elm->_prev = _tail;
+					_tail = elm;
+					_head->_next = elm;
+				}
+				else
+				{
+				_tail->_next = elm;
 				elm->_prev = _tail;
 				_tail = elm;
+				}
 			}
 			else
 			{
-			_tail->_next = elm;
-			elm->_prev = _tail;
-			_tail = elm;
+				_head = elm;
+				_tail = elm;
 			}
+			_cnt++;
+			return _cnt;
 		}
-		else
-		{
-			_head = elm;
-			_tail = elm;
-		}
-		_cnt++;
-		return _cnt;
+		return 0;
 	}
 
 	int size(void)
@@ -242,8 +249,14 @@ public:
 		return _cnt;
 	}
 
+	void setMaxSize(int maxSize)
+	{
+		_maxSize = maxSize;
+	}
+
 private:
 	int _cnt;
+	int _maxSize;
 	QueElement<T>* _head;
 	QueElement<T>* _tail;
 };

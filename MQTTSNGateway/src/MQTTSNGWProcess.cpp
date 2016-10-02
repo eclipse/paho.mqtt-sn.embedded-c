@@ -91,12 +91,12 @@ void Process::initialize(int argc, char** argv)
 			size_t pos = 0;
 			if ( (pos = config.find_last_of("/")) == string::npos )
 			{
-				_configFile = config;
+				_configFile = optarg;
 			}
 			else
 			{
+				_configFile = config.substr(pos + 1, config.size() - pos - 1);;
 				_configDir = config.substr(0, pos + 1);
-				_configFile = config.substr(pos + 1, config.size() - pos - 1);
 			}
 		}
 	}
@@ -121,11 +121,11 @@ int Process::getParam(const char* parameter, char* value)
 	FILE *fp;
 
 	int i = 0, j = 0;
-	string config = _configDir + _configFile;
+	string configPath = _configDir + _configFile;
 
-	if ((fp = fopen(config.c_str(), "r")) == NULL)
+	if ((fp = fopen(configPath.c_str(), "r")) == NULL)
 	{
-		WRITELOG("No config file:[%s]\n", config.c_str());
+		WRITELOG("No config file:[%s]\n", configPath.c_str());
 		return -1;
 	}
 
@@ -232,13 +232,7 @@ MultiTaskProcess::MultiTaskProcess()
 
 MultiTaskProcess::~MultiTaskProcess()
 {
-	for (int i = 0; i < _threadCount; i++)
-	{
-		if ( _threadList[i] )
-		{
-			delete _threadList[i];
-		}
-	}
+
 }
 
 void MultiTaskProcess::initialize(int argc, char** argv)
@@ -264,6 +258,13 @@ void MultiTaskProcess::run(void)
 	}
 	catch (Exception* ex)
 	{
+		for (int i = 0; i < _threadCount; i++)
+		{
+			if ( _threadList[i] )
+			{
+				_threadList[i]->cancel();;
+			}
+		}
 		ex->writeMessage();
 	}
 }
@@ -363,7 +364,7 @@ void Exception::writeMessage()
 {
 	if (getExceptionNo() == 0 )
 	{
-		WRITELOG("%s : %s\n", currentDateTime(), what());
+		WRITELOG("%s %s\n", currentDateTime(), what());
 	}
 	else
 	{

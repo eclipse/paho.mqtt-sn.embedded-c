@@ -16,10 +16,9 @@
 #ifndef MQTTSNGATEWAY_H_
 #define MQTTSNGATEWAY_H_
 
-#include "MQTTSNGWProcess.h"
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
-#include "MQTTGWPacket.h"
 
 namespace MQTTSNGW
 {
@@ -27,14 +26,12 @@ namespace MQTTSNGW
  *           Gateway default parameters
  ===========================================================*/
 #define DEFAULT_KEEP_ALIVE_TIME     (900)  // 900 secs = 15 mins
-#define DEFAULT_MAX_CLIENTS         (100)  // Number of Clients can be handled.
 #define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
-#define DEFAULT_INFLIGHTMESSAGE      (10)  // Number of inflight messages
 
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION " * Version: 0.3.3"
+#define GATEWAY_VERSION " * Version: 0.6.0"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
@@ -133,6 +130,7 @@ public:
 	~EventQue();
 	Event* wait(void);
 	Event* timedwait(uint16_t millsec);
+	void setMaxSize(uint16_t maxSize);
 	int post(Event*);
 	int size();
 
@@ -154,7 +152,6 @@ typedef struct
 	uint8_t  mqttVersion;
 	uint16_t maxInflightMsgs;
 	uint8_t* gatewayName;
-	bool     secureConnection;
 }GatewayParams;
 
 /*=====================================

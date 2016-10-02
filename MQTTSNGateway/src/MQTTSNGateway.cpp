@@ -15,9 +15,9 @@
  **************************************************************************************/
 
 #include "MQTTSNGateway.h"
-#include "MQTTSNGWProcess.h"
 #include "SensorNetwork.h"
-
+#include "MQTTSNGWProcess.h"
+#include <string.h>
 using namespace MQTTSNGW;
 
 char* currentDateTime(void);
@@ -31,6 +31,7 @@ Gateway::Gateway()
 	theProcess = this;
 	_params.loginId = 0;
 	_params.password = 0;
+	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
 Gateway::~Gateway()
@@ -106,7 +107,7 @@ void Gateway::initialize(int argc, char** argv)
 		string fileName;
 		if (!strcasecmp(param, "YES"))
 		{
-			if (getParam("ClientList", param) == 0)
+			if (getParam("ClientsList", param) == 0)
 			{
 				fileName = string(param);
 			}
@@ -117,20 +118,10 @@ void Gateway::initialize(int argc, char** argv)
 
 			if (!_clientList.authorize(fileName.c_str()))
 			{
-				throw Exception("Gateway::initialize: No client list which defined by configuration.");
+				throw Exception("Gateway::initialize: No client list defined by configuration.");
 			}
 		}
 	}
-
-	if (getParam("SecureConnection", param) == 0)
-	{
-		_params.secureConnection = !strcasecmp(param, "YES");
-	}
-	else
-	{
-		_params.secureConnection = false;
-	}
-
 }
 
 void Gateway::run(void)
@@ -205,6 +196,11 @@ EventQue::~EventQue()
 
 }
 
+void  EventQue::setMaxSize(uint16_t maxSize)
+{
+	_que.setMaxSize((int)maxSize);
+}
+
 Event* EventQue::wait(void)
 {
 	Event* ev;
@@ -249,14 +245,12 @@ Event* EventQue::timedwait(uint16_t millsec)
 
 int EventQue::post(Event* ev)
 {
-	if ( ev )
-	{
-		_mutex.lock();
-		_que.post(ev);
-		_sem.post();
-		_mutex.unlock();
-	}
-	return 0;
+	int rc = 0;
+	_mutex.lock();
+	rc = _que.post(ev);
+	_sem.post();
+	_mutex.unlock();
+	return rc;
 }
 
 int EventQue::size()

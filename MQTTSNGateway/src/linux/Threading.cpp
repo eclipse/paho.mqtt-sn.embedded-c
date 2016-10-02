@@ -502,7 +502,7 @@ bool Thread::equals(pthread_t *t1, pthread_t *t2)
 
 int Thread::start(void)
 {
-	Runnable *runnable = this;
+	Runnable* runnable = this;
 	return pthread_create(&_threadID, 0, _run, runnable);
 }
 
@@ -511,7 +511,7 @@ void Thread::stopProcess(void)
 	_stopProcessEvent->post();
 }
 
-void Thread::testThreadCancel(void)
+void Thread::cancel(void)
 {
-	pthread_testcancel();
+	pthread_cancel(_threadID);
 }

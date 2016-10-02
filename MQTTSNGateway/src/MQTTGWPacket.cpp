@@ -17,6 +17,7 @@
 
 #include "MQTTGWPacket.h"
 #include <string>
+#include <string.h>
 
 using namespace MQTTSNGW;
 

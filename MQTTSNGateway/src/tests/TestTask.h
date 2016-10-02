@@ -11,31 +11,32 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#include "MQTTSNGateway.h"
-#include "MQTTSNGWBrokerRecvTask.h"
-#include "MQTTSNGWBrokerSendTask.h"
-#include "MQTTSNGWClientRecvTask.h"
-#include "MQTTSNGWClientSendTask.h"
-#include "MQTTSNGWPacketHandleTask.h"
+#ifndef TESTTASK_H_
+#define TESTTASK_H_
 
-using namespace MQTTSNGW;
+#include "Threading.h"
+#include "TestProcessFramework.h"
 
-/*
- *  Gateway Process
- */
-Gateway* gw = new Gateway();
-PacketHandleTask  task1(gw);
-ClientRecvTask    task2(gw);
-ClientSendTask    task3(gw);
-BrokerRecvTask    task4(gw);
-BrokerSendTask    task5(gw);
-
-int main(int argc, char** argv)
+namespace MQTTSNGW
 {
-	gw->initialize(argc, argv);
-	gw->run();
-	delete gw;
-	return 0;
+
+class TestTask: public Thread
+{
+MAGIC_WORD_FOR_THREAD;
+	;
+public:
+	TestTask(TestProcessFramework* proc);
+	~TestTask();
+	void initialize(int argc, char** argv);
+	void run(void);
+
+private:
+
+};
+
 }
+
+
+#endif /* TESTTASK_H_ */

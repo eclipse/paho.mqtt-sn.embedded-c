@@ -312,7 +312,7 @@ private:
 	uint8_t _snMsgId;
 
 	Network* _network;      // Broker
-	bool _secureNetwork;    // SSL
+	bool  _secureNetwork;    // SSL
 	bool _sensorNetype;     // false: unstable network like a G3
 	SensorNetAddress _sensorNetAddr;
 

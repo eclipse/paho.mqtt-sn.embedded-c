@@ -18,6 +18,7 @@
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWPacket.h"
 #include "MQTTGWPacket.h"
+#include <string.h>
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -54,7 +55,7 @@ void MQTTSNConnectionHandler::handleSearchgw(MQTTSNPacket* packet)
 {
 	if (packet->getType() == MQTTSN_SEARCHGW)
 	{
-		if (_gateway->getClientList()->getClientCount() < DEFAULT_MAX_CLIENTS)
+		if (_gateway->getClientList()->getClientCount() < MAX_CLIENTS)
 		{
 			MQTTSNPacket* gwinfo = new MQTTSNPacket();
 			gwinfo->setGWINFO(_gateway->getGWParams()->gatewayId);

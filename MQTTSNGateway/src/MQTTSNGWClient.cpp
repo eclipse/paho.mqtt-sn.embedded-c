@@ -206,7 +206,7 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 	}
 
 	/*  anonimous clients */
-	if ( _clientCnt > DEFAULT_MAX_CLIENTS )
+	if ( _clientCnt > MAX_CLIENTS )
 	{
 		return 0;  // full of clients
 	}
@@ -951,14 +951,7 @@ TopicIdMapelement::~TopicIdMapelement()
 
 TopicIdMap::TopicIdMap()
 {
-	char param[MQTTSNGW_PARAM_MAX];
-
-	_maxInflight = DEFAULT_INFLIGHTMESSAGE;
-	if ( theProcess->getParam("MaxInflightMsg", param) == 0 )
-	{
-		_maxInflight = atoi(param);
-	}
-
+	_maxInflight = MAX_INFLIGHTMESSAGES;
 	_msgIds = 0;
 	_first = 0;
 	_end = 0;

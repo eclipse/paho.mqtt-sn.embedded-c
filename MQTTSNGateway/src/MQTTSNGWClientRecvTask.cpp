@@ -16,6 +16,7 @@
 
 #include "MQTTSNGWClientRecvTask.h"
 #include "MQTTSNGateway.h"
+#include <string.h>
 char* currentDateTime(void);
 /*=====================================
  Class ClientRecvTask
@@ -76,7 +77,10 @@ void ClientRecvTask::run()
 			log(0, packet);
 			ev = new Event();
 			ev->setBrodcastEvent(packet);
-			_gateway->getPacketEventQue()->post(ev);
+			if ( _gateway->getPacketEventQue()->post(ev) == 0 )
+			{
+				delete ev;
+			}
 			continue;
 		}
 
@@ -89,7 +93,10 @@ void ClientRecvTask::run()
 			log(client, packet);
 			ev = new Event();
 			ev->setClientRecvEvent(client,packet);
-			_gateway->getPacketEventQue()->post(ev);
+			if ( _gateway->getPacketEventQue()->post(ev) == 0 )
+			{
+				delete ev;
+			}
 		}
 		else
 		{
@@ -101,7 +108,7 @@ void ClientRecvTask::run()
 				packet->getCONNECT(&data);
 
 				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, _gateway->getGWParams()->secureConnection);
+				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false); //_gateway->getGWParams()->secureConnection);
 
 				if (!client)
 				{
@@ -116,7 +123,10 @@ void ClientRecvTask::run()
 				client->setClientAddress(_sensorNetwork->getSenderAddress());
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
-				_gateway->getPacketEventQue()->post(ev);
+				if ( _gateway->getPacketEventQue()->post(ev) == 0 )
+				{
+					delete ev;
+				}
 			}
 			else
 			{
@@ -130,7 +140,7 @@ void ClientRecvTask::run()
 
 void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
 {
-	char pbuf[SIZEOF_LOG_PACKET * 3];
+	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	char msgId[6];
 	const char* clientId = client ? (const char*)client->getClientId() :"Non Active Client !" ;
 

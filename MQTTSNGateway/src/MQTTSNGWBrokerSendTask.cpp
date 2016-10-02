@@ -19,6 +19,7 @@
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWClient.h"
 #include "MQTTGWPacket.h"
+#include <string.h>
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -34,8 +35,11 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 	_gateway = gateway;
 	_gateway->attach((Thread*)this);
 	_host = 0;
-	_service = 0;
-	_serviceSecure = 0;
+	_port = 0;
+	_portSecure = 0;
+	_certDirectory = 0;
+	_rootCAfile = 0;
+
 	_light = 0;
 }
 
@@ -45,13 +49,25 @@ BrokerSendTask::~BrokerSendTask()
 	{
 		free(_host);
 	}
-	if (_service)
+	if (_port)
 	{
-		free(_service);
+		free(_port);
 	}
-	if (_serviceSecure)
+	if (_portSecure)
 	{
-		free(_serviceSecure);
+		free(_portSecure);
+	}
+	if (_certDirectory)
+	{
+		free(_certDirectory);
+	}
+	if (_rootCApath)
+	{
+		free(_rootCApath);
+	}
+	if (_rootCAfile)
+	{
+		free(_rootCAfile);
 	}
 }
 
@@ -68,12 +84,26 @@ void BrokerSendTask::initialize(int argc, char** argv)
 	}
 	if (_gateway->getParam("BrokerPortNo", param) == 0)
 	{
-		_service = strdup(param);
+		_port = strdup(param);
 	}
 	if (_gateway->getParam("BrokerSecurePortNo", param) == 0)
-		{
-			_serviceSecure = strdup(param);
-		}
+	{
+		_portSecure = strdup(param);
+	}
+
+	if (_gateway->getParam("CertsDirectory", param) == 0)
+	{
+		_certDirectory = strdup(param);
+	}
+	if (_gateway->getParam("RootCApath", param) == 0)
+	{
+		_rootCApath = strdup(param);
+	}
+	if (_gateway->getParam("RootCAfile", param) == 0)
+	{
+		_rootCAfile = strdup(param);
+	}
+
 	_light = _gateway->getLightIndicator();
 }
 
@@ -93,7 +123,7 @@ void BrokerSendTask::run()
 		client = ev->getClient();
 		packet = ev->getMQTTGWPacket();
 
-		if ( client->getNetwork()->isValid() && packet->getType() == CONNECT )
+		if ( client->getNetwork()->isValid() && !client->getNetwork()->isSecure() && packet->getType() == CONNECT )
 		{
 			client->getNetwork()->close();
 		}
@@ -101,16 +131,37 @@ void BrokerSendTask::run()
 		if ( !client->getNetwork()->isValid() )
 		{
 			/* connect to the broker and send a packet */
-			char* service = _service;
+			char* portNo = _port;
+			const char* cert = 0;
+			const char* keyFile = 0;
+			string certFile;
+			string privateKeyFile;
+
 			if (client->isSecureNetwork())
 			{
-				service = _serviceSecure;
+				portNo = _portSecure;
+				if ( _certDirectory )
+				{
+					certFile = _certDirectory;
+					certFile += client->getClientId();
+					certFile += ".crt";
+					cert = certFile.c_str();
+					privateKeyFile = _certDirectory;
+					privateKeyFile += client->getClientId();
+					privateKeyFile += ".key";
+					keyFile = privateKeyFile.c_str();
+				}
+				rc = client->getNetwork()->connect(_host, portNo, _rootCApath, _rootCAfile, cert, keyFile);
+			}
+			else
+			{
+				rc = client->getNetwork()->connect(_host, portNo);
 			}
 
-			if ( !client->getNetwork()->connect(_host, service) )
+			if ( !rc )
 			{
-				/* disconnect the broker and chage the client's status */
-				WRITELOG("%s BrokerSendTask can't open the socket.  errno=%d %s%s\n",
+				/* disconnect the broker and change the client's status */
+				WRITELOG("%s BrokerSendTask can't connect to the broker.  errno=%d %s%s\n",
 						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
 				client->disconnected();
 				client->getNetwork()->disconnect();
@@ -151,7 +202,7 @@ void BrokerSendTask::run()
  */
 void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[(SIZEOF_LOG_PACKET + 5 )* 3];
+	char pbuf[(SIZE_OF_LOG_PACKET + 5 )* 3];
 	char msgId[6];
 
 	switch (packet->getType())
