@@ -109,7 +109,11 @@ void PacketHandleTask::run()
 			client = clist->getClient();
 			while (client > 0)
 			{
-				client->checkTimeover();
+				if ( client->checkTimeover() )
+				{
+					_mqttsnConnection->handleDisconnect(client, 0);
+					client->disconnected();
+				}
 				client = client->getNextClient();
 			}
 			/*------ Check Keep Alive Timer & send Advertise ------*/
@@ -199,9 +203,6 @@ void PacketHandleTask::run()
 			{
 			case CONNACK:
 				_mqttConnection->handleConnack(client, brPacket);
-				break;
-			case DISCONNECT:
-				_mqttConnection->handleDisconnect(client, brPacket);
 				break;
 			case PINGRESP:
 				_mqttConnection->handlePingresp(client, brPacket);

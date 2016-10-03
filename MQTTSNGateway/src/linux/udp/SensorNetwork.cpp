@@ -141,7 +141,7 @@ int SensorNetwork::initialize(void)
 	if (theProcess->getParam("GatewayPortNo", param) == 0)
 	{
 		unicastPortNo = atoi(param);
-		_description += " and Gateway Port ";
+		_description += " Gateway Port ";
 		_description += param;
 	}
 

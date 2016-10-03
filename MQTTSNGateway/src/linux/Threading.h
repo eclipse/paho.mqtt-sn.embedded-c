@@ -23,7 +23,7 @@
 
 namespace MQTTSNGW
 {
-
+#define MQTTSNGW_KEY_DIRECTORY "./"
 #define MQTTSNGW_RINGBUFFER_KEY   "ringbuffer.key"
 #define MQTTSNGW_RB_MUTEX_KEY     "rbmutex.key"
 #define MQTTSNGW_RB_SEMAPHOR_NAME "/rbsemaphor"

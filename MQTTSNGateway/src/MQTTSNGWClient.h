@@ -248,7 +248,7 @@ public:
 	void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 	void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 
-	void checkTimeover(void);
+	bool checkTimeover(void);
 	void updateStatus(MQTTSNPacket*);
 	void updateStatus(ClientStatus);
 	void connectSended(void);

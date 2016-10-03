@@ -53,8 +53,9 @@ Process::Process()
 {
 	_argc = 0;
 	_argv = 0;
-	_configDir = MQTTSNGW_CONFIG_DIRECTORY;
-	_configFile = MQTTSNGW_CONFIG_FILE;
+	_configDir = CONFIG_DIRECTORY;
+	_configFile = CONFIG_FILE;
+	_log = 0;
 }
 
 Process::~Process()
@@ -76,6 +77,7 @@ void Process::run()
 
 void Process::initialize(int argc, char** argv)
 {
+	char param[MQTTSNGW_PARAM_MAX];
 	_argc = argc;
 	_argv = argv;
 	signal(SIGINT, signalHandler);
@@ -102,6 +104,18 @@ void Process::initialize(int argc, char** argv)
 	}
 	_rbsem = new Semaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
 	_rb = new RingBuffer(_configDir.c_str());
+
+	if (getParam("ShearedMemory", param) == 0)
+	{
+		if (!strcasecmp(param, "YES"))
+		{
+			_log = 1;
+		}
+		else
+		{
+			_log = 0;
+		}
+	}
 }
 
 int Process::getArgc()
@@ -178,8 +192,15 @@ void Process::putLog(const char* format, ...)
 	va_end(arg);
 	if (strlen(_rbdata))
 	{
-		_rb->put(_rbdata);
-		_rbsem->post();
+		if ( _log > 0 )
+		{
+			_rb->put(_rbdata);
+			_rbsem->post();
+		}
+		else
+		{
+			printf("%s", _rbdata);
+		}
 	}
 	_mt.unlock();
 }

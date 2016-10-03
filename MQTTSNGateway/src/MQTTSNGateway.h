@@ -31,7 +31,7 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION " * Version: 0.6.0"
+#define GATEWAY_VERSION " * Version: 0.8.0"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
@@ -145,13 +145,21 @@ private:
  */
 typedef struct
 {
-	uint8_t* loginId;
-	uint8_t* password;
+	char* configName;
+	char* clientListName;
+	char* loginId;
+	char* password;
 	uint16_t keepAlive;
 	uint8_t  gatewayId;
 	uint8_t  mqttVersion;
 	uint16_t maxInflightMsgs;
-	uint8_t* gatewayName;
+	char* gatewayName;
+	char* brokerName;
+	char* port;
+	char* portSecure;
+	char* rootCApath;
+	char* rootCAfile;
+	char* certDirectory;
 }GatewayParams;
 
 /*=====================================

@@ -375,13 +375,9 @@ void Client::setClientSleepPacket(MQTTSNPacket* packet)
 	_clientSleepPacketQue.post(packet);
 }
 
-void Client::checkTimeover(void)
+bool Client::checkTimeover(void)
 {
-	if (_status == Cstat_Active && _keepAliveTimer.isTimeup())
-	{
-		_status = Cstat_Lost;
-		_network->disconnect();
-	}
+	return (_status == Cstat_Active && _keepAliveTimer.isTimeup());
 }
 
 void Client::setKeepAlive(MQTTSNPacket* packet)

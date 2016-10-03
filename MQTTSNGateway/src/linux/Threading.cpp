@@ -236,7 +236,7 @@ void Semaphore::timedwait(uint16_t millsec)
  =========================================*/
 RingBuffer::RingBuffer()
 {
-	RingBuffer(MQTTSNGW_CONFIG_DIRECTORY);
+	RingBuffer(MQTTSNGW_KEY_DIRECTORY);
 }
 
 RingBuffer::RingBuffer(const char* keyDirectory)

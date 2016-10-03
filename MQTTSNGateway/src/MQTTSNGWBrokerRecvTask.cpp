@@ -176,7 +176,6 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 	switch (packet->getType())
 	{
 	case CONNACK:
-	case DISCONNECT:
 		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBLISH:

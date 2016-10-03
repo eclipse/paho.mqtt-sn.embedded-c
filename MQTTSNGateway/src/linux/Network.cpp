@@ -248,6 +248,7 @@ Network::~Network()
 {
 	if (_ssl)
 	{
+		SSL_shutdown(_ssl);
 		SSL_free(_ssl);
 		_numOfInstance--;
 	}
@@ -351,7 +352,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		SSL_free(_ssl);
 	}
 
-	SSL_set_options(_ssl, SSL_OP_NO_TICKET);
+	//SSL_set_options(_ssl, SSL_OP_NO_TICKET);
 
 	if ( cert )
 	{
@@ -535,6 +536,7 @@ int Network::recv(uint8_t* buf, uint16_t len)
 		case SSL_ERROR_ZERO_RETURN:
 			SSL_shutdown(_ssl);
 			_ssl = 0;
+			_numOfInstance--;
 			TCPStack::close();
 			_busy = false;
 			_mutex.unlock();
