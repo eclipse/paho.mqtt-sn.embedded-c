@@ -84,7 +84,6 @@ void PacketHandleTask::run()
 {
 	Event* ev = 0;
 	EventQue* eventQue = _gateway->getPacketEventQue();
-	ClientList* clist = _gateway->getClientList();
 	Client* client = 0;
 	MQTTSNPacket* snPacket = 0;
 	MQTTGWPacket* brPacket = 0;
@@ -95,27 +94,29 @@ void PacketHandleTask::run()
 
 	while (true)
 	{
-		if (theProcess->checkSignal() == SIGINT)
-		{
-			throw Exception("Terminated by CTL-C");
-		}
-
 		/* wait Event */
 		ev = eventQue->timedwait(EVENT_QUE_TIME_OUT);
+
+		if (ev->getEventType() == EtStop)
+		{
+			delete ev;
+			return;
+		}
 
 		if (ev->getEventType() == EtTimeout)
 		{
 			/*------     Is Client Lost ?    ---------*/
-			client = clist->getClient();
+			/*
+			client = _gateway->getClientList()->getClient();
 			while (client > 0)
 			{
 				if ( client->checkTimeover() )
 				{
-					_mqttsnConnection->handleDisconnect(client, 0);
 					client->disconnected();
 				}
 				client = client->getNextClient();
 			}
+			*/
 			/*------ Check Keep Alive Timer & send Advertise ------*/
 			if (_advertiseTimer.isTimeup())
 			{

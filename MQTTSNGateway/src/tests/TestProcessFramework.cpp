@@ -115,6 +115,7 @@ void TestProcessFramework::run(void)
 	printf("%s Timer 1sec\n", currentDateTime());
 
 	MultiTaskProcess::run();
+
 	printf("ProcessFramework test complited.\n");
 }
 

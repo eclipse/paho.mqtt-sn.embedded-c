@@ -60,83 +60,90 @@ void BrokerSendTask::run()
 	Event* ev = 0;
 	MQTTGWPacket* packet = 0;
 	Client* client = 0;
+	int rc = 0;
 
 	while (true)
 	{
-		int rc = 0;
 		ev = _gateway->getBrokerSendQue()->wait();
-		client = ev->getClient();
-		packet = ev->getMQTTGWPacket();
-		/*
-		if ( client->getNetwork()->isValid() && !client->getNetwork()->isSecure() && packet->getType() == CONNECT )
-		{
-			client->getNetwork()->close();
-		}
-		*/
-		if ( !client->getNetwork()->isValid() )
-		{
-			/* connect to the broker and send a packet */
-			char* portNo = _gwparams->port;
-			const char* cert = 0;
-			const char* keyFile = 0;
-			string certFile;
-			string privateKeyFile;
 
-			if (client->isSecureNetwork())
+		if ( ev->getEventType() == EtStop )
+		{
+			delete ev;
+			return;
+		}
+
+		if ( ev->getEventType() == EtBrokerSend)
+		{
+			client = ev->getClient();
+			packet = ev->getMQTTGWPacket();
+
+			if ( !client->getNetwork()->isValid() )
 			{
-				portNo = _gwparams->portSecure;
-				if ( _gwparams->certDirectory )
+				/* connect to the broker and send a packet */
+				char* portNo = _gwparams->port;
+				const char* cert = 0;
+				const char* keyFile = 0;
+				string certFile;
+				string privateKeyFile;
+
+				if (client->isSecureNetwork())
 				{
-					certFile = _gwparams->certDirectory;
-					certFile += client->getClientId();
-					certFile += ".crt";
-					cert = certFile.c_str();
-					privateKeyFile = _gwparams->certDirectory;
-					privateKeyFile += client->getClientId();
-					privateKeyFile += ".key";
-					keyFile = privateKeyFile.c_str();
+					portNo = _gwparams->portSecure;
+					if ( _gwparams->certDirectory )
+					{
+						certFile = _gwparams->certDirectory;
+						certFile += client->getClientId();
+						certFile += ".crt";
+						cert = certFile.c_str();
+						privateKeyFile = _gwparams->certDirectory;
+						privateKeyFile += client->getClientId();
+						privateKeyFile += ".key";
+						keyFile = privateKeyFile.c_str();
+					}
+					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->portSecure, _gwparams->rootCApath, _gwparams->rootCAfile, cert, keyFile);
 				}
-				rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->portSecure, _gwparams->rootCApath, _gwparams->rootCAfile, cert, keyFile);
+				else
+				{
+					rc = client->getNetwork()->connect(_gwparams->brokerName, portNo);
+				}
+
+				if ( !rc )
+				{
+					/* disconnect the broker and the client */
+					WRITELOG("%s BrokerSendTask can't connect to the broker.  %s%s\n",
+							ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+					delete ev;
+					client->getNetwork()->close();
+					continue;
+				}
+			}
+
+			/* send a packet */
+			_light->blueLight(true);
+			if ( (rc = packet->send(client->getNetwork())) > 0 )
+			{
+				if ( packet->getType() == CONNECT )
+				{
+					client->setWaitWillMsgFlg(false);
+					client->connectSended();
+				}
+				log(client, packet);
 			}
 			else
 			{
-				rc = client->getNetwork()->connect(_gwparams->brokerName, portNo);
-			}
-
-			if ( !rc )
-			{
-				/* disconnect the broker and the client */
-				WRITELOG("%s BrokerSendTask can't connect to the broker.  errno=%d %s%s\n",
-						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
-				delete ev;
-				disconnect(client);
-				client->getNetwork()->disconnect();
-				continue;
-			}
-		}
-
-		/* send a packet */
-		_light->blueLight(true);
-		if ( (rc = packet->send(client->getNetwork())) > 0 )
-		{
-			if ( packet->getType() == CONNECT )
-			{
-				client->setWaitWillMsgFlg(false);
-				client->connectSended();
-			}
-			log(client, packet);
-		}
-		else
-		{
-			WRITELOG("%s BrokerSendTask can't send a packet.  errno=%d %s%s\n",
-				ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
 				WRITELOG("%s BrokerSendTask can't send a packet to the broker errno=%d %s%s\n",
 						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
-				client->disconnected();
-				client->getNetwork()->disconnect();
-		}
 
-		_light->blueLight(false);
+				/* Disconnect the client */
+				packet = new MQTTGWPacket();
+				packet->setHeader(DISCONNECT);
+				ev = new Event();
+				ev->setBrokerRecvEvent(client, packet);
+				_gateway->getPacketEventQue()->post(ev);
+			}
+
+			_light->blueLight(false);
+		}
 		delete ev;
 	}
 }
@@ -177,12 +184,3 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
 	}
 }
 
-void BrokerSendTask::disconnect(Client* client)
-{
-	MQTTSNPacket* snMsg = new MQTTSNPacket();
-	snMsg->setDISCONNECT(0);
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(client, snMsg);
-	_gateway->getClientSendQue()->post(ev1);
-	client->disconnected();
-}

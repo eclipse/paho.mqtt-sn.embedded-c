@@ -101,17 +101,12 @@ public:
 	virtual void EXECRUN(){}
 };
 
-
 #define MAGIC_WORD_FOR_THREAD \
 public: void EXECRUN() \
 { \
 	try \
 	{ \
 		run(); \
-	} \
-	catch(Exception& ex) \
-	{ \
-		ex.writeMessage();\
 		stopProcess(); \
 	} \
 	catch(...) \
@@ -132,13 +127,10 @@ public:
 	static bool equals(pthread_t*, pthread_t*);
 	virtual void initialize(int argc, char** argv);
 	void stopProcess(void);
-	void cancel(void);
+	void waitStop(void);
 private:
-	pthread_t _threadID;
-	Semaphore* _stopProcessEvent;
-
 	static void* _run(void*);
-
+	pthread_t _threadID;
 };
 
 }

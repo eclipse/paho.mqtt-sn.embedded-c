@@ -59,6 +59,12 @@ void ClientRecvTask::run()
 		MQTTSNPacket* packet = new MQTTSNPacket();
 		int packetLen = packet->recv(_sensorNetwork);
 
+		if (CHK_SIGINT)
+		{
+			delete packet;
+			return;
+		}
+
 		if (packetLen < 2 )
 		{
 			delete packet;
@@ -77,10 +83,7 @@ void ClientRecvTask::run()
 			log(0, packet);
 			ev = new Event();
 			ev->setBrodcastEvent(packet);
-			if ( _gateway->getPacketEventQue()->post(ev) == 0 )
-			{
-				delete ev;
-			}
+			_gateway->getPacketEventQue()->post(ev);
 			continue;
 		}
 
@@ -93,10 +96,7 @@ void ClientRecvTask::run()
 			log(client, packet);
 			ev = new Event();
 			ev->setClientRecvEvent(client,packet);
-			if ( _gateway->getPacketEventQue()->post(ev) == 0 )
-			{
-				delete ev;
-			}
+			_gateway->getPacketEventQue()->post(ev);
 		}
 		else
 		{
@@ -112,7 +112,7 @@ void ClientRecvTask::run()
 
 				if (!client)
 				{
-					WRITELOG("%s Can't create a Client. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, ERRMSG_FOOTER);
+					WRITELOG("%s Client was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
@@ -123,15 +123,20 @@ void ClientRecvTask::run()
 				client->setClientAddress(_sensorNetwork->getSenderAddress());
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
-				if ( _gateway->getPacketEventQue()->post(ev) == 0 )
-				{
-					delete ev;
-				}
+				_gateway->getPacketEventQue()->post(ev);
 			}
 			else
 			{
 				log(client, packet);
 				delete packet;
+				/* Send DISCONNECT */
+				SensorNetAddress* addr = new SensorNetAddress();
+				addr = _sensorNetwork->getSenderAddress();
+				packet = new MQTTSNPacket();
+				packet->setDISCONNECT(0);
+				ev = new Event();
+				ev->setClientSendEvent(addr, packet);
+				_gateway->getClientSendQue()->post(ev);
 				continue;
 			}
 		}
@@ -142,7 +147,7 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
 {
 	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	char msgId[6];
-	const char* clientId = client ? (const char*)client->getClientId() :"Non Active Client !" ;
+	const char* clientId = client ? (const char*)client->getClientId() : NONACTCLT ;
 
 	switch (packet->getType())
 	{

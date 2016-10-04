@@ -95,4 +95,12 @@ void MQTTGWConnectionHandler::handlePingresp(Client* client, MQTTGWPacket* packe
 	_gateway->getClientSendQue()->post(ev1);
 }
 
-
+void MQTTGWConnectionHandler::handleDisconnect(Client* client, MQTTGWPacket* packet)
+{
+	MQTTSNPacket* snPacket = new MQTTSNPacket();
+	snPacket->setDISCONNECT(0);
+	client->disconnected();
+	client->getNetwork()->close();
+	Event* ev1 = new Event();
+	ev1->setClientSendEvent(client, snPacket);
+}

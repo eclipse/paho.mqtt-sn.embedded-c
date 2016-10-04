@@ -35,7 +35,6 @@ public:
 	void run();
 private:
 	void log(Client*, MQTTGWPacket*);
-	void disconnect(Client*);
 	Gateway* _gateway;
 	GatewayParams* _gwparams;
 	LightIndicator* _light;

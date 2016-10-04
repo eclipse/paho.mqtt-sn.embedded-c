@@ -59,6 +59,10 @@ void BrokerRecvTask::run(void)
 
 	while (true)
 	{
+		if (CHK_SIGINT)
+		{
+			return;
+		}
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 500000;    // 500 msec
 		FD_ZERO(&rset);
@@ -117,10 +121,7 @@ void BrokerRecvTask::run(void)
 								/* post a BrokerRecvEvent */
 								ev = new Event();
 								ev->setBrokerRecvEvent(client, packet);
-								if ( _gateway->getPacketEventQue()->post(ev) == 0 )
-								{
-									delete ev;
-								}
+								_gateway->getPacketEventQue()->post(ev);
 							}
 							else
 							{
@@ -143,11 +144,17 @@ void BrokerRecvTask::run(void)
 									WRITELOG("%s BrokerRecvTask can't create the packet %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 								}
 
-								/* disconnect the client */
-								client->disconnected();
-								client->getNetwork()->disconnect();
-								rc = 0;
 								delete packet;
+
+								/* disconnect the client */
+								if ( rc == -1 || rc == -2 )
+								{
+									packet = new MQTTGWPacket();
+									packet->setHeader(DISCONNECT);
+									ev = new Event();
+									ev->setBrokerRecvEvent(client, packet);
+									_gateway->getPacketEventQue()->post(ev);
+								}
 							}
 						}
 					}

@@ -39,7 +39,7 @@ namespace MQTTSNGW
  *    Macros
  ==================================*/
 #define WRITELOG theProcess->putLog
-
+#define CHK_SIGINT (theProcess->checkSignal() == SIGINT)
 /*=================================
  Class Process
  ==================================*/
@@ -79,17 +79,18 @@ class MultiTaskProcess: public Process
 public:
 	MultiTaskProcess(void);
 	~MultiTaskProcess();
-	virtual void initialize(int argc, char** argv);
-	virtual int getParam(const char* parameter, char* value);
+	void initialize(int argc, char** argv);
+	int getParam(const char* parameter, char* value);
 	void run(void);
+	void waitStop(void);
+	void threadStoped(void);
 	void attach(Thread* thread);
-	Semaphore* getStopProcessEvent(void);
 
 private:
 	Thread* _threadList[MQTTSNGW_MAX_TASK];
-	Semaphore _stopProcessEvent;
 	Mutex _mutex;
 	int _threadCount;
+	int _stopCount;
 };
 
 /*=====================================

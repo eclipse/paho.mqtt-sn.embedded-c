@@ -45,6 +45,11 @@ void ClientSendTask::run()
 	{
 		Event* ev = _gateway->getClientSendQue()->wait();
 
+		if (ev->getEventType() == EtStop)
+		{
+			delete ev;
+			break;
+		}
 		if (ev->getEventType() == EtClientSend)
 		{
 			client = ev->getClient();
@@ -56,6 +61,11 @@ void ClientSendTask::run()
 			packet = ev->getMQTTSNPacket();
 			packet->broadcast(_sensorNetwork);
 		}
+		else if (ev->getEventType() == EtSensornetSend)
+		{
+			packet = ev->getMQTTSNPacket();
+			packet->unicast(_sensorNetwork, ev->getSensorNetAddress());
+		}
 
 		log(client, packet);
 		delete ev;
@@ -66,6 +76,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 {
 	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	char msgId[6];
+	const char* clientId = client ? (const char*)client->getClientId() : NONACTCLT ;
 
 	switch (packet->getType())
 	{
@@ -78,15 +89,13 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	case MQTTSN_DISCONNECT:
 	case MQTTSN_WILLTOPICREQ:
 	case MQTTSN_WILLMSGREQ:
-		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
-		break;
 	case MQTTSN_WILLTOPICRESP:
 	case MQTTSN_WILLMSGRESP:
-		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, client->getClientId(), packet->print(pbuf));
+		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_REGISTER:
 	case MQTTSN_PUBLISH:
-		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, clientId,	packet->print(pbuf));
 		break;
 	case MQTTSN_REGACK:
 	case MQTTSN_PUBACK:
@@ -95,7 +104,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	case MQTTSN_PUBCOMP:
 	case MQTTSN_SUBACK:
 	case MQTTSN_UNSUBACK:
-		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, client->getClientId(),	packet->print(pbuf));
+		WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, clientId,	packet->print(pbuf));
 		break;
 	default:
 		break;

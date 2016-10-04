@@ -31,7 +31,7 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION " * Version: 0.8.0"
+#define GATEWAY_VERSION " * Version: 0.9.0"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
@@ -49,6 +49,7 @@ namespace MQTTSNGW
  ===========================================================*/
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
+#define NONACTCLT   "Non Active Client !"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 
@@ -87,20 +88,20 @@ namespace MQTTSNGW
   ====================================*/
 enum EventType{
 	Et_NA = 0,
+	EtStop,
 	EtTimeout,
 	EtBrokerRecv,
 	EtBrokerSend,
 	EtClientRecv,
 	EtClientSend,
 	EtBroadcast,
-	EtSocketAlive
+	EtSensornetSend
 };
 
 
 class Event{
 public:
 	Event();
-	Event(EventType);
 	~Event();
 	EventType getEventType(void);
 	void setClientRecvEvent(Client*, MQTTSNPacket*);
@@ -109,13 +110,17 @@ public:
 	void setBrokerSendEvent(Client*, MQTTGWPacket*);
 	void setBrodcastEvent(MQTTSNPacket*);  // ADVERTISE and GWINFO
 	void setTimeout(void);                 // Required by EventQue<Event>.timedwait()
+	void setStop(void);
+	void setClientSendEvent(SensorNetAddress*, MQTTSNPacket*);
 	Client* getClient(void);
+	SensorNetAddress* getSensorNetAddress(void);
 	MQTTSNPacket* getMQTTSNPacket(void);
 	MQTTGWPacket* getMQTTGWPacket(void);
 
 private:
 	EventType   _eventType;
 	Client*     _client;
+	SensorNetAddress* _sensorNetAddr;
 	MQTTSNPacket* _mqttSNPacket;
 	MQTTGWPacket* _mqttGWPacket;
 };
@@ -131,8 +136,8 @@ public:
 	Event* wait(void);
 	Event* timedwait(uint16_t millsec);
 	void setMaxSize(uint16_t maxSize);
-	int post(Event*);
-	int size();
+	void post(Event*);
+	int  size();
 
 private:
 	Que<Event> _que;

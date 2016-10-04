@@ -102,9 +102,7 @@ bool ClientList::authorize(const char* fileName)
 			}
 			pos = data.find_first_of(",");
 			string id = data.substr(0, pos);
-
 			clientId.cstring = strdup(id.c_str());
-
 			string addr = data.substr(pos + 1);
 
 			if (netAddr.setAddress(&addr) == 0)
@@ -117,6 +115,7 @@ bool ClientList::authorize(const char* fileName)
 			{
 				WRITELOG("Invalid address     %s\n", data.c_str());
 			}
+			free(clientId.cstring);
 		}
 		fclose(fp);
 		_authorize = true;

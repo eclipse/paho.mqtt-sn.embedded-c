@@ -30,6 +30,7 @@ public:
 	~MQTTGWConnectionHandler();
 	void handleConnack(Client* client, MQTTGWPacket* packet);
 	void handlePingresp(Client* client, MQTTGWPacket* packet);
+	void handleDisconnect(Client* client, MQTTGWPacket* packet);
 private:
 	Gateway* _gateway;
 };

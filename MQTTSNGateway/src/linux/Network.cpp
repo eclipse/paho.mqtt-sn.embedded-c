@@ -345,6 +345,11 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		return false;
 	}
 
+	if (_session)
+	{
+		rc = SSL_set_session(_ssl, _session);
+	}
+
 	if (!SSL_set_fd(_ssl, getSock()))
 	{
 		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
@@ -352,11 +357,9 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		SSL_free(_ssl);
 	}
 
-	//SSL_set_options(_ssl, SSL_OP_NO_TICKET);
-
 	if ( cert )
 	{
-		if ( SSL_use_certificate_file(_ssl, cert, SSL_FILETYPE_PEM) <= 0 )
+		if ( SSL_use_certificate_file(_ssl, cert, SSL_FILETYPE_PEM) != 1 )
 		{
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 			WRITELOG("SSL_use_certificate_file() %s %s\n", cert, errmsg);
@@ -367,7 +370,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 	}
 	if ( prvkey )
 	{
-		if ( SSL_use_PrivateKey_file(_ssl, prvkey, SSL_FILETYPE_PEM) <= 0 )
+		if ( SSL_use_PrivateKey_file(_ssl, prvkey, SSL_FILETYPE_PEM) != 1 )
 		{
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 			WRITELOG("SSL_use_PrivateKey_file() %s %s\n", prvkey, errmsg);
@@ -384,11 +387,6 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		SSL_free(_ssl);
 		_ssl = 0;
 		return false;
-	}
-
-	if (_session)
-	{
-		rc = SSL_set_session(_ssl, _session);
 	}
 
 	if (SSL_connect(_ssl) != 1)
@@ -426,7 +424,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 
 	if (_session == 0)
 	{
-		_session = SSL_get1_session(_ssl);
+		//_session = SSL_get1_session(_ssl);
 	}
 	_numOfInstance++;
 	_sslValid = true;

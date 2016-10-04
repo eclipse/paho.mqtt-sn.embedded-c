@@ -42,6 +42,8 @@ Gateway::Gateway()
 	_params.rootCApath = 0;
 	_params.rootCAfile = 0;
 	_params.certDirectory = 0;
+	_params.clientListName = 0;
+	_params.configName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
@@ -71,11 +73,18 @@ Gateway::~Gateway()
 	{
 		free(_params.portSecure);
 	}
+	if ( _params.certDirectory )
+	{
+		free(_params.certDirectory);
+	}
 	if ( _params.rootCApath )
 	{
 		free(_params.rootCApath);
 	}
-
+	if ( _params.rootCAfile )
+	{
+		free(_params.rootCAfile);
+	}
 	if ( _params.clientListName )
 	{
 		free(_params.clientListName);
@@ -92,7 +101,6 @@ void Gateway::initialize(int argc, char** argv)
 	string fileName;
 	MultiTaskProcess::initialize(argc, argv);
 	resetRingBuffer();
-
 
 	if (getParam("BrokerName", param) == 0)
 	{
@@ -215,8 +223,22 @@ void Gateway::run(void)
 	WRITELOG(" RootCAfile:  %s\n", _params.rootCAfile);
 	WRITELOG(" ClientCerts: %s\n", _params.certDirectory);
 
-	/* Execute threads and wait StopProcessEvent from MQTTSNGWPacketHandleTask */
 	MultiTaskProcess::run();
+
+	/* stop threads */
+	Event* ev = new Event();
+	ev->setStop();
+	_packetEventQue.post(ev);
+	ev = new Event();
+	ev->setStop();
+	_brokerSendQue.post(ev);
+	ev = new Event();
+	ev->setStop();
+	_clientSendQue.post(ev);
+
+	/* wait until all threads stop */
+	MultiTaskProcess::waitStop();
+
 	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
 	_lightIndicator.allLightOff();
 }
@@ -266,7 +288,13 @@ EventQue::EventQue()
 
 EventQue::~EventQue()
 {
-
+	_mutex.lock();
+	while (_que.size() > 0)
+	{
+		delete _que.front();
+		_que.pop();
+	}
+	_mutex.unlock();
 }
 
 void  EventQue::setMaxSize(uint16_t maxSize)
@@ -316,14 +344,18 @@ Event* EventQue::timedwait(uint16_t millsec)
 	return ev;
 }
 
-int EventQue::post(Event* ev)
+void EventQue::post(Event* ev)
 {
-	int rc = 0;
 	_mutex.lock();
-	rc = _que.post(ev);
-	_sem.post();
+	if ( _que.post(ev) )
+	{
+		_sem.post();
+	}
+	else
+	{
+		delete ev;
+	}
 	_mutex.unlock();
-	return rc;
 }
 
 int EventQue::size()
@@ -342,20 +374,18 @@ Event::Event()
 {
 	_eventType = Et_NA;
 	_client = 0;
-	_mqttSNPacket = 0;
-	_mqttGWPacket = 0;
-}
-
-Event::Event(EventType type)
-{
-	_eventType = type;
-	_client = 0;
+	_sensorNetAddr = 0;
 	_mqttSNPacket = 0;
 	_mqttGWPacket = 0;
 }
 
 Event::~Event()
 {
+	if (_sensorNetAddr)
+	{
+		delete _sensorNetAddr;
+	}
+
 	if (_mqttSNPacket)
 	{
 		delete _mqttSNPacket;
@@ -405,15 +435,32 @@ void Event::setTimeout(void)
 	_eventType = EtTimeout;
 }
 
+void Event::setStop(void)
+{
+	_eventType = EtStop;
+}
+
 void Event::setBrodcastEvent(MQTTSNPacket* msg)
 {
 	_mqttSNPacket = msg;
 	_eventType = EtBroadcast;
 }
 
+void Event::setClientSendEvent(SensorNetAddress* addr, MQTTSNPacket* msg)
+{
+	_eventType = EtSensornetSend;
+	_sensorNetAddr = addr;
+	_mqttSNPacket = msg;
+}
+
 Client* Event::getClient(void)
 {
 	return _client;
+}
+
+SensorNetAddress* Event::getSensorNetAddress(void)
+{
+	return _sensorNetAddr;
 }
 
 MQTTSNPacket* Event::getMQTTSNPacket()
