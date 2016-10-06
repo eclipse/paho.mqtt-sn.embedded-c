@@ -108,7 +108,7 @@ void ClientRecvTask::run()
 				packet->getCONNECT(&data);
 
 				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false); //_gateway->getGWParams()->secureConnection);
+				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
 
 				if (!client)
 				{
@@ -131,7 +131,7 @@ void ClientRecvTask::run()
 				delete packet;
 				/* Send DISCONNECT */
 				SensorNetAddress* addr = new SensorNetAddress();
-				addr->setAddress(_sensorNetwork->getSenderAddress()->getIpAddress(), _sensorNetwork->getSenderAddress()->getPortNo());
+				*addr = (*_sensorNetwork->getSenderAddress());
 				packet = new MQTTSNPacket();
 				packet->setDISCONNECT(0);
 				ev = new Event();
