@@ -131,7 +131,7 @@ void ClientRecvTask::run()
 				delete packet;
 				/* Send DISCONNECT */
 				SensorNetAddress* addr = new SensorNetAddress();
-				addr = _sensorNetwork->getSenderAddress();
+				addr->setAddress(_sensorNetwork->getSenderAddress()->getIpAddress(), _sensorNetwork->getSenderAddress()->getPortNo());
 				packet = new MQTTSNPacket();
 				packet->setDISCONNECT(0);
 				ev = new Event();
