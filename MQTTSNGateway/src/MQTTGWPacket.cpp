@@ -184,9 +184,10 @@ int MQTTGWPacket::recv(Network* network)
 	unsigned char c;
 
 	/* read First Byte of Packet */
-	if (network->recv((unsigned char*)&_header.byte, 1) == -1)
+	int rc = network->recv((unsigned char*)&_header.byte, 1);
+	if ( rc <= 0)
 	{
-		return -1;
+		return rc;
 	}
 	/* read RemainingLength */
 	do

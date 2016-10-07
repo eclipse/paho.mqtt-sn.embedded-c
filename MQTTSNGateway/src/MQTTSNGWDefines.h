@@ -26,6 +26,12 @@ namespace MQTTSNGW
 #define CONFIG_FILE      "gateway.conf"
 #define CLIENT_LIST      "clients.conf"
 
+/*==========================================================
+ *    Gateway default parameters
+ ===========================================================*/
+#define DEFAULT_KEEP_ALIVE_TIME     (900)  // 900 secs = 15 mins
+#define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
+
 /*=================================
  *    MQTT-SN Parametrs
  ==================================*/

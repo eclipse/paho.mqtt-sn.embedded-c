@@ -22,16 +22,10 @@
 
 namespace MQTTSNGW
 {
-/*==========================================================
- *           Gateway default parameters
- ===========================================================*/
-#define DEFAULT_KEEP_ALIVE_TIME     (900)  // 900 secs = 15 mins
-#define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
-
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION " * Version: 0.9.0"
+#define GATEWAY_VERSION " * Version: 0.9.1"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
@@ -49,7 +43,7 @@ namespace MQTTSNGW
  ===========================================================*/
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
-#define NONACTCLT   "Non Active Client !"
+#define UNKNOWNCL   "Unknown Client !"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 
@@ -164,7 +158,8 @@ typedef struct
 	char* portSecure;
 	char* rootCApath;
 	char* rootCAfile;
-	char* certDirectory;
+	char* certKey;
+	char* privateKey;
 }GatewayParams;
 
 /*=====================================

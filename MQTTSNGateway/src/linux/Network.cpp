@@ -158,7 +158,7 @@ bool TCPStack::connect(const char* host, const char* service)
 {
 	if (isValid())
 	{
-		return false;
+		return true;
 	}
 	addrinfo hints;
 	memset(&hints, 0, sizeof(addrinfo));
@@ -192,7 +192,7 @@ bool TCPStack::connect(const char* host, const char* service)
 
 	if (::connect(sockfd, _addrinfo->ai_addr, _addrinfo->ai_addrlen) < 0)
 	{
-		//perror("TCPStack connect");
+		DEBUGLOG("Can not connect the socket. Check the PortNo! \n");
 		::close(sockfd);
 		return false;
 	}
@@ -233,6 +233,7 @@ int TCPStack::getSock()
  =======================================*/
 int Network::_numOfInstance = 0;
 SSL_CTX* Network::_ctx = 0;
+SSL_SESSION* Network::_session = 0;
 
 Network::Network(bool secure) :
 		TCPStack()
@@ -240,195 +241,168 @@ Network::Network(bool secure) :
 	_ssl = 0;
 	_secureFlg = secure;
 	_busy = false;
-	_session = 0;
 	_sslValid = false;
 }
 
 Network::~Network()
 {
-	if (_ssl)
-	{
-		SSL_shutdown(_ssl);
-		SSL_free(_ssl);
-		_numOfInstance--;
-	}
-	if (_session )
-	{
-		SSL_SESSION_free(_session);
-	}
-	if (_ctx && _numOfInstance == 0)
-	{
-		SSL_CTX_free(_ctx);
-		_ctx = 0;
-		ERR_free_strings();
-	}
+	close();
 }
 
 bool Network::connect(const char* host, const char* port)
 {
+	bool rc = false;
+	_mutex.lock();
 	if (_secureFlg)
 	{
-		return false;
+		goto exit;
 	}
 
 	if (getSock() == 0)
 	{
 		if (!TCPStack::connect(host, port))
 		{
-			return false;
+			goto exit;
 		}
 	}
-	return true;
+	rc = true;
+exit:
+	_mutex.unlock();
+	return rc;
 }
 
-bool Network::connect(const char* host, const char* port, const char* caPath, const char* caFile, const char* cert, const char* prvkey)
+bool Network::connect(const char* host, const char* port, const char* caPath, const char* caFile, const char* certkey, const char* prvkey)
 {
 	char errmsg[256];
 	char peer_CN[256];
-	int rc = 0;
+	bool rc;
 
-	if (!_secureFlg)
+	_mutex.lock();
+	try
 	{
-		WRITELOG("TLS is not required.\n");
-		return false;
-	}
+		if (!_secureFlg)
+		{
+			WRITELOG("TLS is not required.\n");
+			throw;
+		}
 
-	if (_ctx == 0)
-	{
-		SSL_load_error_strings();
-		SSL_library_init();
-		_ctx = SSL_CTX_new(TLS_client_method());
 		if (_ctx == 0)
 		{
-			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-			WRITELOG("SSL_CTX_new() %s\n", errmsg);
-			return false;
-		}
-
-		if (!SSL_CTX_load_verify_locations(_ctx, caFile, caPath))
-		{
-			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-			WRITELOG("SSL_CTX_load_verify_locations() %s\n", errmsg);
-			return false;
-		}
-	}
-
-	if (!_sslValid)
-	{
-		if ( !TCPStack::connect(host, port) )
-		{
-			return false;
-		}
-		/*
-		if ( _ssl )
-		{
-			if (!SSL_set_fd(_ssl, getSock()))
+			SSL_load_error_strings();
+			SSL_library_init();
+			_ctx = SSL_CTX_new(TLS_client_method());
+			if (_ctx == 0)
 			{
 				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-				WRITELOG("SSL_set_fd()  %s\n", errmsg);
-				SSL_free(_ssl);
+				WRITELOG("SSL_CTX_new() %s\n", errmsg);
+				throw;
 			}
-			else
+
+			if (!SSL_CTX_load_verify_locations(_ctx, caFile, caPath))
 			{
-				_sslValid = true;
-				return true;
+				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+				WRITELOG("SSL_CTX_load_verify_locations() %s\n", errmsg);
+				throw;
+			}
+
+			if ( certkey )
+			{
+				if ( SSL_CTX_use_certificate_file(_ctx, certkey, SSL_FILETYPE_PEM) != 1 )
+				{
+					ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+					WRITELOG("SSL_CTX_use_certificate_file() %s %s\n", certkey, errmsg);
+					throw;
+				}
+			}
+			if ( prvkey )
+			{
+				if ( SSL_CTX_use_PrivateKey_file(_ctx, prvkey, SSL_FILETYPE_PEM) != 1 )
+				{
+					ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+					WRITELOG("SSL_use_PrivateKey_file() %s %s\n", prvkey, errmsg);
+					throw;
+				}
 			}
 		}
-		*/
-	}
 
-	_ssl = SSL_new(_ctx);
-	if (_ssl == 0)
-	{
-		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-		WRITELOG("SSL_new()  %s\n", errmsg);
-		return false;
-	}
+		if (! TCPStack::isValid())
+		{
+			if ( !TCPStack::connect(host, port) )
+			{
+				throw;
+			}
+		}
 
-	if (_session)
-	{
-		rc = SSL_set_session(_ssl, _session);
-	}
-
-	if (!SSL_set_fd(_ssl, getSock()))
-	{
-		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-		WRITELOG("SSL_set_fd()  %s\n", errmsg);
-		SSL_free(_ssl);
-	}
-
-	if ( cert )
-	{
-		if ( SSL_use_certificate_file(_ssl, cert, SSL_FILETYPE_PEM) != 1 )
+		_ssl = SSL_new(_ctx);
+		if (_ssl == 0)
 		{
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-			WRITELOG("SSL_use_certificate_file() %s %s\n", cert, errmsg);
-			SSL_free(_ssl);
-			_ssl = 0;
-			return false;
+			WRITELOG("SSL_new()  %s\n", errmsg);
+			throw;
 		}
-	}
-	if ( prvkey )
-	{
-		if ( SSL_use_PrivateKey_file(_ssl, prvkey, SSL_FILETYPE_PEM) != 1 )
+
+		if (!SSL_set_fd(_ssl, TCPStack::getSock()))
 		{
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-			WRITELOG("SSL_use_PrivateKey_file() %s %s\n", prvkey, errmsg);
+			WRITELOG("SSL_set_fd()  %s\n", errmsg);
 			SSL_free(_ssl);
 			_ssl = 0;
-			return false;
+			throw;
 		}
-	}
 
-	if (!SSL_set_fd(_ssl, TCPStack::getSock()))
-	{
-		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-		WRITELOG("SSL_set_fd()  %s\n", errmsg);
-		SSL_free(_ssl);
-		_ssl = 0;
-		return false;
-	}
+		if (_session)
+		{
+			SSL_set_session(_ssl, _session);
+		}
 
-	if (SSL_connect(_ssl) != 1)
-	{
-		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-		WRITELOG("SSL_connect() %s\n", errmsg);
-		SSL_free(_ssl);
-		_ssl = 0;
-		return false;
-	}
+		if (SSL_connect(_ssl) != 1)
+		{
+			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+			WRITELOG("SSL_connect() %s\n", errmsg);
+			SSL_free(_ssl);
+			_ssl = 0;
+			throw;
+		}
 
-	if ( (rc = SSL_get_verify_result(_ssl)) != X509_V_OK)
-	{
-		WRITELOG("SSL_get_verify_result() error: %s.\n", X509_verify_cert_error_string(rc));
-		SSL_free(_ssl);
-		_ssl = 0;
-		return false;
-	}
+		int result;
+		if ( (result = SSL_get_verify_result(_ssl)) != X509_V_OK)
+		{
+			WRITELOG("SSL_get_verify_result() error: %s.\n", X509_verify_cert_error_string(result));
+			SSL_free(_ssl);
+			_ssl = 0;
+			throw;
+		}
 
-	X509* peer = SSL_get_peer_certificate(_ssl);
-	X509_NAME_get_text_by_NID(X509_get_subject_name(peer), NID_commonName, peer_CN, 256);
-	char* pos = peer_CN;
-	if ( *pos == '*')
-	{
-		while (*host++ != '.');
-		pos += 2;
-	}
-	if ( strcmp(host, pos))
-	{
-		WRITELOG("SSL_get_peer_certificate() error: Broker %s dosen't match the host name %s\n", peer_CN, host);
-		SSL_free(_ssl);
-		_ssl = 0;
-		return false;
-	}
+		X509* peer = SSL_get_peer_certificate(_ssl);
+		X509_NAME_get_text_by_NID(X509_get_subject_name(peer), NID_commonName, peer_CN, 256);
+		char* pos = peer_CN;
+		if ( *pos == '*')
+		{
+			while (*host++ != '.');
+			pos += 2;
+		}
+		if ( strcmp(host, pos))
+		{
+			WRITELOG("SSL_get_peer_certificate() error: Broker %s dosen't match the host name %s\n", peer_CN, host);
+			SSL_free(_ssl);
+			_ssl = 0;
+			throw;
+		}
 
-	if (_session == 0)
-	{
-		//_session = SSL_get1_session(_ssl);
+		if (_session == 0)
+		{
+			_session = SSL_get1_session(_ssl);
+		}
+		_numOfInstance++;
+		_sslValid = true;
+		rc = true;
 	}
-	_numOfInstance++;
-	_sslValid = true;
-	return true;
+	catch (...)
+	{
+		rc = false;
+	}
+	_mutex.unlock();
+	return rc;
 }
 
 int Network::send(const uint8_t* buf, uint16_t length)
@@ -446,6 +420,12 @@ int Network::send(const uint8_t* buf, uint16_t length)
 	else
 	{
 		_mutex.lock();
+
+		if ( !_ssl )
+		{
+			_mutex.unlock();
+			return -1;
+		}
 		_busy = true;
 
 		while (true)
@@ -515,8 +495,14 @@ int Network::recv(uint8_t* buf, uint16_t len)
 		return 0;
 	}
 	_mutex.lock();
-	_busy = true;
 
+	if ( !_ssl )
+	{
+		_mutex.unlock();
+		return 0;
+	}
+
+	_busy = true;
 	loop: do
 	{
 		readBlockedOnWrite = false;
@@ -535,7 +521,7 @@ int Network::recv(uint8_t* buf, uint16_t len)
 			SSL_shutdown(_ssl);
 			_ssl = 0;
 			_numOfInstance--;
-			TCPStack::close();
+			//TCPStack::close();
 			_busy = false;
 			_mutex.unlock();
 			return -1;
@@ -585,42 +571,51 @@ int Network::recv(uint8_t* buf, uint16_t len)
 
 void Network::close(void)
 {
+	_mutex.lock();
 	if (_secureFlg)
 	{
-		_sslValid = false;
-		SSL_free(_ssl);
-		_ssl = 0;
+		if (_ssl)
+		{
+			SSL_shutdown(_ssl);
+			SSL_free(_ssl);
+			_numOfInstance--;
+			_ssl = 0;
+			_sslValid = false;
+			_busy = false;
+		}
+		if (_session && _numOfInstance == 0)
+		{
+			SSL_SESSION_free(_session);
+			_session = 0;
+		}
+		if (_ctx && _numOfInstance == 0)
+		{
+			SSL_CTX_free(_ctx);
+			_ctx = 0;
+			ERR_free_strings();
+		}
 	}
 	TCPStack::close();
+	_mutex.unlock();
 }
 
 bool Network::isValid()
 {
-	if (_secureFlg)
+	if ( TCPStack::isValid() )
 	{
-		if (_sslValid && !_busy)
+		if (_secureFlg)
+		{
+			if (_sslValid && !_busy)
+			{
+				return true;
+			}
+		}
+		else
 		{
 			return true;
 		}
 	}
-	else
-	{
-		return TCPStack::isValid();
-	}
 	return false;
-}
-
-void Network::disconnect()
-{
-	if (_ssl)
-	{
-		SSL_shutdown(_ssl);
-		_ssl = 0;
-	}
-	_sslValid = false;
-	_busy = false;
-	TCPStack::close();
-
 }
 
 int Network::getSock()

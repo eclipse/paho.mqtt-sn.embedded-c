@@ -68,6 +68,7 @@ void BrokerSendTask::run()
 
 		if ( ev->getEventType() == EtStop )
 		{
+			WRITELOG("%s BrokerSendTask   stopped.\n", currentDateTime());
 			delete ev;
 			return;
 		}
@@ -77,34 +78,23 @@ void BrokerSendTask::run()
 			client = ev->getClient();
 			packet = ev->getMQTTGWPacket();
 
+			if ( packet->getType() == CONNECT && client->getNetwork()->isValid() )
+			{
+				client->getNetwork()->close();
+			}
+
 			if ( !client->getNetwork()->isValid() )
 			{
 				/* connect to the broker and send a packet */
-				char* portNo = _gwparams->port;
-				const char* cert = 0;
-				const char* keyFile = 0;
-				string certFile;
-				string privateKeyFile;
 
 				if (client->isSecureNetwork())
 				{
-					portNo = _gwparams->portSecure;
-					if ( _gwparams->certDirectory )
-					{
-						certFile = _gwparams->certDirectory;
-						certFile += client->getClientId();
-						certFile += ".crt";
-						cert = certFile.c_str();
-						privateKeyFile = _gwparams->certDirectory;
-						privateKeyFile += client->getClientId();
-						privateKeyFile += ".key";
-						keyFile = privateKeyFile.c_str();
-					}
-					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->portSecure, _gwparams->rootCApath, _gwparams->rootCAfile, cert, keyFile);
+					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->portSecure, _gwparams->rootCApath,
+							  _gwparams->rootCAfile, _gwparams->certKey, _gwparams->privateKey);
 				}
 				else
 				{
-					rc = client->getNetwork()->connect(_gwparams->brokerName, portNo);
+					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->port);
 				}
 
 				if ( !rc )
@@ -133,13 +123,14 @@ void BrokerSendTask::run()
 			{
 				WRITELOG("%s BrokerSendTask can't send a packet to the broker errno=%d %s%s\n",
 						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
+				client->getNetwork()->close();
 
 				/* Disconnect the client */
 				packet = new MQTTGWPacket();
 				packet->setHeader(DISCONNECT);
-				ev = new Event();
-				ev->setBrokerRecvEvent(client, packet);
-				_gateway->getPacketEventQue()->post(ev);
+				Event* ev1 = new Event();
+				ev1->setBrokerRecvEvent(client, packet);
+				_gateway->getPacketEventQue()->post(ev1);
 			}
 
 			_light->blueLight(false);

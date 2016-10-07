@@ -47,6 +47,7 @@ void ClientSendTask::run()
 
 		if (ev->getEventType() == EtStop)
 		{
+			WRITELOG("%s ClientSendTask   stopped.\n", currentDateTime());
 			delete ev;
 			break;
 		}
@@ -76,7 +77,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 {
 	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	char msgId[6];
-	const char* clientId = client ? (const char*)client->getClientId() : NONACTCLT ;
+	const char* clientId = client ? (const char*)client->getClientId() : UNKNOWNCL ;
 
 	switch (packet->getType())
 	{

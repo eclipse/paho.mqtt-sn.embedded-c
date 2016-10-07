@@ -32,7 +32,7 @@ using namespace std;
 using namespace MQTTSNGW;
 
 #define EVENT_QUE_TIME_OUT  2000      // 2000 msecs
-
+char* currentDateTime(void);
 /*=====================================
  Class PacketHandleTask
  =====================================*/
@@ -99,24 +99,13 @@ void PacketHandleTask::run()
 
 		if (ev->getEventType() == EtStop)
 		{
+			WRITELOG("%s PacketHandleTask stopped.\n", currentDateTime());
 			delete ev;
 			return;
 		}
 
 		if (ev->getEventType() == EtTimeout)
 		{
-			/*------     Is Client Lost ?    ---------*/
-			/*
-			client = _gateway->getClientList()->getClient();
-			while (client > 0)
-			{
-				if ( client->checkTimeover() )
-				{
-					client->disconnected();
-				}
-				client = client->getNextClient();
-			}
-			*/
 			/*------ Check Keep Alive Timer & send Advertise ------*/
 			if (_advertiseTimer.isTimeup())
 			{

@@ -61,6 +61,7 @@ void ClientRecvTask::run()
 
 		if (CHK_SIGINT)
 		{
+			WRITELOG("%s ClientRecvTask   stopped.\n", currentDateTime());
 			delete packet;
 			return;
 		}
@@ -109,15 +110,13 @@ void ClientRecvTask::run()
 
 				/* create a client */
 				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
-
+				log(client, packet, &data.clientID);
 				if (!client)
 				{
 					WRITELOG("%s Client was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
-
-				log(client, packet);
 
 				/* set sensorNetAddress & post Event */
 				client->setClientAddress(_sensorNetwork->getSenderAddress());
@@ -143,11 +142,27 @@ void ClientRecvTask::run()
 	}
 }
 
-void ClientRecvTask::log(Client* client, MQTTSNPacket* packet)
+void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 {
 	char pbuf[SIZE_OF_LOG_PACKET * 3];
+	const char* clientId;
+	char cstr[MAX_CLIENTID_LENGTH + 1];
 	char msgId[6];
-	const char* clientId = client ? (const char*)client->getClientId() : NONACTCLT ;
+
+	if ( id )
+	{
+		memset((void*)cstr, 0, id->lenstring.len);
+		strncpy(cstr, id->lenstring.data, id->lenstring.len) ;
+		clientId = cstr;
+	}
+	else if ( client )
+	{
+		clientId = client->getClientId();
+	}
+	else
+	{
+		clientId = UNKNOWNCL;
+	}
 
 	switch (packet->getType())
 	{

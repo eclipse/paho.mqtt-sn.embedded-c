@@ -41,7 +41,8 @@ Gateway::Gateway()
 	_params.portSecure = 0;
 	_params.rootCApath = 0;
 	_params.rootCAfile = 0;
-	_params.certDirectory = 0;
+	_params.certKey = 0;
+	_params.privateKey = 0;
 	_params.clientListName = 0;
 	_params.configName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
@@ -73,9 +74,13 @@ Gateway::~Gateway()
 	{
 		free(_params.portSecure);
 	}
-	if ( _params.certDirectory )
+	if ( _params.certKey )
 	{
-		free(_params.certDirectory);
+		free(_params.certKey);
+	}
+	if ( _params.privateKey )
+	{
+		free(_params.privateKey);
 	}
 	if ( _params.rootCApath )
 	{
@@ -115,10 +120,14 @@ void Gateway::initialize(int argc, char** argv)
 		_params.portSecure = strdup(param);
 	}
 
-	if (getParam("CertsDirectory", param) == 0)
+	if (getParam("CertKey", param) == 0)
 	{
-		_params.certDirectory = strdup(param);
+		_params.certKey = strdup(param);
 	}
+	if (getParam("PrivateKey", param) == 0)
+		{
+			_params.privateKey = strdup(param);
+		}
 	if (getParam("RootCApath", param) == 0)
 	{
 		_params.rootCApath = strdup(param);
@@ -212,16 +221,17 @@ void Gateway::run(void)
 	WRITELOG("%s\n", GATEWAY_VERSION);
 	WRITELOG("%s\n", PAHO_COPYRIGHT4);
 	WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
-	WRITELOG(" ConfigFile:  %s\n", _params.configName);
+	WRITELOG(" ConfigFile: %s\n", _params.configName);
 	if ( getClientList()->isAuthorized() )
 	{
 		WRITELOG(" ClientList:  %s\n", _params.clientListName);
 	}
-	WRITELOG(" SensorN/W:   %s\n", _sensorNetwork.getDescription());
-	WRITELOG(" Broker:      %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
-	WRITELOG(" RootCApath:  %s\n", _params.rootCApath);
-	WRITELOG(" RootCAfile:  %s\n", _params.rootCAfile);
-	WRITELOG(" ClientCerts: %s\n", _params.certDirectory);
+	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
+	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
+	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
+	WRITELOG(" CertKey:    %s\n", _params.certKey);
+	WRITELOG(" PrivateKey: %s\n", _params.privateKey);
 
 	MultiTaskProcess::run();
 
@@ -239,7 +249,7 @@ void Gateway::run(void)
 	/* wait until all threads stop */
 	MultiTaskProcess::waitStop();
 
-	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
+	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
 	_lightIndicator.allLightOff();
 }
 
