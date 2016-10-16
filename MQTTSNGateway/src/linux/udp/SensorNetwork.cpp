@@ -45,6 +45,16 @@ SensorNetAddress::~SensorNetAddress()
 
 }
 
+uint32_t SensorNetAddress::getIpAddress(void)
+{
+	return _IpAddr;
+}
+
+uint16_t SensorNetAddress::getPortNo(void)
+{
+	return _portNo;
+}
+
 void SensorNetAddress::setAddress(uint32_t IpAddr, uint16_t port)
 {
 	_IpAddr = IpAddr;
@@ -96,12 +106,10 @@ SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
  ============================================*/
 SensorNetwork::SensorNetwork()
 {
-
 }
 
 SensorNetwork::~SensorNetwork()
 {
-
 }
 
 int SensorNetwork::unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendToAddr)
@@ -141,7 +149,7 @@ int SensorNetwork::initialize(void)
 	if (theProcess->getParam("GatewayPortNo", param) == 0)
 	{
 		unicastPortNo = atoi(param);
-		_description += " and Gateway Port ";
+		_description += " Gateway Port ";
 		_description += param;
 	}
 
@@ -302,10 +310,12 @@ int UDPPort::broadcast(const uint8_t* buf, uint32_t length)
 
 int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
+	struct timeval timeout;
 	fd_set recvfds;
 	int maxSock = 0;
-	int rc = 0;
 
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 1000000;    // 1 sec
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
 	FD_SET(_sockfdMulticast, &recvfds);
@@ -319,15 +329,17 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 		maxSock = _sockfdUnicast;
 	}
 
-	select(maxSock + 1, &recvfds, 0, 0, 0);
-
-	if (FD_ISSET(_sockfdUnicast, &recvfds))
+	int rc = 0;
+	if ( select(maxSock + 1, &recvfds, 0, 0, &timeout) > 0 )
 	{
-		rc = recvfrom(_sockfdUnicast, buf, len, 0, addr);
-	}
-	else if (FD_ISSET(_sockfdMulticast, &recvfds))
-	{
-		rc = recvfrom(_sockfdMulticast, buf, len, 0, &_grpAddr);
+		if (FD_ISSET(_sockfdUnicast, &recvfds))
+		{
+			rc = recvfrom(_sockfdUnicast, buf, len, 0, addr);
+		}
+		else if (FD_ISSET(_sockfdMulticast, &recvfds))
+		{
+			rc = recvfrom(_sockfdMulticast, buf, len, 0, &_grpAddr);
+		}
 	}
 	return rc;
 }

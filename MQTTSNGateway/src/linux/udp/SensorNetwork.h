@@ -41,14 +41,8 @@ public:
 	~SensorNetAddress();
 	void setAddress(uint32_t IpAddr, uint16_t port);
 	int  setAddress(string* data);
-	uint32_t getIpAddress(void)
-	{
-		return _IpAddr;
-	}
-	uint16_t getPortNo(void)
-	{
-		return _portNo;
-	}
+	uint16_t getPortNo(void);
+	uint32_t getIpAddress(void);
 	bool isMatch(SensorNetAddress* addr);
 	SensorNetAddress& operator =(SensorNetAddress& addr);
 

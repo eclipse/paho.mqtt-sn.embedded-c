@@ -160,12 +160,11 @@ Semaphore::Semaphore(const char* name, unsigned int val)
 	{
 		throw Exception( -1, "Semaphore can't be created.");
 	}
-	_name = (char*) calloc(strlen(name + 1), 1);
+	_name = strdup(name);
 	if (_name == NULL)
 	{
 		throw Exception( -1, "Semaphore can't allocate memories.");
 	}
-	_name = strdup(name);
 }
 
 Semaphore::~Semaphore()
@@ -174,7 +173,7 @@ Semaphore::~Semaphore()
 	{
 		sem_close(_psem);
 		sem_unlink(_name);
-		free((void*) _name);
+		free(_name);
 	}
 	else
 	{
@@ -236,19 +235,25 @@ void Semaphore::timedwait(uint16_t millsec)
  =========================================*/
 RingBuffer::RingBuffer()
 {
-	RingBuffer(MQTTSNGW_CONFIG_DIRECTORY);
+	RingBuffer(MQTTSNGW_KEY_DIRECTORY);
 }
 
 RingBuffer::RingBuffer(const char* keyDirectory)
 {
 	int fp = 0;
 	string fileName = keyDirectory + string(MQTTSNGW_RINGBUFFER_KEY);
-	fp = open(fileName.c_str(), O_CREAT, 0);
-	close(fp);
+	fp = open(fileName.c_str(), O_CREAT, S_IRGRP);
+	if ( fp > 0 )
+	{
+		close(fp);
+	}
 
 	fileName = keyDirectory + string(MQTTSNGW_RB_MUTEX_KEY);
-	fp = open(fileName.c_str(), O_CREAT, 0);
-	close(fp);
+	fp = open(fileName.c_str(), O_CREAT, S_IRGRP);
+	if ( fp > 0 )
+	{
+		close(fp);
+	}
 
 	key_t key = ftok(MQTTSNGW_RINGBUFFER_KEY, 1);
 
@@ -302,10 +307,6 @@ RingBuffer::~RingBuffer()
 		{
 			shmctl(_shmid, IPC_RMID, NULL);
 		}
-		if (_pmx > 0)
-		{
-			delete _pmx;
-		}
 	}
 	else
 	{
@@ -313,6 +314,11 @@ RingBuffer::~RingBuffer()
 		{
 			shmdt(_shmaddr);
 		}
+	}
+
+	if (_pmx > 0)
+	{
+		delete _pmx;
 	}
 }
 
@@ -469,14 +475,11 @@ void RingBuffer::reset()
  =====================================*/
 Thread::Thread()
 {
-	_stopProcessEvent = theMultiTaskProcess->getStopProcessEvent();
 	_threadID = 0;
 }
 
 Thread::~Thread()
 {
-	pthread_cancel(_threadID);
-	pthread_join(_threadID, 0);
 }
 
 void* Thread::_run(void* runnable)
@@ -508,10 +511,6 @@ int Thread::start(void)
 
 void Thread::stopProcess(void)
 {
-	_stopProcessEvent->post();
+	theMultiTaskProcess->threadStoped();
 }
 
-void Thread::cancel(void)
-{
-	pthread_cancel(_threadID);
-}

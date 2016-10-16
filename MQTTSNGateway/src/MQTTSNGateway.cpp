@@ -31,6 +31,20 @@ Gateway::Gateway()
 	theProcess = this;
 	_params.loginId = 0;
 	_params.password = 0;
+	_params.keepAlive = 0;
+	_params.gatewayId = 0;
+	_params.mqttVersion = 0;
+	_params.maxInflightMsgs = 0;
+	_params.gatewayName = 0;
+	_params.brokerName = 0;
+	_params.port = 0;
+	_params.portSecure = 0;
+	_params.rootCApath = 0;
+	_params.rootCAfile = 0;
+	_params.certKey = 0;
+	_params.privateKey = 0;
+	_params.clientListName = 0;
+	_params.configName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
@@ -44,15 +58,85 @@ Gateway::~Gateway()
 	{
 		free(_params.password);
 	}
+	if ( _params.gatewayName )
+	{
+		free(_params.gatewayName);
+	}
+	if ( _params.brokerName )
+	{
+		free(_params.brokerName);
+	}
+	if ( _params.port )
+	{
+		free(_params.port);
+	}
+	if ( _params.portSecure )
+	{
+		free(_params.portSecure);
+	}
+	if ( _params.certKey )
+	{
+		free(_params.certKey);
+	}
+	if ( _params.privateKey )
+	{
+		free(_params.privateKey);
+	}
+	if ( _params.rootCApath )
+	{
+		free(_params.rootCApath);
+	}
+	if ( _params.rootCAfile )
+	{
+		free(_params.rootCAfile);
+	}
+	if ( _params.clientListName )
+	{
+		free(_params.clientListName);
+	}
+	if ( _params.configName )
+	{
+		free(_params.configName);
+	}
 }
 
 void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
+	string fileName;
 	MultiTaskProcess::initialize(argc, argv);
 	resetRingBuffer();
 
-	_params.gatewayId = 0;
+	if (getParam("BrokerName", param) == 0)
+	{
+		_params.brokerName = strdup(param);
+	}
+	if (getParam("BrokerPortNo", param) == 0)
+	{
+		_params.port = strdup(param);
+	}
+	if (getParam("BrokerSecurePortNo", param) == 0)
+	{
+		_params.portSecure = strdup(param);
+	}
+
+	if (getParam("CertKey", param) == 0)
+	{
+		_params.certKey = strdup(param);
+	}
+	if (getParam("PrivateKey", param) == 0)
+		{
+			_params.privateKey = strdup(param);
+		}
+	if (getParam("RootCApath", param) == 0)
+	{
+		_params.rootCApath = strdup(param);
+	}
+	if (getParam("RootCAfile", param) == 0)
+	{
+		_params.rootCAfile = strdup(param);
+	}
+
 	if (getParam("GatewayID", param) == 0)
 	{
 		_params.gatewayId = atoi(param);
@@ -65,7 +149,7 @@ void Gateway::initialize(int argc, char** argv)
 
 	if (getParam("GatewayName", param) == 0)
 	{
-		_params.gatewayName = (uint8_t*) strdup(param);
+		_params.gatewayName = strdup(param);
 	}
 
 	_params.mqttVersion = DEFAULT_MQTT_VERSION;
@@ -94,17 +178,16 @@ void Gateway::initialize(int argc, char** argv)
 
 	if (getParam("LoginID", param) == 0)
 	{
-		_params.loginId = (uint8_t*) strdup(param);
+		_params.loginId = strdup(param);
 	}
 
 	if (getParam("Password", param) == 0)
 	{
-		_params.password = (uint8_t*) strdup(param);
+		_params.password = strdup(param);
 	}
 
 	if (getParam("ClientAuthentication", param) == 0)
 	{
-		string fileName;
 		if (!strcasecmp(param, "YES"))
 		{
 			if (getParam("ClientsList", param) == 0)
@@ -113,15 +196,18 @@ void Gateway::initialize(int argc, char** argv)
 			}
 			else
 			{
-				fileName = *getConfigDirName() + string(MQTTSNGW_CLIENT_LIST);
+				fileName = *getConfigDirName() + string(CLIENT_LIST);
 			}
 
 			if (!_clientList.authorize(fileName.c_str()))
 			{
 				throw Exception("Gateway::initialize: No client list defined by configuration.");
 			}
+			_params.clientListName = strdup(fileName.c_str());
 		}
 	}
+	fileName = *getConfigDirName() + *getConfigFileName();
+	_params.configName = strdup(fileName.c_str());
 }
 
 void Gateway::run(void)
@@ -134,17 +220,36 @@ void Gateway::run(void)
 	WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
 	WRITELOG("%s\n", GATEWAY_VERSION);
 	WRITELOG("%s\n", PAHO_COPYRIGHT4);
-	WRITELOG("\n%s %s has been started.\n                    listening on, %s\n", currentDateTime(), _params.gatewayName, _sensorNetwork.getDescription());
-
+	WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
+	WRITELOG(" ConfigFile: %s\n", _params.configName);
 	if ( getClientList()->isAuthorized() )
 	{
-		WRITELOG("\nClient authentication is required by the configuration settings.\n\n");
+		WRITELOG(" ClientList:  %s\n", _params.clientListName);
 	}
-
-	/* execute threads & wait StopProcessEvent MQTTSNGWPacketHandleTask posts by CTL-C */
+	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
+	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
+	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
+	WRITELOG(" CertKey:    %s\n", _params.certKey);
+	WRITELOG(" PrivateKey: %s\n", _params.privateKey);
 
 	MultiTaskProcess::run();
-	WRITELOG("%s MQTT-SN Gateway stoped\n", currentDateTime());
+
+	/* stop threads */
+	Event* ev = new Event();
+	ev->setStop();
+	_packetEventQue.post(ev);
+	ev = new Event();
+	ev->setStop();
+	_brokerSendQue.post(ev);
+	ev = new Event();
+	ev->setStop();
+	_clientSendQue.post(ev);
+
+	/* wait until all threads stop */
+	MultiTaskProcess::waitStop();
+
+	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
 	_lightIndicator.allLightOff();
 }
 
@@ -193,7 +298,13 @@ EventQue::EventQue()
 
 EventQue::~EventQue()
 {
-
+	_mutex.lock();
+	while (_que.size() > 0)
+	{
+		delete _que.front();
+		_que.pop();
+	}
+	_mutex.unlock();
 }
 
 void  EventQue::setMaxSize(uint16_t maxSize)
@@ -243,14 +354,18 @@ Event* EventQue::timedwait(uint16_t millsec)
 	return ev;
 }
 
-int EventQue::post(Event* ev)
+void EventQue::post(Event* ev)
 {
-	int rc = 0;
 	_mutex.lock();
-	rc = _que.post(ev);
-	_sem.post();
+	if ( _que.post(ev) )
+	{
+		_sem.post();
+	}
+	else
+	{
+		delete ev;
+	}
 	_mutex.unlock();
-	return rc;
 }
 
 int EventQue::size()
@@ -269,20 +384,18 @@ Event::Event()
 {
 	_eventType = Et_NA;
 	_client = 0;
-	_mqttSNPacket = 0;
-	_mqttGWPacket = 0;
-}
-
-Event::Event(EventType type)
-{
-	_eventType = type;
-	_client = 0;
+	_sensorNetAddr = 0;
 	_mqttSNPacket = 0;
 	_mqttGWPacket = 0;
 }
 
 Event::~Event()
 {
+	if (_sensorNetAddr)
+	{
+		delete _sensorNetAddr;
+	}
+
 	if (_mqttSNPacket)
 	{
 		delete _mqttSNPacket;
@@ -332,15 +445,32 @@ void Event::setTimeout(void)
 	_eventType = EtTimeout;
 }
 
+void Event::setStop(void)
+{
+	_eventType = EtStop;
+}
+
 void Event::setBrodcastEvent(MQTTSNPacket* msg)
 {
 	_mqttSNPacket = msg;
 	_eventType = EtBroadcast;
 }
 
+void Event::setClientSendEvent(SensorNetAddress* addr, MQTTSNPacket* msg)
+{
+	_eventType = EtSensornetSend;
+	_sensorNetAddr = addr;
+	_mqttSNPacket = msg;
+}
+
 Client* Event::getClient(void)
 {
 	return _client;
+}
+
+SensorNetAddress* Event::getSensorNetAddress(void)
+{
+	return _sensorNetAddr;
 }
 
 MQTTSNPacket* Event::getMQTTSNPacket()

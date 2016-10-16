@@ -180,24 +180,30 @@ void LightIndicator::init()
 	pinMode(LIGHT_INDICATOR_BLUE);
 }
 
-void LightIndicator::lit(int gpioNo, const char* onoff)
+int LightIndicator::lit(int gpioNo, const char* onoff)
 {
+	int rc = 0;
 	if( _gpio[gpioNo] )
 	{
-		write(_gpio[gpioNo], onoff, 1);
+		rc = write(_gpio[gpioNo], onoff, 1);
 	}
+	return rc;
 }
 
 void LightIndicator::pinMode(int gpioNo)
 {
-	 int fd = open("/sys/class/gpio/export", O_WRONLY);
+	int rc = 0;
+	int fd = rc; // eliminate unused warnning of compiler
+
+	fd = open("/sys/class/gpio/export", O_WRONLY);
 	if ( fd < 0 )
 	{
 		return;
 	}
 	char no[4];
+
 	sprintf(no,"%d", gpioNo);
-	write(fd, no, strlen(no));
+	rc = write(fd, no, strlen(no));
 	close(fd);
 
 	char fileName[64];
@@ -208,9 +214,8 @@ void LightIndicator::pinMode(int gpioNo)
 	{
 		return;
 	}
-	write(fd,"out", 3);
+	rc = write(fd,"out", 3);
 	close(fd);
-
 	sprintf( fileName, "/sys/class/gpio/gpio%d/value", gpioNo);
 	fd = open(fileName, O_WRONLY);
 	if ( fd > 0 )

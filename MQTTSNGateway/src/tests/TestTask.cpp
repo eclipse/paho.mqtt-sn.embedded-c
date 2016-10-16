@@ -39,11 +39,12 @@ void TestTask::run(void)
 {
 	while(true)
 	{
-		printf("Task is running. Enter CTRL+C \n");
-		if (theProcess->checkSignal() == SIGINT)
+		if ( CHK_SIGINT)
 		{
-			throw Exception("Terminated by CTL-C");
+			printf("Task stopped.\n");
+			return;
 		}
+		printf("Task is running. Enter CTRL+C\n");
 		sleep(1);
 	}
 }

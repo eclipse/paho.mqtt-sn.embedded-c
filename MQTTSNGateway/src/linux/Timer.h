@@ -61,7 +61,7 @@ public:
 
 private:
 	void init();
-	void lit(int gpioNo, const char* onoff);
+	int  lit(int gpioNo, const char* onoff);
 	void pinMode(int gpioNo);
 	bool _greenStatus;
 	int _gpio[MAX_GPIO + 1];

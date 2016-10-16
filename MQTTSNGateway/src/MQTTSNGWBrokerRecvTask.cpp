@@ -59,6 +59,12 @@ void BrokerRecvTask::run(void)
 
 	while (true)
 	{
+		_light->blueLight(false);
+		if (CHK_SIGINT)
+		{
+			WRITELOG("%s BrokerRecvTask   stopped.\n", currentDateTime());
+			return;
+		}
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 500000;    // 500 msec
 		FD_ZERO(&rset);
@@ -68,7 +74,6 @@ void BrokerRecvTask::run(void)
 
 		/* Prepare sockets list to read */
 		Client* client = _gateway->getClientList()->getClient();
-		_light->blueLight(false);
 
 		while (client > 0)
 		{
@@ -111,26 +116,18 @@ void BrokerRecvTask::run(void)
 								if ( log(client, packet) == -1 )
 
 								{
-									continue;
+									delete packet;
+									goto nextClient;
 								}
 
 								/* post a BrokerRecvEvent */
 								ev = new Event();
 								ev->setBrokerRecvEvent(client, packet);
-								if ( _gateway->getPacketEventQue()->post(ev) == 0 )
-								{
-									delete ev;
-								}
+								_gateway->getPacketEventQue()->post(ev);
 							}
 							else
 							{
-								_light->blueLight(false);
-								if ( rc == 0 )
-								{
-									delete packet;
-									continue;
-								}
-								else if (rc == -1)
+								if (rc == -1)
 								{
 									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n", ERRMSG_HEADER, errno, client->getClientId(), ERRMSG_FOOTER);
 								}
@@ -140,27 +137,28 @@ void BrokerRecvTask::run(void)
 								}
 								else if ( rc == -3 )
 								{
-									WRITELOG("%s BrokerRecvTask can't create the packet %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+									WRITELOG("%s BrokerRecvTask can't get memories for the packet %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 								}
 
-								/* disconnect the client */
-								client->disconnected();
-								client->getNetwork()->disconnect();
-								rc = 0;
 								delete packet;
+
+								if ( (rc == -1 || rc == -2) && client->isActive() )
+								{
+									/* disconnect the client */
+									packet = new MQTTGWPacket();
+									packet->setHeader(DISCONNECT);
+									ev = new Event();
+									ev->setBrokerRecvEvent(client, packet);
+									_gateway->getPacketEventQue()->post(ev);
+								}
 							}
 						}
 					}
+					nextClient:
 					client = client->getNextClient();
 				}
-				_light->blueLight(false);
 			}
 		}
-		else
-		{
-			_light->greenLight(false);
-		}
-		maxSock = 0;
 	}
 }
 
@@ -176,7 +174,6 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 	switch (packet->getType())
 	{
 	case CONNACK:
-	case DISCONNECT:
 		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	case PUBLISH:
@@ -196,6 +193,7 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROW, client->getClientId(), packet->print(pbuf));
 		break;
 	default:
+		WRITELOG("Type=%x\n", packet->getType());
 		rc = -1;
 		break;
 	}

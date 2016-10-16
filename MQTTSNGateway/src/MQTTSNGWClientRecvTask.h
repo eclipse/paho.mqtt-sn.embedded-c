@@ -35,7 +35,7 @@ public:
 	void run();
 
 private:
-	void log(Client*, MQTTSNPacket*);
+	void log(Client*, MQTTSNPacket*, MQTTSNString* id = 0);
 
 	Gateway*       _gateway;
 	SensorNetwork* _sensorNetwork;

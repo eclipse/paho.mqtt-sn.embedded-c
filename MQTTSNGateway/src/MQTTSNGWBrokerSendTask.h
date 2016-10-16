@@ -35,14 +35,8 @@ public:
 	void run();
 private:
 	void log(Client*, MQTTGWPacket*);
-
 	Gateway* _gateway;
-	char* _host;
-	char* _port;
-	char* _portSecure;
-	char* _rootCApath;
-	char* _rootCAfile;
-	char* _certDirectory;
+	GatewayParams* _gwparams;
 	LightIndicator* _light;
 };
 

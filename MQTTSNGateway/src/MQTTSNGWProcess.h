@@ -31,11 +31,6 @@ namespace MQTTSNGW
 /*=================================
  *    Parameters
  ==================================*/
-#define MQTTSNGW_CONFIG_DIRECTORY "./"
-
-#define MQTTSNGW_CONFIG_FILE      "gateway.conf"
-#define MQTTSNGW_CLIENT_LIST      "clients.conf"
-
 #define MQTTSNGW_MAX_TASK           10  // number of Tasks
 #define PROCESS_LOG_BUFFER_SIZE  16384  // Ring buffer size for Logs
 #define MQTTSNGW_PARAM_MAX         128  // Max length of config records.
@@ -43,13 +38,8 @@ namespace MQTTSNGW
 /*=================================
  *    Macros
  ==================================*/
-#ifdef RINGBUFFER
 #define WRITELOG theProcess->putLog
-#else
-#define WRITELOG printf
-#endif
-
-
+#define CHK_SIGINT (theProcess->checkSignal() == SIGINT)
 /*=================================
  Class Process
  ==================================*/
@@ -77,6 +67,7 @@ private:
 	RingBuffer* _rb;
 	Semaphore*  _rbsem;
 	Mutex _mt;
+	int  _log;
 	char _rbdata[PROCESS_LOG_BUFFER_SIZE + 1];
 };
 
@@ -88,17 +79,18 @@ class MultiTaskProcess: public Process
 public:
 	MultiTaskProcess(void);
 	~MultiTaskProcess();
-	virtual void initialize(int argc, char** argv);
-	virtual int getParam(const char* parameter, char* value);
+	void initialize(int argc, char** argv);
+	int getParam(const char* parameter, char* value);
 	void run(void);
+	void waitStop(void);
+	void threadStoped(void);
 	void attach(Thread* thread);
-	Semaphore* getStopProcessEvent(void);
 
 private:
 	Thread* _threadList[MQTTSNGW_MAX_TASK];
-	Semaphore _stopProcessEvent;
 	Mutex _mutex;
 	int _threadCount;
+	int _stopCount;
 };
 
 /*=====================================

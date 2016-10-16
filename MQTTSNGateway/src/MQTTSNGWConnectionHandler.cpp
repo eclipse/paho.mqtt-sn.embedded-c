@@ -209,19 +209,22 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
  */
 void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* packet)
 {
-	MQTTGWPacket* mqMsg = new MQTTGWPacket();
+	Event* ev = new Event();
 	MQTTSNPacket* snMsg = new MQTTSNPacket();
-
-	mqMsg->setHeader(DISCONNECT);
 	snMsg->setDISCONNECT(0);
+	ev->setClientSendEvent(client, snMsg);
+	_gateway->getClientSendQue()->post(ev);
 
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(client, snMsg);
-	_gateway->getClientSendQue()->post(ev1);
-
-	ev1 = new Event();
-	ev1->setBrokerSendEvent(client, mqMsg);
-	_gateway->getBrokerSendQue()->post(ev1);
+	uint16_t duration = 0;
+	packet->getDISCONNECT(&duration);
+	if ( duration == 0 )
+	{
+		MQTTGWPacket* mqMsg = new MQTTGWPacket();
+		mqMsg->setHeader(DISCONNECT);
+		ev = new Event();
+		ev->setBrokerSendEvent(client, mqMsg);
+		_gateway->getBrokerSendQue()->post(ev);
+	}
 }
 
 /*

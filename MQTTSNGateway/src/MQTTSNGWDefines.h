@@ -20,11 +20,17 @@
 namespace MQTTSNGW
 {
 /*=================================
- *    Log controls
+ *    Config Parametrs
  ==================================*/
-//#define DEBUG          // print out log for debug
-//#define RINGBUFFER     // print out Packets log into shared memory
-//#define DEBUG_NWSTACK  // print out SensorNetwork log
+#define CONFIG_DIRECTORY "./"
+#define CONFIG_FILE      "gateway.conf"
+#define CLIENT_LIST      "clients.conf"
+
+/*==========================================================
+ *    Gateway default parameters
+ ===========================================================*/
+#define DEFAULT_KEEP_ALIVE_TIME     (900)  // 900 secs = 15 mins
+#define DEFAULT_MQTT_VERSION          (4)  // Defualt MQTT version
 
 /*=================================
  *    MQTT-SN Parametrs
@@ -43,11 +49,13 @@ typedef unsigned short uint16_t;
 typedef unsigned int   uint32_t;
 
 /*=================================
- *    Macros
+ *    Log controls
  ==================================*/
+//#define DEBUG          // print out log for debug
+//#define DEBUG_NWSTACK  // print out SensorNetwork log
+
 #ifdef  DEBUG
 #define DEBUGLOG(...) printf(__VA_ARGS__)
-#undef  RINGBUFFER
 #else
 #define DEBUGLOG(...)
 #endif

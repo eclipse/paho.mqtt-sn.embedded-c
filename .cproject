@@ -52,6 +52,9 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="ssl"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="crypto"/>
 								</option>
+								<option id="gnu.cpp.link.option.paths.170974409" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/local/lib"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.98211496" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -63,7 +66,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -130,7 +133,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNPacket/src|MQTTSNGateway/src|MQTTSNGateway/src/linux|MQTTSNGateway/src/linux/udp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="mainLogmonitor.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
+						<entry excluding="tests/mainTestProcessFramework.cpp|mainLogmonitor.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
 						<entry excluding="xbee" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNPacket/src"/>
 					</sourceEntries>

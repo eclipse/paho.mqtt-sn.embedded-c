@@ -22,6 +22,7 @@
 #include <Timer.h>
 #include <exception>
 #include <getopt.h>
+#include <unistd.h>
 #include "MQTTSNGWProcess.h"
 #include "Threading.h"
 
@@ -53,8 +54,9 @@ Process::Process()
 {
 	_argc = 0;
 	_argv = 0;
-	_configDir = MQTTSNGW_CONFIG_DIRECTORY;
-	_configFile = MQTTSNGW_CONFIG_FILE;
+	_configDir = CONFIG_DIRECTORY;
+	_configFile = CONFIG_FILE;
+	_log = 0;
 }
 
 Process::~Process()
@@ -76,6 +78,7 @@ void Process::run()
 
 void Process::initialize(int argc, char** argv)
 {
+	char param[MQTTSNGW_PARAM_MAX];
 	_argc = argc;
 	_argv = argv;
 	signal(SIGINT, signalHandler);
@@ -102,6 +105,40 @@ void Process::initialize(int argc, char** argv)
 	}
 	_rbsem = new Semaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
 	_rb = new RingBuffer(_configDir.c_str());
+
+	if (getParam("ShearedMemory", param) == 0)
+	{
+		if (!strcasecmp(param, "YES"))
+		{
+			_log = 1;
+		}
+		else
+		{
+			_log = 0;
+		}
+	}
+}
+
+void Process::putLog(const char* format, ...)
+{
+	_mt.lock();
+	va_list arg;
+	va_start(arg, format);
+	vsprintf(_rbdata, format, arg);
+	va_end(arg);
+	if (strlen(_rbdata))
+	{
+		if ( _log > 0 )
+		{
+			_rb->put(_rbdata);
+			_rbsem->post();
+		}
+		else
+		{
+			printf("%s", _rbdata);
+		}
+	}
+	_mt.unlock();
 }
 
 int Process::getArgc()
@@ -169,21 +206,6 @@ int Process::getParam(const char* parameter, char* value)
 	return -2;
 }
 
-void Process::putLog(const char* format, ...)
-{
-	_mt.lock();
-	va_list arg;
-	va_start(arg, format);
-	vsprintf(_rbdata, format, arg);
-	va_end(arg);
-	if (strlen(_rbdata))
-	{
-		_rb->put(_rbdata);
-		_rbsem->post();
-	}
-	_mt.unlock();
-}
-
 const char* Process::getLog()
 {
 	int len = 0;
@@ -228,6 +250,7 @@ MultiTaskProcess::MultiTaskProcess()
 {
 	theMultiTaskProcess = this;
 	_threadCount = 0;
+	_stopCount = 0;
 }
 
 MultiTaskProcess::~MultiTaskProcess()
@@ -254,28 +277,43 @@ void MultiTaskProcess::run(void)
 
 	try
 	{
-		_stopProcessEvent.wait();
-	}
-	catch (Exception* ex)
-	{
-		for (int i = 0; i < _threadCount; i++)
+		while(true)
 		{
-			if ( _threadList[i] )
+			if (theProcess->checkSignal() == SIGINT)
 			{
-				_threadList[i]->cancel();;
+				return;
 			}
+			sleep(1);
 		}
+	}
+	catch(Exception* ex)
+	{
 		ex->writeMessage();
+	}
+	catch(...)
+	{
+		throw;
 	}
 }
 
-Semaphore* MultiTaskProcess::getStopProcessEvent(void)
+void MultiTaskProcess::waitStop(void)
 {
-	return &_stopProcessEvent;
+	while (_stopCount < _threadCount)
+	{
+		sleep(1);
+	}
+}
+
+void MultiTaskProcess::threadStoped(void)
+{
+	_mutex.lock();
+	_stopCount++;
+	_mutex.unlock();
 }
 
 void MultiTaskProcess::attach(Thread* thread)
 {
+	_mutex.lock();
 	if (_threadCount < MQTTSNGW_MAX_TASK)
 	{
 		_threadList[_threadCount] = thread;
@@ -283,8 +321,10 @@ void MultiTaskProcess::attach(Thread* thread)
 	}
 	else
 	{
+		_mutex.unlock();
 		throw Exception("Full of Threads");
 	}
+	_mutex.unlock();
 }
 
 int MultiTaskProcess::getParam(const char* parameter, char* value)

@@ -32,7 +32,7 @@ using namespace std;
 using namespace MQTTSNGW;
 
 #define EVENT_QUE_TIME_OUT  2000      // 2000 msecs
-
+char* currentDateTime(void);
 /*=====================================
  Class PacketHandleTask
  =====================================*/
@@ -84,7 +84,6 @@ void PacketHandleTask::run()
 {
 	Event* ev = 0;
 	EventQue* eventQue = _gateway->getPacketEventQue();
-	ClientList* clist = _gateway->getClientList();
 	Client* client = 0;
 	MQTTSNPacket* snPacket = 0;
 	MQTTGWPacket* brPacket = 0;
@@ -95,23 +94,18 @@ void PacketHandleTask::run()
 
 	while (true)
 	{
-		if (theProcess->checkSignal() == SIGINT)
-		{
-			throw Exception("Terminated by CTL-C");
-		}
-
 		/* wait Event */
 		ev = eventQue->timedwait(EVENT_QUE_TIME_OUT);
 
+		if (ev->getEventType() == EtStop)
+		{
+			WRITELOG("%s PacketHandleTask stopped.\n", currentDateTime());
+			delete ev;
+			return;
+		}
+
 		if (ev->getEventType() == EtTimeout)
 		{
-			/*------     Is Client Lost ?    ---------*/
-			client = clist->getClient();
-			while (client > 0)
-			{
-				client->checkTimeover();
-				client = client->getNextClient();
-			}
 			/*------ Check Keep Alive Timer & send Advertise ------*/
 			if (_advertiseTimer.isTimeup())
 			{
@@ -199,9 +193,6 @@ void PacketHandleTask::run()
 			{
 			case CONNACK:
 				_mqttConnection->handleConnack(client, brPacket);
-				break;
-			case DISCONNECT:
-				_mqttConnection->handleDisconnect(client, brPacket);
 				break;
 			case PINGRESP:
 				_mqttConnection->handlePingresp(client, brPacket);

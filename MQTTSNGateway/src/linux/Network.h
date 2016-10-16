@@ -71,9 +71,8 @@ public:
 	Network(bool secure);
 	virtual ~Network();
 
-	bool connect(const char* host, const char* port, const char* caPath, const char* caFile, const char* sert, const char* prvkey);
+	bool connect(const char* host, const char* port, const char* caPath, const char* caFile, const char* cert, const char* prvkey);
 	bool connect(const char* host, const char* port);
-	void disconnect(void);
 	void close(void);
 	int  send(const uint8_t* buf, uint16_t length);
 	int  recv(uint8_t* buf, uint16_t len);
@@ -84,9 +83,8 @@ public:
 
 private:
 	static SSL_CTX* _ctx;
+	static SSL_SESSION* _session;
 	static int _numOfInstance;
-
-	SSL_SESSION* _session;
 	SSL* _ssl;
 	bool _secureFlg;
 	Mutex _mutex;

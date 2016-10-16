@@ -48,7 +48,6 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	if ( !client->isActive() )
 	{
 		/* Reply DISCONNECT to the client */
-		WRITELOG("     The client is not active. status = %s\n",  client->getStatus());
 		Event* ev = new Event();
 		MQTTSNPacket* disconnect = new MQTTSNPacket();
 		disconnect->setDISCONNECT(0);
