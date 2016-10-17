@@ -200,6 +200,7 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 		/* Send CONNECT to the broker */
 		Event* evt = new Event();
 		evt->setBrokerSendEvent(client, mqttPacket);
+		client->setWaitWillMsgFlg(false);	
 		_gateway->getBrokerSendQue()->post(evt);
 	}
 }
