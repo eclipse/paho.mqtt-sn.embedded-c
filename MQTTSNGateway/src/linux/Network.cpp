@@ -283,7 +283,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		if (!_secureFlg)
 		{
 			WRITELOG("TLS is not required.\n");
-			throw;
+			throw false;
 		}
 
 		if (_ctx == 0)
@@ -295,14 +295,14 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			{
 				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 				WRITELOG("SSL_CTX_new() %s\n", errmsg);
-				throw;
+				throw false;
 			}
 
 			if (!SSL_CTX_load_verify_locations(_ctx, caFile, caPath))
 			{
 				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 				WRITELOG("SSL_CTX_load_verify_locations() %s\n", errmsg);
-				throw;
+				throw false;
 			}
 
 			if ( certkey )
@@ -311,7 +311,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 				{
 					ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 					WRITELOG("SSL_CTX_use_certificate_file() %s %s\n", certkey, errmsg);
-					throw;
+					throw false;
 				}
 			}
 			if ( prvkey )
@@ -320,7 +320,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 				{
 					ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 					WRITELOG("SSL_use_PrivateKey_file() %s %s\n", prvkey, errmsg);
-					throw;
+					throw false;
 				}
 			}
 		}
@@ -329,7 +329,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		{
 			if ( !TCPStack::connect(host, port) )
 			{
-				throw;
+				throw false;
 			}
 		}
 
@@ -338,7 +338,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		{
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 			WRITELOG("SSL_new()  %s\n", errmsg);
-			throw;
+			throw false;
 		}
 
 		if (!SSL_set_fd(_ssl, TCPStack::getSock()))
@@ -347,7 +347,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			WRITELOG("SSL_set_fd()  %s\n", errmsg);
 			SSL_free(_ssl);
 			_ssl = 0;
-			throw;
+			throw false;
 		}
 
 		if (_session)
@@ -361,7 +361,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			WRITELOG("SSL_connect() %s\n", errmsg);
 			SSL_free(_ssl);
 			_ssl = 0;
-			throw;
+			throw false;
 		}
 
 		int result;
@@ -370,7 +370,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			WRITELOG("SSL_get_verify_result() error: %s.\n", X509_verify_cert_error_string(result));
 			SSL_free(_ssl);
 			_ssl = 0;
-			throw;
+			throw false;
 		}
 
 		X509* peer = SSL_get_peer_certificate(_ssl);
@@ -386,7 +386,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			WRITELOG("SSL_get_peer_certificate() error: Broker %s dosen't match the host name %s\n", peer_CN, host);
 			SSL_free(_ssl);
 			_ssl = 0;
-			throw;
+			throw false;
 		}
 
 		if (_session == 0)
@@ -397,9 +397,9 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		_sslValid = true;
 		rc = true;
 	}
-	catch (...)
+	catch (bool x)
 	{
-		rc = false;
+		rc = x;
 	}
 	_mutex.unlock();
 	return rc;
