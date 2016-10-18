@@ -78,6 +78,17 @@ SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
 	return *this;
 }
 
+char* SensorNetAddress::sprint(char* buf)
+{
+	char* pbuf = buf;
+	for ( int i = 0; i < 8; i++ )
+	{
+		sprintf(pbuf, "%02X", _address64[i]);
+		pbuf += 2;
+	}
+	return buf;
+}
+
 /*===========================================
  Class  SensorNetwork
  ============================================*/

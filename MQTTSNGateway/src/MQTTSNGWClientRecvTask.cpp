@@ -113,7 +113,8 @@ void ClientRecvTask::run()
 				log(client, packet, &data.clientID);
 				if (!client)
 				{
-					WRITELOG("%s Client was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, ERRMSG_FOOTER);
+					char buf[128];
+					WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}

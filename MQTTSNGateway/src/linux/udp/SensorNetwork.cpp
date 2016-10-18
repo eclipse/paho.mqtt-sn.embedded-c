@@ -101,6 +101,15 @@ SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
 	return *this;
 }
 
+
+char* SensorNetAddress::sprint(char* buf)
+{
+	struct in_addr  inaddr = { _IpAddr };
+	char* ip = inet_ntoa(inaddr);
+	sprintf( buf, "%s:", ip);
+	sprintf( buf + strlen(buf), "%d", ntohs(_portNo));
+	return buf;
+}
 /*===========================================
  Class  SensorNetwork
  ============================================*/

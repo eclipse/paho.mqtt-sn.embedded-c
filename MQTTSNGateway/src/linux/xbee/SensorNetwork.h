@@ -74,7 +74,7 @@ public:
 	void setBroadcastAddress(void);
 	bool isMatch(SensorNetAddress* addr);
 	SensorNetAddress& operator =(SensorNetAddress& addr);
-
+	char* sprint(char*);
 private:
 	uint8_t _address16[2];
 	uint8_t _address64[8];
