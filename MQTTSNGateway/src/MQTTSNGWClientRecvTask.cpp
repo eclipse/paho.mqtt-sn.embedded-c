@@ -152,7 +152,7 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 
 	if ( id )
 	{
-		memset((void*)cstr, 0, id->lenstring.len);
+		memset((void*)cstr, 0, id->lenstring.len + 1);
 		strncpy(cstr, id->lenstring.data, id->lenstring.len) ;
 		clientId = cstr;
 	}
