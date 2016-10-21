@@ -18,6 +18,8 @@
 #include <cassert>
 #include "TestProcessFramework.h"
 #include "MQTTSNGWProcess.h"
+#include "MQTTSNGWClient.h"
+#include "MQTTSNGWPacket.h"
 #include "Timer.h"
 
 using namespace std;
@@ -65,7 +67,7 @@ void TestProcessFramework::run(void)
 	{
 		putLog("Test RingBuffer %d ", 1234567890);
 	}
-	putLog("\n\nRingBuffer Test complieted. Enter CTRL+C\n");
+	putLog("\n\nRingBuffer Test complieted.\n");
 
 	for ( i = 0; i < 10; i++ )
 	{
@@ -113,6 +115,19 @@ void TestProcessFramework::run(void)
 	tm.start();
 	while (!tm.isTimeup(1000));
 	printf("%s Timer 1sec\n", currentDateTime());
+
+	printf("EventQue test start.\n");
+	Client* client = new Client();
+	_evQue.setMaxSize(EVENT_CNT);
+	for ( int i = 0; i < EVENT_CNT + 4; i++ )
+	{
+		Event* ev = new Event();
+		MQTTSNPacket* packet = new MQTTSNPacket();
+		packet->setDISCONNECT(i);
+		ev->setClientSendEvent(client, packet);
+		_evQue.post(ev);
+	}
+
 
 	MultiTaskProcess::run();
 

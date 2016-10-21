@@ -33,7 +33,7 @@ public:
 	void run(void);
 
 private:
-
+	TestProcessFramework* _proc;
 };
 
 }

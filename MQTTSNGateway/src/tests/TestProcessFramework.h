@@ -17,8 +17,8 @@
 #define TESTPROCESSFRAMEWORK_H_
 
 #include "MQTTSNGWProcess.h"
-
-
+#include "MQTTSNGateway.h"
+#define EVENT_CNT 10
 namespace MQTTSNGW
 {
 class TestProcessFramework: public MultiTaskProcess{
@@ -27,9 +27,10 @@ public:
 	~TestProcessFramework();
 	virtual void initialize(int argc, char** argv);
 	void run(void);
+	EventQue* getEventQue(void) { return &_evQue; }
 
 private:
-
+	EventQue _evQue;
 };
 
 class TestQue

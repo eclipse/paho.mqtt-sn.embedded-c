@@ -14,6 +14,7 @@
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
 #include <unistd.h>
+#include <cassert>
 #include "TestTask.h"
 #include "Threading.h"
 
@@ -23,6 +24,7 @@ using namespace MQTTSNGW;
 TestTask::TestTask(TestProcessFramework* proc)
 {
 	proc->attach((Thread*)this);
+	_proc = proc;
 }
 
 TestTask::~TestTask()
@@ -37,6 +39,26 @@ void TestTask::initialize(int argc, char** argv)
 
 void TestTask::run(void)
 {
+	EventQue* evQue = _proc->getEventQue();
+	uint16_t duration = 0;
+	int cnt = 0;
+
+	while (true)
+	{
+		Event* ev = evQue->timedwait(5000);
+		if ( ev->getEventType() == EtTimeout )
+		{
+			assert(EVENT_CNT == cnt);
+			delete ev;
+			break;
+		}
+		cnt++;
+		MQTTSNPacket* packet = ev->getMQTTSNPacket();
+		packet->getDISCONNECT(&duration);
+		printf("Event %d\n", duration);
+		delete ev;
+	}
+
 	while(true)
 	{
 		if ( CHK_SIGINT)
