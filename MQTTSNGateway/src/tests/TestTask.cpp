@@ -17,11 +17,11 @@
 #include <cassert>
 #include "TestTask.h"
 #include "Threading.h"
-
+#include "TestProcess.h"
 using namespace std;
 using namespace MQTTSNGW;
 
-TestTask::TestTask(TestProcessFramework* proc)
+TestTask::TestTask(TestProcess* proc)
 {
 	proc->attach((Thread*)this);
 	_proc = proc;
@@ -39,23 +39,24 @@ void TestTask::initialize(int argc, char** argv)
 
 void TestTask::run(void)
 {
+	int evcnt = 0;
 	EventQue* evQue = _proc->getEventQue();
 	uint16_t duration = 0;
-	int cnt = 0;
+
 
 	while (true)
 	{
 		Event* ev = evQue->timedwait(5000);
+		evcnt++;
 		if ( ev->getEventType() == EtTimeout )
 		{
-			assert(EVENT_CNT == cnt);
+			assert(EVENT_CNT + 1 == evcnt);
 			delete ev;
+			printf("EventQue test complete.\n\n");
 			break;
 		}
-		cnt++;
 		MQTTSNPacket* packet = ev->getMQTTSNPacket();
 		packet->getDISCONNECT(&duration);
-		printf("Event %d\n", duration);
 		delete ev;
 	}
 

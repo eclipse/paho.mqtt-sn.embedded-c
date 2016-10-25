@@ -13,19 +13,26 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#include "TestProcessFramework.h"
-#include "TestTask.h"
+#ifndef TESTPROCESS_H_
+#define TESTPROCESS_H_
 
-using namespace MQTTSNGW;
-
-TestProcessFramework* proc = new TestProcessFramework();
-TestTask* task = new TestTask(proc);
-
-int main(int argc, char** argv)
+#include "MQTTSNGWProcess.h"
+#include "MQTTSNGateway.h"
+#define EVENT_CNT 10
+namespace MQTTSNGW
 {
-	proc->initialize(argc, argv);
-	proc->run();
-	delete proc;
-	return 0;
+class TestProcess: public MultiTaskProcess{
+public:
+	TestProcess();
+	~TestProcess();
+	virtual void initialize(int argc, char** argv);
+	void run(void);
+	EventQue* getEventQue(void) { return &_evQue; }
+
+private:
+	EventQue _evQue;
+};
+
 }
 
+#endif /* TESTPROCESS_H_ */

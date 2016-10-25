@@ -40,6 +40,7 @@ void ClientSendTask::run()
 {
 	Client* client = 0;
 	MQTTSNPacket* packet = 0;
+	int rc = 0;
 
 	while (true)
 	{
@@ -55,20 +56,27 @@ void ClientSendTask::run()
 		{
 			client = ev->getClient();
 			packet = ev->getMQTTSNPacket();
-			packet->unicast(_sensorNetwork, client->getSensorNetAddress());
+			log(client, packet);
+			rc = packet->unicast(_sensorNetwork, client->getSensorNetAddress());
 		}
 		else if (ev->getEventType() == EtBroadcast)
 		{
 			packet = ev->getMQTTSNPacket();
-			packet->broadcast(_sensorNetwork);
+			log(client, packet);
+			rc = packet->broadcast(_sensorNetwork);
 		}
 		else if (ev->getEventType() == EtSensornetSend)
 		{
 			packet = ev->getMQTTSNPacket();
-			packet->unicast(_sensorNetwork, ev->getSensorNetAddress());
+			log(client, packet);
+			rc = packet->unicast(_sensorNetwork, ev->getSensorNetAddress());
 		}
 
-		log(client, packet);
+		if ( rc < 0 )
+		{
+			WRITELOG("%s ClientSendTask can't send a packet to the client.\n",
+				ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), ERRMSG_FOOTER);
+		}
 		delete ev;
 	}
 }

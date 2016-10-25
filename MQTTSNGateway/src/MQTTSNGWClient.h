@@ -109,10 +109,8 @@ public:
 	Topic();
 	Topic(string* topic);
 	~Topic();
-
 	string* getTopicName(void);
 	uint16_t getTopicId(void);
-	int hasWildCard(unsigned int* pos);
 	bool isMatch(string* topicName);
 
 private:
@@ -167,12 +165,10 @@ public:
 	TopicIdMap();
 	~TopicIdMap();
 	uint16_t getTopicId(uint16_t msgId, MQTTSN_topicTypes* type);
-	Topic* getTopic(MQTTSN_topicTypes type);
 	int add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 	void erase(uint16_t msgId);
 	void clear(void);
 private:
-	int find(uint16_t msgId);
 	uint16_t* _msgIds;
 	TopicIdMapelement* _first;
 	TopicIdMapelement* _end;

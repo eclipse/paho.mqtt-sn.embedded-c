@@ -301,7 +301,6 @@ int UDPPort::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr
 	dest.sin_family = AF_INET;
 	dest.sin_port = addr->getPortNo();
 	dest.sin_addr.s_addr = addr->getIpAddress();
-	;
 
 	int status = ::sendto(_sockfdUnicast, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
 	if (status < 0)

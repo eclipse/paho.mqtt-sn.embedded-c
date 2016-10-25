@@ -13,25 +13,13 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#ifndef TESTPROCESSFRAMEWORK_H_
-#define TESTPROCESSFRAMEWORK_H_
+#ifndef MQTTSNGATEWAY_SRC_TESTS_TESTQUE_H_
+#define MQTTSNGATEWAY_SRC_TESTS_TESTQUE_H_
 
 #include "MQTTSNGWProcess.h"
-#include "MQTTSNGateway.h"
-#define EVENT_CNT 10
+
 namespace MQTTSNGW
 {
-class TestProcessFramework: public MultiTaskProcess{
-public:
-	TestProcessFramework();
-	~TestProcessFramework();
-	virtual void initialize(int argc, char** argv);
-	void run(void);
-	EventQue* getEventQue(void) { return &_evQue; }
-
-private:
-	EventQue _evQue;
-};
 
 class TestQue
 {
@@ -43,9 +31,11 @@ public:
 	void pop(void);
 	int size(void);
 	void setMaxSize(int maxsize);
+	void test(void);
 private:
 	Que<int> _que;
 };
 }
 
-#endif /* TESTPROCESSFRAMEWORK_H_ */
+
+#endif /* MQTTSNGATEWAY_SRC_TESTS_TESTQUE_H_ */
