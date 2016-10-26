@@ -128,6 +128,7 @@ public:
 	virtual void initialize(int argc, char** argv);
 	void stopProcess(void);
 	void waitStop(void);
+	void stop(void);
 private:
 	static void* _run(void*);
 	pthread_t _threadID;

@@ -255,7 +255,10 @@ MultiTaskProcess::MultiTaskProcess()
 
 MultiTaskProcess::~MultiTaskProcess()
 {
-
+	for (int i = 0; i < _threadCount; i++)
+	{
+		_threadList[i]->stop();
+	}
 }
 
 void MultiTaskProcess::initialize(int argc, char** argv)
@@ -309,6 +312,7 @@ void MultiTaskProcess::threadStoped(void)
 	_mutex.lock();
 	_stopCount++;
 	_mutex.unlock();
+
 }
 
 void MultiTaskProcess::attach(Thread* thread)

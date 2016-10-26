@@ -514,3 +514,11 @@ void Thread::stopProcess(void)
 	theMultiTaskProcess->threadStoped();
 }
 
+void Thread::stop(void)
+{
+	if ( _threadID )
+	{
+		pthread_join(_threadID, NULL);
+		_threadID = 0;
+	}
+}

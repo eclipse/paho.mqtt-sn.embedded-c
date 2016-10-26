@@ -235,7 +235,7 @@ void Gateway::run(void)
 
 	MultiTaskProcess::run();
 
-	/* stop threads */
+	/* stop Tasks */
 	Event* ev = new Event();
 	ev->setStop();
 	_packetEventQue.post(ev);
@@ -246,7 +246,7 @@ void Gateway::run(void)
 	ev->setStop();
 	_clientSendQue.post(ev);
 
-	/* wait until all threads stop */
+	/* wait until all Task stop */
 	MultiTaskProcess::waitStop();
 
 	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
