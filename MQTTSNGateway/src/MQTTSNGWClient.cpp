@@ -865,7 +865,6 @@ Topic* Topics::add(MQTTSN_topicid* topicid)
 {
 	Topic* topic;
 	uint16_t id = 0;
-	string* topicName = 0;
 
 	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
 	{
@@ -879,8 +878,8 @@ Topic* Topics::add(MQTTSN_topicid* topicid)
 	}
 	else
 	{
-		topicName = new string(topicid->data.long_.name, topicid->data.long_.len);
-		topic = add(topicName);
+		string topicName = string(topicid->data.long_.name, topicid->data.long_.len);
+		topic = add(&topicName);
 	}
 	return topic;
 }

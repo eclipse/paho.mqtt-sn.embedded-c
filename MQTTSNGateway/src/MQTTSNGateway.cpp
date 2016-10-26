@@ -314,15 +314,19 @@ void  EventQue::setMaxSize(uint16_t maxSize)
 
 Event* EventQue::wait(void)
 {
-	Event* ev;
-	if ( _que.size() == 0 )
+	Event* ev = 0;
+
+	while(ev == 0)
 	{
-		_sem.wait();
+		if ( _que.size() == 0 )
+		{
+			_sem.wait();
+		}
+		_mutex.lock();
+		ev = _que.front();
+		_que.pop();
+		_mutex.unlock();
 	}
-	_mutex.lock();
-	ev = _que.front();
-	_que.pop();
-	_mutex.unlock();
 	return ev;
 }
 
