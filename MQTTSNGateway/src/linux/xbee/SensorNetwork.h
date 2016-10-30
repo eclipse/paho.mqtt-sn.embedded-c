@@ -38,7 +38,8 @@ namespace MQTTSNGW
 #define API_MODEMSTATUS          0x8A
 #define API_XMITSTATUS           0x8B
 
-#define START_BYTE 0x7e
+#define XMIT_STATUS_TIME_OVER    5000
+
 #define ESCAPE     0x7d
 #define XON        0x11
 #define XOFF       0x13
@@ -74,7 +75,7 @@ public:
 	void setBroadcastAddress(void);
 	bool isMatch(SensorNetAddress* addr);
 	SensorNetAddress& operator =(SensorNetAddress& addr);
-
+	char* sprint(char*);
 private:
 	uint8_t _address16[2];
 	uint8_t _address64[8];

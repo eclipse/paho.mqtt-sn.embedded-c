@@ -101,6 +101,15 @@ SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
 	return *this;
 }
 
+
+char* SensorNetAddress::sprint(char* buf)
+{
+	struct in_addr  inaddr = { _IpAddr };
+	char* ip = inet_ntoa(inaddr);
+	sprintf( buf, "%s:", ip);
+	sprintf( buf + strlen(buf), "%d", ntohs(_portNo));
+	return buf;
+}
 /*===========================================
  Class  SensorNetwork
  ============================================*/
@@ -292,7 +301,6 @@ int UDPPort::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr
 	dest.sin_family = AF_INET;
 	dest.sin_port = addr->getPortNo();
 	dest.sin_addr.s_addr = addr->getIpAddress();
-	;
 
 	int status = ::sendto(_sockfdUnicast, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
 	if (status < 0)

@@ -5,7 +5,7 @@ LPROGNAME := MQTT-SNLogmonitor
 LAPPL := mainLogmonitor
 
 TESTPROGNAME := testPFW
-TESTAPPL := mainTestProcessFramework
+TESTAPPL := mainTestProcess
 
 CONFIG := MQTTSNGateway/gateway.conf
 CLIENTS := MQTTSNGateway/clients.conf
@@ -39,7 +39,10 @@ $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
 $(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \
 $(SRCDIR)/$(OS)/Threading.cpp \
-$(SRCDIR)/$(TEST)/TestProcessFramework.cpp \
+$(SRCDIR)/$(TEST)/TestProcess.cpp \
+$(SRCDIR)/$(TEST)/TestQue.cpp \
+$(SRCDIR)/$(TEST)/TestTopics.cpp \
+$(SRCDIR)/$(TEST)/TestTopicIdMap.cpp \
 $(SRCDIR)/$(TEST)/TestTask.cpp
 
 

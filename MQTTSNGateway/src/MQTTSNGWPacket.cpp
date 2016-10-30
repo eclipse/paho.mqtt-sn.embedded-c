@@ -334,7 +334,10 @@ int MQTTSNPacket::getPINGREQ(void)
 
 int MQTTSNPacket::getDISCONNECT(uint16_t* duration)
 {
-	return MQTTSNDeserialize_disconnect((int*) duration, _buf, _bufLen);
+	int dur = 0;
+	int rc = MQTTSNDeserialize_disconnect(&dur, _buf, _bufLen);
+	*duration = (uint16_t)dur;
+	return rc;
 }
 
 int MQTTSNPacket::getWILLTOPICUPD(uint8_t* willQoS, uint8_t* willRetain, MQTTSNString* willTopic)

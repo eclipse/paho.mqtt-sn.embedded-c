@@ -78,6 +78,17 @@ SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
 	return *this;
 }
 
+char* SensorNetAddress::sprint(char* buf)
+{
+	char* pbuf = buf;
+	for ( int i = 0; i < 8; i++ )
+	{
+		sprintf(pbuf, "%02X", _address64[i]);
+		pbuf += 2;
+	}
+	return buf;
+}
+
 /*===========================================
  Class  SensorNetwork
  ============================================*/
@@ -196,13 +207,11 @@ int XBee::open(char* device, int baudrate)
 int XBee::broadcast(const uint8_t* payload, uint16_t payloadLen){
 	SensorNetAddress addr;
 	addr.setBroadcastAddress();
-	send(payload, (uint8_t) payloadLen, &addr);
-	return 1;
+	return send(payload, (uint8_t) payloadLen, &addr);
 }
 
 int XBee:: unicast(const uint8_t* payload, uint16_t payloadLen, SensorNetAddress* addr){
-	send(payload, (uint8_t) payloadLen, addr);
-	return 1;
+	return send(payload, (uint8_t) payloadLen, addr);
 }
 
 int XBee::recv(uint8_t* buf, uint16_t bufLen, SensorNetAddress* clientAddr)
@@ -344,14 +353,14 @@ int XBee::send(const uint8_t* payload, uint8_t pLen, SensorNetAddress* addr){
     D_NWSTACK("\r\n");
 
     /* wait Txim Status 0x8B */
-    _sem.timedwait(5000);   // 5sec
+    _sem.timedwait(XMIT_STATUS_TIME_OVER);
 
     if ( _respCd || _frameId != _respId )
     {
     	 D_NWSTACK(" frameId = %02x  Not Acknowleged\r\n", _frameId);
     	return -1;
     }
-    return 0;
+    return (int)pLen;
 }
 
 void XBee::send(uint8_t c)

@@ -45,7 +45,7 @@ public:
 	uint32_t getIpAddress(void);
 	bool isMatch(SensorNetAddress* addr);
 	SensorNetAddress& operator =(SensorNetAddress& addr);
-
+	char* sprint(char* buf);
 private:
 	uint16_t _portNo;
 	uint32_t _IpAddr;

@@ -113,7 +113,8 @@ void ClientRecvTask::run()
 				log(client, packet, &data.clientID);
 				if (!client)
 				{
-					WRITELOG("%s Client was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, ERRMSG_FOOTER);
+					char buf[128];
+					WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
@@ -151,7 +152,7 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 
 	if ( id )
 	{
-		memset((void*)cstr, 0, id->lenstring.len);
+		memset((void*)cstr, 0, id->lenstring.len + 1);
 		strncpy(cstr, id->lenstring.data, id->lenstring.len) ;
 		clientId = cstr;
 	}

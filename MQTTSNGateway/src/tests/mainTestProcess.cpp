@@ -13,30 +13,19 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation 
  **************************************************************************************/
-#ifndef TESTTASK_H_
-#define TESTTASK_H_
-
 #include "TestProcess.h"
-#include "Threading.h"
+#include "TestTask.h"
 
-namespace MQTTSNGW
+using namespace MQTTSNGW;
+
+TestProcess* test = new TestProcess();
+TestTask* task = new TestTask(test);
+
+int main(int argc, char** argv)
 {
-
-class TestTask: public Thread
-{
-MAGIC_WORD_FOR_THREAD;
-	;
-public:
-	TestTask(TestProcess* proc);
-	~TestTask();
-	void initialize(int argc, char** argv);
-	void run(void);
-
-private:
-	TestProcess* _proc;
-};
-
+	test->initialize(argc, argv);
+	test->run();
+	delete test;
+	return 0;
 }
 
-
-#endif /* TESTTASK_H_ */

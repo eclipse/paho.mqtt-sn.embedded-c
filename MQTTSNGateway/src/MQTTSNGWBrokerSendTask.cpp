@@ -114,7 +114,6 @@ void BrokerSendTask::run()
 			{
 				if ( packet->getType() == CONNECT )
 				{
-					client->setWaitWillMsgFlg(false);
 					client->connectSended();
 				}
 				log(client, packet);

@@ -703,75 +703,95 @@ uint16_t Topic::getTopicId(void)
 	return _topicId;
 }
 
-int Topic::hasWildCard(unsigned int* pos)
-{
-	unsigned int p = _topicName->find("+", 0);
-	if (p != string::npos)
-	{
-		*pos = p;
-		return 1;
-	}
-	else
-	{
-		string::iterator it = _topicName->end();
-		if (*it == '#')
-		{
-			*pos = _topicName->size() - 1;
-			return 2;
-		}
-	}
-	*pos = 0;
-	return 0;
-}
-
 bool Topic::isMatch(string* topicName)
 {
-	unsigned int pos;
-
-	if (topicName->size() < _topicName->size())
+	string::size_type tlen = _topicName->size();
+	if (topicName->size() < tlen - 2)
 	{
 		return false;
 	}
 
-	if (hasWildCard(&pos) == 1)
+	string::size_type tpos = 0;
+	string::size_type tloc = 0;
+	string::size_type pos = 0;
+	string::size_type loc = 0;
+	string wildcard = "#";
+	string wildcards = "+";
+
+	while(true)
 	{
-		if (_topicName->compare(0, pos - 1, *topicName, 0, pos - 1) == 0)
+		loc = topicName->find('/', pos);
+		tloc = _topicName->find('/', tpos);
+
+		if ( loc != string::npos && tloc != string::npos )
 		{
-			if (_topicName->compare(pos + 1, 1, "/") == 0)
+			string subtopic = topicName->substr(pos, loc - pos);
+			string subtopict = _topicName->substr(tpos, tloc - tpos);
+			if (subtopict == wildcard)
 			{
-				unsigned int loc = topicName->find('/', pos);
-				if (loc != 0)
+				return true;
+			}
+			else if (subtopict == wildcards)
+			{
+				if ( (tpos = tloc + 1 ) > tlen )
 				{
-					if (_topicName->compare(pos + 1, _topicName->size() - pos - 1, *topicName, loc,
-							topicName->size() - pos - 1) == 0)
+					pos = loc + 1;
+					loc = topicName->find('/', pos);
+					if ( loc == string::npos )
 					{
 						return true;
 					}
-				}
-			}
-			else
-			{
-				unsigned int loc = _topicName->find(pos, '/');
-				if (loc != 0)
-				{
-					if (topicName->find('/', loc) != 0)
+					else
 					{
 						return false;
 					}
 				}
+				pos = loc + 1;
 			}
-			return true;
+			else if ( subtopic != subtopict )
+			{
+				return false;
+			}
+			else
+			{
+				if ( (tpos = tloc + 1) > tlen )
+				{
+					return false;
+				}
+
+				pos = loc + 1;
+			}
+		}
+		else if ( loc == string::npos && tloc == string::npos )
+		{
+			string subtopic = topicName->substr(pos);
+			string subtopict = _topicName->substr(tpos);
+			if ( subtopict == wildcard || subtopict == wildcards)
+			{
+				return true;
+			}
+			else if ( subtopic == subtopict )
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else if ( loc != string::npos && tloc == string::npos )
+		{
+			tloc = _topicName->find('#', --tpos);
+			if ( tloc == string::npos )
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
 		}
 	}
-	else if (hasWildCard(&pos) == 2 && (_topicName->compare(0, pos, *topicName, 0, pos) == 0))
-	{
-		return true;
-	}
-	else if (_topicName->compare(*topicName) == 0)
-	{
-		return true;
-	}
-	return false;
 }
 
 /*=====================================
@@ -845,7 +865,6 @@ Topic* Topics::add(MQTTSN_topicid* topicid)
 {
 	Topic* topic;
 	uint16_t id = 0;
-	string* topicName = 0;
 
 	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
 	{
@@ -859,8 +878,8 @@ Topic* Topics::add(MQTTSN_topicid* topicid)
 	}
 	else
 	{
-		topicName = new string(topicid->data.long_.name, topicid->data.long_.len);
-		topic = add(topicName);
+		string topicName = string(topicid->data.long_.name, topicid->data.long_.len);
+		topic = add(&topicName);
 	}
 	return topic;
 }

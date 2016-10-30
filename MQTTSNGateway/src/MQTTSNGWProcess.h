@@ -207,7 +207,7 @@ public:
 
 	int post(T* t)
 	{
-		if ( t && ( _maxSize == 0 || size() < _maxSize ))
+		if ( t && ( _maxSize == 0 || _cnt < _maxSize ))
 		{
 			QueElement<T>* elm = new QueElement<T>(t);
 			if ( _head )

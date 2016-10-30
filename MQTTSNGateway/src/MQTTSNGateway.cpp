@@ -235,7 +235,7 @@ void Gateway::run(void)
 
 	MultiTaskProcess::run();
 
-	/* stop threads */
+	/* stop Tasks */
 	Event* ev = new Event();
 	ev->setStop();
 	_packetEventQue.post(ev);
@@ -246,7 +246,7 @@ void Gateway::run(void)
 	ev->setStop();
 	_clientSendQue.post(ev);
 
-	/* wait until all threads stop */
+	/* wait until all Task stop */
 	MultiTaskProcess::waitStop();
 
 	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
@@ -314,25 +314,29 @@ void  EventQue::setMaxSize(uint16_t maxSize)
 
 Event* EventQue::wait(void)
 {
-	Event* ev;
-	while ( true )
+	Event* ev = 0;
+
+	while(ev == 0)
 	{
-		_sem.wait();
+		if ( _que.size() == 0 )
+		{
+			_sem.wait();
+		}
 		_mutex.lock();
 		ev = _que.front();
 		_que.pop();
 		_mutex.unlock();
-		if ( ev )
-		{
-			return ev;
-		}
 	}
+	return ev;
 }
 
 Event* EventQue::timedwait(uint16_t millsec)
 {
 	Event* ev;
-	_sem.timedwait(millsec);
+	if ( _que.size() == 0 )
+	{
+		_sem.timedwait(millsec);
+	}
 	_mutex.lock();
 
 	if (_que.size() == 0)
@@ -344,11 +348,6 @@ Event* EventQue::timedwait(uint16_t millsec)
 	{
 		ev = _que.front();
 		_que.pop();
-		if ( !ev )
-		{
-			ev = new Event();
-			ev->setTimeout();
-		}
 	}
 	_mutex.unlock();
 	return ev;
@@ -356,16 +355,19 @@ Event* EventQue::timedwait(uint16_t millsec)
 
 void EventQue::post(Event* ev)
 {
-	_mutex.lock();
-	if ( _que.post(ev) )
+	if ( ev )
 	{
-		_sem.post();
+		_mutex.lock();
+		if ( _que.post(ev) )
+		{
+			_sem.post();
+		}
+		else
+		{
+			delete ev;
+		}
+		_mutex.unlock();
 	}
-	else
-	{
-		delete ev;
-	}
-	_mutex.unlock();
 }
 
 int EventQue::size()

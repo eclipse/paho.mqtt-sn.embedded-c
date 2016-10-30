@@ -35,7 +35,8 @@ ClientAuthentication=NO
     
 #RootCAfile=/path/to/your_Root_CA.crt    
 #RootCApath=/path/to/your_certs_directory/   
-#CertsDirectory=/path/to/your_client_certs_directory/
+#CertKey=/path/to/your_cert.pem
+#PrivateKey=/path/to/your_private-key.pem
     
 GatewayID=1
 GatewayName=PahoGateway-01
@@ -59,7 +60,7 @@ ApiMode=2
 Client should know the BroadcastIP and PortNo to send a SEARCHGW message.    
 **GatewayId** is defined by GWSEARCH message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
-when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId, IPaddress and PortNo.    
+when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId and SensorNetwork Address. e.g. IP address and Port No.    
 
 
 
