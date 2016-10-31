@@ -41,6 +41,7 @@ $(SRCDIR)/$(OS)/Network.cpp \
 $(SRCDIR)/$(OS)/Threading.cpp \
 $(SRCDIR)/$(TEST)/TestProcess.cpp \
 $(SRCDIR)/$(TEST)/TestQue.cpp \
+$(SRCDIR)/$(TEST)/TestTree23.cpp \
 $(SRCDIR)/$(TEST)/TestTopics.cpp \
 $(SRCDIR)/$(TEST)/TestTopicIdMap.cpp \
 $(SRCDIR)/$(TEST)/TestTask.cpp

@@ -19,6 +19,7 @@
 #include "TestProcess.h"
 #include "TestTopics.h"
 #include "TestQue.h"
+#include "TestTree23.h"
 #include "TestTopicIdMap.h"
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNGWClient.h"
@@ -90,6 +91,11 @@ void TestProcess::run(void)
 	tque->test();
 	delete tque;
 
+	/* Test Tree23 */
+	TestTree23* tree23 = new TestTree23();
+	tree23->test();
+	delete tree23;
+
 	/* Test TopicTable */
 	TestTopics* testTopic = new TestTopics();
 	testTopic->test();
@@ -103,7 +109,7 @@ void TestProcess::run(void)
 
 
 	/* Test EventQue */
-	printf("EventQue test start.\n");
+	printf("Test  EventQue       ");
 	Client* client = new Client();
 	_evQue.setMaxSize(EVENT_CNT);
 	for ( int i = 0; i < EVENT_CNT + 4; i++ )
@@ -116,6 +122,4 @@ void TestProcess::run(void)
 	}
 
 	MultiTaskProcess::run();
-
-	printf("\n\nAll Tests completed.\n");
 }

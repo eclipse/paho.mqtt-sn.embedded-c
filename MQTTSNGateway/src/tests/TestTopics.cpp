@@ -34,7 +34,7 @@ TestTopics::~TestTopics()
 
 void TestTopics::test(void)
 {
-	printf("Topics Test start.\n");
+	printf("Test  Topics         ");
 
 	MQTTSN_topicid topic[12];
 	char tp[12][10];
@@ -179,5 +179,5 @@ void TestTopics::test(void)
 */
 		assert( t != 0);
 	}
-	printf("Topics Test complete.\n\n");
+	printf("[ OK ]\n");
 }

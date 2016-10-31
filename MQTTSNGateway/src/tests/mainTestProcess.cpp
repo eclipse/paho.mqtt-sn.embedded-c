@@ -26,6 +26,7 @@ int main(int argc, char** argv)
 	test->initialize(argc, argv);
 	test->run();
 	delete test;
+	printf("\nPass all tests. \n");
 	return 0;
 }
 

@@ -35,7 +35,7 @@ void TestQue::test(void)
 	int* v = 0;
 	int i = 0;
 
-	printf("Que Test start.\n");
+	printf("Test  Que            ");
 	for ( i = 0; i < 10; i++ )
 	{
 		v = new int(i);
@@ -73,7 +73,7 @@ void TestQue::test(void)
 			delete p;
 		}
 	}
-	printf("Que test completed.\n\n");
+	printf("[ OK ]\n");
 }
 
 int* TestQue::front(void)
