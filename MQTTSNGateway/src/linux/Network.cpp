@@ -503,7 +503,8 @@ int Network::recv(uint8_t* buf, uint16_t len)
 	}
 
 	_busy = true;
-	loop: do
+loop:
+	do
 	{
 		readBlockedOnWrite = false;
 		readBlocked = false;

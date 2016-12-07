@@ -400,7 +400,7 @@ SerialPort::SerialPort()
 	_tio.c_iflag = IGNBRK | IGNPAR;
 	_tio.c_cflag = CS8 | CLOCAL | CRTSCTS;
 	_tio.c_cc[VINTR] = 0;
-	_tio.c_cc[VTIME] = 0;
+	_tio.c_cc[VTIME] = 10;   // 1 sec.
 	_tio.c_cc[VMIN] = 1;
 	_fd = 0;
 }

@@ -16,6 +16,7 @@
 
 #include "MQTTSNGWBrokerRecvTask.h"
 #include "MQTTSNGWClient.h"
+#include <unistd.h>
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -90,7 +91,11 @@ void BrokerRecvTask::run(void)
 			client = client->getNextClient();
 		}
 
-		if (maxSock > 0)
+		if (maxSock == 0)
+		{
+			usleep(500 * 1000);
+		}
+		else
 		{
 			/* Check sockets is ready to read */
 			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
