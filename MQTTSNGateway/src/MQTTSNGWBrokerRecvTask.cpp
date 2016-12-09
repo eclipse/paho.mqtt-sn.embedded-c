@@ -119,7 +119,6 @@ void BrokerRecvTask::run(void)
 							if ( rc > 0 )
 							{
 								if ( log(client, packet) == -1 )
-
 								{
 									delete packet;
 									goto nextClient;
@@ -132,7 +131,13 @@ void BrokerRecvTask::run(void)
 							}
 							else
 							{
-								if (rc == -1)
+								if ( rc == 0 )
+								{
+									client->getNetwork()->close();
+									delete packet;
+									goto nextClient;
+								}
+								else if (rc == -1)
 								{
 									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n", ERRMSG_HEADER, errno, client->getClientId(), ERRMSG_FOOTER);
 								}
