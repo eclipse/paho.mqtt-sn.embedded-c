@@ -131,11 +131,19 @@ void BrokerRecvTask::run(void)
 							}
 							else
 							{
-								if ( rc == 0 )
+								if ( rc == 0 )  // Disconnected
 								{
 									client->getNetwork()->close();
 									delete packet;
-									goto nextClient;
+
+									/* delete client when the client is not authorized on & session is clean */
+									_gateway->getClientList()->erase(client);
+
+									if ( client )
+									{
+										client = client->getNextClient();
+									}
+									continue;
 								}
 								else if (rc == -1)
 								{

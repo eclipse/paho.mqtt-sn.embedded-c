@@ -125,30 +125,34 @@ bool ClientList::authorize(const char* fileName)
 
 void ClientList::erase(Client* client)
 {
-	_mutex.lock();
-	Client* prev = client->_prevClient;
-	Client* next = client->_nextClient;
+	if ( !_authorize && client->erasable())
+	{
+		_mutex.lock();
+		Client* prev = client->_prevClient;
+		Client* next = client->_nextClient;
 
-	if (prev)
-	{
-		prev->_nextClient = next;
-	}
-	else
-	{
-		_firstClient = next;
+		if (prev)
+		{
+			prev->_nextClient = next;
+		}
+		else
+		{
+			_firstClient = next;
 
+		}
+		if (next)
+		{
+			next->_prevClient = prev;
+		}
+		else
+		{
+			_endClient = prev;
+		}
+		_clientCnt--;
+		delete client;
+		client = 0;
+		_mutex.unlock();
 	}
-	if (next)
-	{
-		next->_prevClient = prev;
-	}
-	else
-	{
-		_endClient = prev;
-	}
-	_clientCnt--;
-	_authorize = false;
-	_mutex.unlock();
 }
 
 Client* ClientList::getClient(SensorNetAddress* addr)
@@ -280,6 +284,8 @@ Client::Client(bool secure)
 	_sensorNetype = true;
 	_connAck = 0;
 	_waitWillMsgFlg = false;
+	_sessionStatus = false;
+	_otaClient = 0;
 	_prevClient = 0;
 	_nextClient = 0;
 }
@@ -387,6 +393,16 @@ void Client::setKeepAlive(MQTTSNPacket* packet)
 		_keepAliveMsec = param.duration * 1000UL;
 		_keepAliveTimer.start(_keepAliveMsec * 1.5);
 	}
+}
+
+void Client::setSessionStatus(bool status)
+{
+	_sessionStatus = status;
+}
+
+bool Client::erasable(void)
+{
+	return _sessionStatus;
 }
 
 void Client::updateStatus(MQTTSNPacket* packet)
