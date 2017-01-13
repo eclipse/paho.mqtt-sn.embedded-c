@@ -271,6 +271,8 @@ public:
 	char* getWillMsg(void);
 	const char* getStatus(void);
 	void setWaitWillMsgFlg(bool);
+	void setSessionStatus(bool);  // true: clean session
+	bool erasable(void);
 
 	bool isDisconnect(void);
 	bool isActive(void);
@@ -311,6 +313,8 @@ private:
 	bool  _secureNetwork;    // SSL
 	bool _sensorNetype;     // false: unstable network like a G3
 	SensorNetAddress _sensorNetAddr;
+
+	bool _sessionStatus;
 
 	Client* _nextClient;
 	Client* _prevClient;

@@ -16,6 +16,7 @@
 
 #include "MQTTSNGWBrokerRecvTask.h"
 #include "MQTTSNGWClient.h"
+#include <unistd.h>
 
 using namespace std;
 using namespace MQTTSNGW;
@@ -90,7 +91,11 @@ void BrokerRecvTask::run(void)
 			client = client->getNextClient();
 		}
 
-		if (maxSock > 0)
+		if (maxSock == 0)
+		{
+			usleep(500 * 1000);
+		}
+		else
 		{
 			/* Check sockets is ready to read */
 			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
@@ -114,7 +119,6 @@ void BrokerRecvTask::run(void)
 							if ( rc > 0 )
 							{
 								if ( log(client, packet) == -1 )
-
 								{
 									delete packet;
 									goto nextClient;
@@ -127,7 +131,21 @@ void BrokerRecvTask::run(void)
 							}
 							else
 							{
-								if (rc == -1)
+								if ( rc == 0 )  // Disconnected
+								{
+									client->getNetwork()->close();
+									delete packet;
+
+									/* delete client when the client is not authorized on & session is clean */
+									_gateway->getClientList()->erase(client);
+
+									if ( client )
+									{
+										client = client->getNextClient();
+									}
+									continue;
+								}
+								else if (rc == -1)
 								{
 									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n", ERRMSG_HEADER, errno, client->getClientId(), ERRMSG_FOOTER);
 								}

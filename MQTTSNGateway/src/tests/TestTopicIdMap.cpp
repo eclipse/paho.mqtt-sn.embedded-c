@@ -36,7 +36,7 @@ TestTopicIdMap::~TestTopicIdMap()
 void TestTopicIdMap::test(void)
 {
 	uint16_t id[MAXID];
-	printf("Test TopicIdMat start.\n");
+	printf("Test  TopicIdMat     ");
 
 	for ( int i = 0; i < MAXID; i++ )
 	{
@@ -120,6 +120,6 @@ void TestTopicIdMap::test(void)
 		//printf("TopicId=%d  msgId=%d type=%d\n", topicId, i, type);
 		assert( topicId == 0 );
 	}
-	printf("Test TopicIdMat completed.\n\n");
+	printf("[ OK ]\n");
 }
 

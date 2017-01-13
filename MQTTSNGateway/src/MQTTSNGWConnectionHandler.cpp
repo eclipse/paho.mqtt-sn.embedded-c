@@ -55,14 +55,14 @@ void MQTTSNConnectionHandler::handleSearchgw(MQTTSNPacket* packet)
 {
 	if (packet->getType() == MQTTSN_SEARCHGW)
 	{
-		if (_gateway->getClientList()->getClientCount() < MAX_CLIENTS)
-		{
+		//if (_gateway->getClientList()->getClientCount() < MAX_CLIENTS)
+		//{
 			MQTTSNPacket* gwinfo = new MQTTSNPacket();
 			gwinfo->setGWINFO(_gateway->getGWParams()->gatewayId);
 			Event* ev1 = new Event();
 			ev1->setBrodcastEvent(gwinfo);
 			_gateway->getClientSendQue()->post(ev1);
-		}
+		//}
 	}
 }
 
@@ -94,6 +94,7 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 		connectData->flags.bits.username = 1;
 	}
 
+	client->setSessionStatus(false);
 	if (data.cleansession)
 	{
 		connectData->flags.bits.cleanstart = 1;
@@ -108,6 +109,7 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 		}
 		topics = new Topics();
 		client->setTopics(topics);
+		client->setSessionStatus(true);
 	}
 
 	if (data.willFlag)

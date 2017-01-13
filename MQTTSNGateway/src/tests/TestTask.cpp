@@ -52,7 +52,7 @@ void TestTask::run(void)
 		{
 			assert(EVENT_CNT + 1 == evcnt);
 			delete ev;
-			printf("EventQue test complete.\n\n");
+			printf("[ OK ]\n");
 			break;
 		}
 		MQTTSNPacket* packet = ev->getMQTTSNPacket();
@@ -64,10 +64,10 @@ void TestTask::run(void)
 	{
 		if ( CHK_SIGINT)
 		{
-			printf("Task stopped.\n");
+			printf("\nTest  Task           [ OK ]\n");
 			return;
 		}
-		printf("Task is running. Enter CTRL+C\n");
+		printf("Enter CTRL+C\n");
 		sleep(1);
 	}
 }
