@@ -49,6 +49,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 
 	/* create MQTTSN_topicid */
 	MQTTSN_topicid topicId;
+	uint16_t id = 0;
 
 	if (pub.topiclen == 2)
 	{
@@ -61,11 +62,14 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 		topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 		topicId.data.long_.len = pub.topiclen;
 		topicId.data.long_.name = pub.topic;
-		unsigned short id = client->getTopics()->getTopicId(&topicId);
-		topicId.data.id = id;
+		id = client->getTopics()->getTopicId(&topicId);
 	}
 
-	if (topicId.data.id == 0)
+	if (id > 0)
+	{
+		topicId.data.id = id;
+	}
+	else
 	{
 		/* This message might be subscribed with wild card. */
 		Topic* topic = client->getTopics()->match(&topicId);
@@ -85,7 +89,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 
 		/* add the Topic and get a TopicId */
 		topic = client->getTopics()->add(&topicId);
-		uint16_t id = topic->getTopicId();
+		id = topic->getTopicId();
 
 		if (id > 0)
 		{

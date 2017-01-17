@@ -830,7 +830,7 @@ Topics::~Topics()
 	}
 }
 
-uint16_t Topics::getTopicId(MQTTSN_topicid* topicid)
+uint16_t Topics::getTopicId(const MQTTSN_topicid* topicid)
 {
 	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
 	{
@@ -863,7 +863,7 @@ Topic* Topics::getTopic(uint16_t id)
 	return 0;
 }
 
-Topic* Topics::getTopic(MQTTSN_topicid* topicid)
+Topic* Topics::getTopic(const MQTTSN_topicid* topicid)
 {
 	Topic* p = _first;
 	while (p)
@@ -877,7 +877,7 @@ Topic* Topics::getTopic(MQTTSN_topicid* topicid)
 	return 0;
 }
 
-Topic* Topics::add(MQTTSN_topicid* topicid)
+Topic* Topics::add(const MQTTSN_topicid* topicid)
 {
 	Topic* topic;
 	uint16_t id = 0;
@@ -901,7 +901,7 @@ Topic* Topics::add(MQTTSN_topicid* topicid)
 }
 
 
-Topic* Topics::add(string* topicName)
+Topic* Topics::add(const string* topicName)
 {
 	Topic* topic = 0;
 
@@ -942,7 +942,7 @@ uint16_t Topics::getNextTopicId()
 	return ++_nextTopicId == 0xffff ? _nextTopicId += 2 : _nextTopicId;
 }
 
-Topic* Topics::match(MQTTSN_topicid* topicid)
+Topic* Topics::match(const MQTTSN_topicid* topicid)
 {
 	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
 	{
