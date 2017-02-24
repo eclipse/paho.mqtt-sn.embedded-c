@@ -127,13 +127,13 @@ class Topics
 public:
 	Topics();
 	~Topics();
-	Topic* add(MQTTSN_topicid* topicid);
-	Topic* add(string* topic);
-	uint16_t getTopicId(MQTTSN_topicid* topic);
+	Topic* add(const MQTTSN_topicid* topicid);
+	Topic* add(const string* topic);
+	uint16_t getTopicId(const MQTTSN_topicid* topic);
 	uint16_t getNextTopicId();
 	Topic* getTopic(uint16_t topicId);
-	Topic* getTopic(MQTTSN_topicid* topicid);
-	Topic* match(MQTTSN_topicid* topicid);
+	Topic* getTopic(const MQTTSN_topicid* topicid);
+	Topic* match(const MQTTSN_topicid* topicid);
 
 private:
 	uint16_t _nextTopicId;

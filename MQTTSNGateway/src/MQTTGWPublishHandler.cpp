@@ -49,6 +49,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 
 	/* create MQTTSN_topicid */
 	MQTTSN_topicid topicId;
+	uint16_t id = 0;
 
 	if (pub.topiclen == 2)
 	{
@@ -61,73 +62,77 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 		topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 		topicId.data.long_.len = pub.topiclen;
 		topicId.data.long_.name = pub.topic;
-		unsigned short id = client->getTopics()->getTopicId(&topicId);
-		topicId.data.id = id;
-	}
+		id = client->getTopics()->getTopicId(&topicId);
 
-	if (topicId.data.id == 0)
-	{
-		/* This message might be subscribed with wild card. */
-		Topic* topic = client->getTopics()->match(&topicId);
-		if (topic == 0)
+		if ( id > 0 )
 		{
-			WRITELOG(" Invalid Topic. PUBLISH message is canceled.\n");
-			if (pub.header.bits.qos == 1)
-			{
-				replyACK(client, &pub, PUBACK);
-			}
-			else if ( pub.header.bits.qos == 2 )
-			{
-				replyACK(client, &pub, PUBREC);
-			}
-			return;
-		}
-
-		/* add the Topic and get a TopicId */
-		topic = client->getTopics()->add(&topicId);
-		uint16_t id = topic->getTopicId();
-
-		if (id > 0)
-		{
-			/* create REGACK */
-			MQTTSNPacket* regPacket = new MQTTSNPacket();
-
-			MQTTSNString topicName;
-			topicName.lenstring.len = topicId.data.long_.len;
-			topicName.lenstring.data = topicId.data.long_.name;
-
-			uint16_t regackMsgId = client->getNextSnMsgId();
-			regPacket->setREGISTER(id, regackMsgId, &topicName);
-
-			if (client->isSleep())
-			{
-				client->setClientSleepPacket(regPacket);
-				WRITELOG(FORMAT_BL_NL, currentDateTime(), regPacket->getName(),
-				RIGHTARROW, client->getClientId(), "is sleeping. REGISTER was saved.");
-			}
-			else if (client->isActive())
-			{
-				/* send REGISTER */
-				Event* evrg = new Event();
-				evrg->setClientSendEvent(client, regPacket);
-				_gateway->getClientSendQue()->post(evrg);
-			}
-
-			/* send PUBLISH */
 			topicId.data.id = id;
-			snPacket->setPUBLISH((uint8_t) pub.header.bits.dup, (int) pub.header.bits.qos,
-					(uint8_t) pub.header.bits.retain, (uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload,
-					pub.payloadlen);
-			client->getWaitREGACKPacketList()->setPacket(snPacket, regackMsgId);
 		}
 		else
 		{
-			WRITELOG("\x1b[0m\x1b[31mMQTTGWPublishHandler Can't create a Topic.\n");
-			return;
+			/* This message might be subscribed with wild card. */
+			Topic* topic = client->getTopics()->match(&topicId);
+			if (topic == 0)
+			{
+				WRITELOG(" Invalid Topic. PUBLISH message is canceled.\n");
+				if (pub.header.bits.qos == 1)
+				{
+					replyACK(client, &pub, PUBACK);
+				}
+				else if ( pub.header.bits.qos == 2 )
+				{
+					replyACK(client, &pub, PUBREC);
+				}
+				return;
+			}
+
+			/* add the Topic and get a TopicId */
+			topic = client->getTopics()->add(&topicId);
+			id = topic->getTopicId();
+
+			if (id > 0)
+			{
+				/* create REGACK */
+				MQTTSNPacket* regPacket = new MQTTSNPacket();
+
+				MQTTSNString topicName;
+				topicName.lenstring.len = topicId.data.long_.len;
+				topicName.lenstring.data = topicId.data.long_.name;
+
+				uint16_t regackMsgId = client->getNextSnMsgId();
+				regPacket->setREGISTER(id, regackMsgId, &topicName);
+
+				if (client->isSleep())
+				{
+					client->setClientSleepPacket(regPacket);
+					WRITELOG(FORMAT_BL_NL, currentDateTime(), regPacket->getName(),
+					RIGHTARROW, client->getClientId(), "is sleeping. REGISTER was saved.");
+				}
+				else if (client->isActive())
+				{
+					/* send REGISTER */
+					Event* evrg = new Event();
+					evrg->setClientSendEvent(client, regPacket);
+					_gateway->getClientSendQue()->post(evrg);
+				}
+
+				/* send PUBLISH */
+				topicId.data.id = id;
+				snPacket->setPUBLISH((uint8_t) pub.header.bits.dup, (int) pub.header.bits.qos,
+						(uint8_t) pub.header.bits.retain, (uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload,
+						pub.payloadlen);
+				client->getWaitREGACKPacketList()->setPacket(snPacket, regackMsgId);
+			}
+			else
+			{
+				WRITELOG("\x1b[0m\x1b[31mMQTTGWPublishHandler Can't create a Topic.\n");
+				delete snPacket;
+				return;
+			}
 		}
 	}
 
-	/* TopicId was aquired. */
+	/* TopicId was acquired. */
 	if (client->isSleep())
 	{
 		/* client is sleeping. save PUBLISH */

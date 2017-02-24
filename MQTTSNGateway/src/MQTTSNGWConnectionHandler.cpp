@@ -55,14 +55,11 @@ void MQTTSNConnectionHandler::handleSearchgw(MQTTSNPacket* packet)
 {
 	if (packet->getType() == MQTTSN_SEARCHGW)
 	{
-		//if (_gateway->getClientList()->getClientCount() < MAX_CLIENTS)
-		//{
-			MQTTSNPacket* gwinfo = new MQTTSNPacket();
-			gwinfo->setGWINFO(_gateway->getGWParams()->gatewayId);
-			Event* ev1 = new Event();
-			ev1->setBrodcastEvent(gwinfo);
-			_gateway->getClientSendQue()->post(ev1);
-		//}
+		MQTTSNPacket* gwinfo = new MQTTSNPacket();
+		gwinfo->setGWINFO(_gateway->getGWParams()->gatewayId);
+		Event* ev1 = new Event();
+		ev1->setBrodcastEvent(gwinfo);
+		_gateway->getClientSendQue()->post(ev1);
 	}
 }
 

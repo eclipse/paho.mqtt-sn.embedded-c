@@ -290,7 +290,15 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 		{
 			SSL_load_error_strings();
 			SSL_library_init();
+
+#if ( OPENSSL_VERSION_NUMBER >= 0x10100000L )
 			_ctx = SSL_CTX_new(TLS_client_method());
+#elif ( OPENSSL_VERSION_NUMBER >= 0x10001000L )
+			_ctx = SSL_CTX_new(TLSv1_client_method());
+#else
+			_ctx = SSL_CTX_new(SSLv23_client_method());
+#endif
+
 			if (_ctx == 0)
 			{
 				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));

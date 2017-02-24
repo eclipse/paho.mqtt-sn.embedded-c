@@ -136,7 +136,7 @@ void BrokerRecvTask::run(void)
 									client->getNetwork()->close();
 									delete packet;
 
-									/* delete client when the client is not authorized on & session is clean */
+									/* delete client when the client is not authorized & session is clean */
 									_gateway->getClientList()->erase(client);
 
 									if ( client )
