@@ -40,9 +40,10 @@ namespace MQTTSNGW
 
 #define XMIT_STATUS_TIME_OVER    5000
 
-#define ESCAPE     0x7d
-#define XON        0x11
-#define XOFF       0x13
+#define START_BYTE               0x7e
+#define ESCAPE                   0x7d
+#define XON                      0x11
+#define XOFF                     0x13
 
 /*===========================================
   Class  SerialPort
