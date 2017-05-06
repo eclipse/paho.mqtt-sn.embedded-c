@@ -7,11 +7,11 @@ LAPPL := mainLogmonitor
 TESTPROGNAME := testPFW
 TESTAPPL := mainTestProcess
 
-CONFIG := MQTTSNGateway/gateway.conf
-CLIENTS := MQTTSNGateway/clients.conf
+CONFIG := gateway.conf
+CLIENTS := clients.conf
 
-SRCDIR := MQTTSNGateway/src
-SUBDIR := MQTTSNPacket/src
+SRCDIR := src
+SUBDIR := ../MQTTSNPacket/src
 
 OS := linux
 SENSORNET := udp
@@ -59,7 +59,7 @@ $(SUBDIR)/MQTTSNSubscribeServer.c \
 $(SUBDIR)/MQTTSNUnsubscribeClient.c \
 $(SUBDIR)/MQTTSNUnsubscribeServer.c 
 
-CXX := g++ 
+CXX := g++
 CPPFLAGS += 
 
 INCLUDES += -I$(SRCDIR) \
@@ -72,7 +72,7 @@ DEFS :=
 LIBS += -L/usr/local/lib
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := -lpthread -lssl -lcrypto
+LDADD := -lpthread -lssl -lcrypto -lrt
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGNAME)
@@ -129,13 +129,14 @@ clean:
 	rm -rf $(OUTDIR)
 
 install:
-	cp -pf $(PROG) ../
-	cp -pf $(LPROG) ../
-	cp -pf $(CONFIG) ../
-	cp -pf $(CLIENTS) ../
+	cp -pf $(PROG) ../../
+	cp -pf $(LPROG) ../../
+	cp -pf $(CONFIG) ../../
+	cp -pf $(CLIENTS) ../../
 
 exectest:
 	cp -pf $(CONFIG) $(OUTDIR)
-	cd $(OUTDIR); ./$(TESTPROGNAME) -f ./gateway.conf
+	cd $(OUTDIR)
+	./$(TESTPROGNAME) -f ./gateway.conf
 
 	

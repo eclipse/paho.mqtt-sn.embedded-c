@@ -25,8 +25,6 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define GATEWAY_VERSION " * Version: 0.9.7"
-
 #define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
 #define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
