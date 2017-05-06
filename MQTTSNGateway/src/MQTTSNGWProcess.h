@@ -40,6 +40,7 @@ namespace MQTTSNGW
  ==================================*/
 #define WRITELOG theProcess->putLog
 #define CHK_SIGINT (theProcess->checkSignal() == SIGINT)
+#define UNUSED(x) ((void)(x))
 /*=================================
  Class Process
  ==================================*/

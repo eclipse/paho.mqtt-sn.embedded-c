@@ -1,0 +1,21 @@
+language: cpp
+compiler: g++
+
+install:
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+    
+script: 
+  - cd MQTTSNGateway
+  - make CXX="g++-4.8" SENSORNET="xbee"
+  - make CXX="g++-4.8" SENSORNET="udp"
+  
+notifications:
+  emails:
+    - tomoaki@tomy-tech.com
+    
