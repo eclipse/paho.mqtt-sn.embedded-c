@@ -17,6 +17,7 @@
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
+#include "MQTTSNGWVersion.h"
 #include <string.h>
 using namespace MQTTSNGW;
 
@@ -218,7 +219,7 @@ void Gateway::run(void)
 	WRITELOG("%s\n", PAHO_COPYRIGHT1);
 	WRITELOG("%s\n", PAHO_COPYRIGHT2);
 	WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
-	WRITELOG("%s\n", GATEWAY_VERSION);
+	WRITELOG(" * Version: %s\n", PAHO_GATEWAY_VERSION);
 	WRITELOG("%s\n", PAHO_COPYRIGHT4);
 	WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
 	WRITELOG(" ConfigFile: %s\n", _params.configName);
