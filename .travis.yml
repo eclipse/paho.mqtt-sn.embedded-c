@@ -14,6 +14,11 @@ script:
   - cd MQTTSNGateway
   - make CXX="g++-4.8" SENSORNET="xbee"
   - make CXX="g++-4.8" SENSORNET="udp"
+  - make test
+    
+  - cd GatewayTester
+  - make CXX="g++-4.8"
+ 
   
 notifications:
   emails:

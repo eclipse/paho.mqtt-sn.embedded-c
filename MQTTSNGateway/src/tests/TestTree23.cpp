@@ -76,7 +76,6 @@ void TestTree23::test(void)
 		assert(rc == false);
 		//printf("key=%d  find=%d\n", i, rc);
 		Integer* val = this->getVal(r1[i]);
-		//printf("key=%d  val=%d\n", i, val->_val);
 		assert(val == 0);
 	}
 	for ( int i = 50; i < N; i++)
