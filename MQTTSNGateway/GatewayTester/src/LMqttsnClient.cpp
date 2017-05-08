@@ -61,14 +61,14 @@ int run(void)
 			{
 				if ( toupper(c) == 'N' )
 				{
-					ASSERT("\033[0;31m\n**** Sorry ****\033[0;37m\n\n");
+					DISPLAY("\033[0;31m\n**** Sorry ****\033[0;37m\n\n");
 					PROMPT("");
 					return 0;
 				}
 			}
 			else if ( toupper(c) == 'Y' )
 			{
-				ASSERT("\033[0m\033[0;32mAttempting to Connect the Broker.....\033[0m\033[0;37m\n");
+				DISPLAY("\033[0m\033[0;32mAttempting to Connect the Broker.....\033[0m\033[0;37m\n");
 				PROMPT("");
 				break;
 			}

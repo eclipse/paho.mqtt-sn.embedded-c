@@ -96,11 +96,11 @@ struct LUdpConfig{
 #define UDPCONF  LUdpConfig theNetcon
 #define MQTTSNCONF LMqttsnConfig  theMqcon
 #ifdef CLIENT_MODE
-#define ASSERT(...)
+#define DISPLAY(...)
 #define PROMPT(...)
-#define CHECKKEYIN(...)
+#define CHECKKEYIN(...) theScreen->checkKeyIn(__VA_ARGS__)
 #else
-#define ASSERT(...) theScreen->display(__VA_ARGS__)
+#define DISPLAY(...) theScreen->display(__VA_ARGS__)
 #define PROMPT(...) theScreen->prompt(__VA_ARGS__)
 #define CHECKKEYIN(...) theScreen->checkKeyIn(__VA_ARGS__)
 #endif

@@ -135,8 +135,6 @@ install:
 	cp -pf $(CLIENTS) ../../
 
 exectest:
-	cp -pf $(CONFIG) $(OUTDIR)
-	cd $(OUTDIR)
-	./$(TESTPROGNAME) -f ./gateway.conf
+	./$(OUTDIR)/$(TESTPROGNAME) -f ./gateway.conf
 
 	

@@ -257,10 +257,10 @@ private:
 /*=====================================
  Class Tree23
  ====================================*/
-#define TREE23_INSERT_ACTIVE  (1)
-#define TREE23_DELETE_ACTIVE  (2)
-#define TREE23_BI_NODE        (3)
-#define TREE23_TRI_NODE       (4)
+#define TREE23_INSERT_ACTIVE  (-2)
+#define TREE23_DELETE_ACTIVE  (-1)
+#define TREE23_BI_NODE        (2)
+#define TREE23_TRI_NODE       (3)
 
 template <typename K, typename V>
 class Tree23Elm{

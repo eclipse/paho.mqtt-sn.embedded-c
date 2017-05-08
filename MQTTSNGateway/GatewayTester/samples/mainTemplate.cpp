@@ -40,7 +40,7 @@ extern int run(void);
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
- *   void ASSERT( format, valiables, .....);    <== instead of printf()
+ *   void DISPLAY( format, valiables, .....);    <== instead of printf()
  *
  */
 

@@ -29,7 +29,7 @@
 using namespace std;
 using namespace MQTTSNGW;
 
-#define ARGV    "./testPFW"
+#define ARGV    "./Build/testPFW"
 #define CONFDIR "./"
 #define CONF    "gateway.conf"
 
@@ -121,5 +121,5 @@ void TestProcess::run(void)
 		_evQue.post(ev);
 	}
 
-	MultiTaskProcess::run();
+	//MultiTaskProcess::run();
 }

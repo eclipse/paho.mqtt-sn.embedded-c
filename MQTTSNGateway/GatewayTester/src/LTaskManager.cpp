@@ -71,14 +71,14 @@ void LTaskManager::run(void){
 						if ( toupper(c) == 'N' )
 						{
 
-							ASSERT("\033[0m\033[0;32m\n**** %s is canceled ****\033[0m\033[0;37m\n\n", _tests[i].testLabel);
+							DISPLAY("\033[0m\033[0;32m\n**** %s is canceled ****\033[0m\033[0;37m\n\n", _tests[i].testLabel);
 							theScreen->prompt("");
 							cancelFlg = true;
 							break;
 						}
 						else if ( toupper(c) == 'Y' )
 						{
-							ASSERT("\033[0m\033[0;32m\n\n**** %s start ****\033[0m\033[0;37m\n", _tests[i].testLabel);
+							DISPLAY("\033[0m\033[0;32m\n\n**** %s start ****\033[0m\033[0;37m\n", _tests[i].testLabel);
 							theScreen->prompt("");
 							(_tests[i].testTask)();
 							cancelFlg = false;
@@ -108,10 +108,10 @@ void LTaskManager::run(void){
 				}
 				if ( !cancelFlg )
 				{
-					ASSERT("\033[0m\033[0;32m\n**** %s complete ****\033[0m\033[0;37m\n\n", _tests[i].testLabel);
+					DISPLAY("\033[0m\033[0;32m\n**** %s complete ****\033[0m\033[0;37m\n\n", _tests[i].testLabel);
 				}
 			}
-			ASSERT("\033[0m\033[0;32m\n\n#########  All tests complete!  ###########\033[0m\033[0;37m\n\n");
+			DISPLAY("\033[0m\033[0;32m\n\n#########  All tests complete!  ###########\033[0m\033[0;37m\n\n");
 	}
 	else
 	{

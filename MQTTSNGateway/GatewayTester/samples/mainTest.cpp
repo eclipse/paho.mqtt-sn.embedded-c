@@ -40,7 +40,7 @@ extern int run(void);
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
- *   void ASSERT( format, .....);    <== instead of printf()
+ *   void DISPLAY( format, .....);    <== instead of printf()
  *
  */
 /*------------------------------------------------------
@@ -81,26 +81,26 @@ const char* topic3 = "ty4tw/topic3";
  *------------------------------------------------------*/
 int on_Topic01(uint8_t* pload, uint16_t ploadlen)
 {
-	ASSERT("\n\nTopic1 recv.\n");
+	DISPLAY("\n\nTopic1 recv.\n");
 	char c = pload[ploadlen-1];
 	pload[ploadlen-1]= 0;   // set null terminator
-	ASSERT("Payload -->%s%c<--\n\n",pload, c);
+	DISPLAY("Payload -->%s%c<--\n\n",pload, c);
 	return 0;
 }
 
 int on_Topic02(uint8_t* pload, uint16_t ploadlen)
 {
-	ASSERT("\n\nTopic2 recv.\n");
+	DISPLAY("\n\nTopic2 recv.\n");
 	pload[ploadlen-1]= 0;   // set null terminator
-	ASSERT("Payload -->%s　<--\n\n",pload);
+	DISPLAY("Payload -->%s　<--\n\n",pload);
 	return 0;
 }
 
 int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 {
-	ASSERT("\n\nNew callback recv Topic2\n");
+	DISPLAY("\n\nNew callback recv Topic2\n");
 	pload[ploadlen-1]= 0;   // set null terminator
-	ASSERT("Payload -->%s　<--\n\n",pload);
+	DISPLAY("Payload -->%s　<--\n\n",pload);
 	return 0;
 }
 
