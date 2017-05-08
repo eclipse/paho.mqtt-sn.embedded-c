@@ -165,7 +165,7 @@ int LGwProxy::getConnectResponce(void){
 			_connectRetry = MQTTSN_RETRY_COUNT;
 			_keepAliveTimer.start(_tkeepAlive * 1000);
 			_topicTbl.clearTopic();
-			ASSERT("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
+			DISPLAY("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
 			theClient->onConnect();  // SUBSCRIBEs are conducted
 		}else{
 			_status = GW_CONNECTING;
@@ -201,7 +201,7 @@ void LGwProxy::disconnect(uint16_t secs){
 	while ( _status != GW_DISCONNECTED && _status != GW_SLEPT){
 		if (getDisconnectResponce() < 0){
 			_status = GW_LOST;
-			ASSERT("\033[0m\033[0;31m\n\n!!!!!! DISCONNECT  Error !!!!!\033[0m\033[0;37m \n\n");
+			DISPLAY("\033[0m\033[0;31m\n\n!!!!!! DISCONNECT  Error !!!!!\033[0m\033[0;37m \n\n");
 			return;
 		}
 	}
@@ -331,7 +331,7 @@ int LGwProxy::writeMsg(const uint8_t* msg){
 	if (rc > 0){
 		if ( msg[pos] >= MQTTSN_TYPE_ADVERTISE && msg[pos] <= MQTTSN_TYPE_WILLMSGRESP )
 		{
-			ASSERT("  send %s\n", packet_names[msg[pos]]);
+			DISPLAY("  send %s\n", packet_names[msg[pos]]);
 		}
 		return rc;
 	}
@@ -365,7 +365,7 @@ int LGwProxy::readMsg(void){
 	}
 	if ( *_mqttsnMsg >= MQTTSN_TYPE_ADVERTISE && *_mqttsnMsg <= MQTTSN_TYPE_WILLMSGRESP )
 	{
-		ASSERT("  recv %s\n", packet_names[*_mqttsnMsg]);
+		DISPLAY("  recv %s\n", packet_names[*_mqttsnMsg]);
 	}
 	return len;
 }
