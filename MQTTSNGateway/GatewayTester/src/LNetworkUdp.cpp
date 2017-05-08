@@ -191,7 +191,7 @@ bool LUdpPort::open(LUdpConfig config){
 
 	if(setsockopt(_sockfdMcast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
 		D_NWLOG("\033[0m\033[0;31merror IP_MULTICAST_LOOP in UdpPPort::open\033[0m\033[0;37m\n");
-		ASSERT("\033[0m\033[0;31m\nerror IP_MULTICAST_LOOP in UdpPPort::open\033[0m\033[0;37m\n");
+		DISPLAY("\033[0m\033[0;31m\nerror IP_MULTICAST_LOOP in UdpPPort::open\033[0m\033[0;37m\n");
 		close();
 		return false;
 	}
@@ -202,7 +202,7 @@ bool LUdpPort::open(LUdpConfig config){
 
 	if( setsockopt(_sockfdMcast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
 		D_NWLOG("\033[0m\033[0;31merror IP_ADD_MEMBERSHIP in UdpPort::open\033[0m\033[0;37m\n");
-		ASSERT("\033[0m\033[0;31m\nerror IP_ADD_MEMBERSHIP in UdpPort::open\033[0m\033[0;37m\n");
+		DISPLAY("\033[0m\033[0;31m\nerror IP_ADD_MEMBERSHIP in UdpPort::open\033[0m\033[0;37m\n");
 		close();
 		return false;
 	}
@@ -223,7 +223,7 @@ int LUdpPort::unicast(const uint8_t* buf, uint32_t length, uint32_t ipAddress, u
 	int status = ::sendto( _sockfdUcast, buf, length, 0, (const sockaddr*)&dest, sizeof(dest) );
 	if( status < 0){
 		D_NWLOG("errno == %d in UdpPort::unicast\n", errno);
-		ASSERT("errno == %d in UdpPort::unicast\n", errno);
+		DISPLAY("errno == %d in UdpPort::unicast\n", errno);
 	}else{
 		D_NWLOG("sendto %-15s:%-6u",inet_ntoa(dest.sin_addr),htons(port));
 		for(uint16_t i = 0; i < length ; i++){
@@ -262,14 +262,14 @@ int LUdpPort::multicast( const uint8_t* buf, uint32_t length ){
 	int status = ::sendto( _sockfdMcast, buf, length, 0, (const sockaddr*)&dest, sizeof(dest) );
 	if( status < 0){
 		D_NWLOG("\033[0m\033[0;31merrno == %d in UdpPort::multicast\033[0m\033[0;37m\n", errno);
-		ASSERT("\033[0m\033[0;31merrno == %d in UdpPort::multicast\033[0m\033[0;37m\n", errno);
+		DISPLAY("\033[0m\033[0;31merrno == %d in UdpPort::multicast\033[0m\033[0;37m\n", errno);
 		return errno;
 	}else{
 		D_NWLOG("sendto %-15s:%-6u",inet_ntoa(dest.sin_addr),htons(_gPortNo));
 
 		for(uint16_t i = 0; i < length ; i++){
 			D_NWLOG(" %02x", *(buf + i));
-			ASSERT(" %02x", *(buf + i));
+			DISPLAY(" %02x", *(buf + i));
 		}
 		D_NWLOG("\n");
 
@@ -352,7 +352,7 @@ int LUdpPort::recvfrom (uint8_t* buf, uint16_t length, int flags, uint32_t* ipAd
 
 	if (status < 0 && errno != EAGAIN)	{
 		D_NWLOG("\033[0m\033[0;31merrno == %d in UdpPort::recvfrom \033[0m\033[0;37m\n", errno);
-		ASSERT("\033[0m\033[0;31merrno == %d in UdpPort::recvfrom \033[0m\033[0;37m\n", errno);
+		DISPLAY("\033[0m\033[0;31merrno == %d in UdpPort::recvfrom \033[0m\033[0;37m\n", errno);
 	}else if(status > 0){
 		*ipAddressPtr = sender.sin_addr.s_addr;
 		*portPtr = sender.sin_port;

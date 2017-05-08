@@ -60,7 +60,7 @@ LSubscribeManager::~LSubscribeManager()
 
 void LSubscribeManager::onConnect(void)
 {
-	ASSERT("\033[0m\033[0;32m Attempting OnConnect.....\033[0m\033[0;37m\n");
+	DISPLAY("\033[0m\033[0;32m Attempting OnConnect.....\033[0m\033[0;37m\n");
 	if (_first == 0)
 	{
 		for (uint8_t i = 0; theOnPublishList[i].topic != 0; i++)
@@ -89,8 +89,8 @@ void LSubscribeManager::onConnect(void)
 	{
 		theClient->getGwProxy()->getMessage();
 	}
-	ASSERT("\033[0m\033[0;32m OnConnect complete\033[0m\033[0;37m\n");
-	ASSERT("\033[0m\033[0;32m Test is Ready.\033[0m\033[0;37m\n");
+	DISPLAY("\033[0m\033[0;32m OnConnect complete\033[0m\033[0;37m\n");
+	DISPLAY("\033[0m\033[0;32m Test is Ready.\033[0m\033[0;37m\n");
 }
 
 bool LSubscribeManager::isDone(void)
@@ -194,9 +194,9 @@ void LSubscribeManager::checkTimeout(void)
 				{
 					if (elm->msgType == MQTTSN_TYPE_SUBSCRIBE)
 					{
-						ASSERT("\033[0m\033[0;31m\n!!!!!! SUBSCRIBE  Error !!!!! Topic : %s\033[0m\033[0;37m\n\n", (char*)elm->topicName);
+						DISPLAY("\033[0m\033[0;31m\n!!!!!! SUBSCRIBE  Error !!!!! Topic : %s\033[0m\033[0;37m\n\n", (char*)elm->topicName);
 					}else{
-						ASSERT("\033[0m\033[0;31m\n!!!!!! UNSUBSCRIBE  Error !!!!! Topic : %s\033[0m\033[0;37m\n\n", (char*)elm->topicName);
+						DISPLAY("\033[0m\033[0;31m\n!!!!!! UNSUBSCRIBE  Error !!!!! Topic : %s\033[0m\033[0;37m\n\n", (char*)elm->topicName);
 					}
 					elm->done = SUB_DONE;
 				}
@@ -222,12 +222,12 @@ void LSubscribeManager::responce(const uint8_t* msg)
 			{
 				tt->add((char*) elm->topicName, topicId, elm->topicType, elm->callback);
 				getElement(msgId)->done = SUB_DONE;
-				ASSERT("\033[0m\033[0;32m Topic \"%s\" Id : %d was Subscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
+				DISPLAY("\033[0m\033[0;32m Topic \"%s\" Id : %d was Subscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
 			}
 			else
 			{
 				remove(elm);
-				ASSERT("\033[0m\033[0;31m SUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
+				DISPLAY("\033[0m\033[0;31m SUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
 			}
 		}
 	}
@@ -239,12 +239,12 @@ void LSubscribeManager::responce(const uint8_t* msg)
 		{
 			LTopicTable* tt = theClient->getGwProxy()->getTopicTable();
 			tt->setCallback(elm->topicName, 0);
-			ASSERT("\033[0m\033[0;32m Topic  \"%s\"  Id : %d was Unsubscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
+			DISPLAY("\033[0m\033[0;32m Topic  \"%s\"  Id : %d was Unsubscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
 			remove(getElement(msgId));
 		}
 		else
 		{
-			ASSERT("\033[0m\033[0;31m UNSUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
+			DISPLAY("\033[0m\033[0;31m UNSUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
 			remove(getElement(msgId));
 		}
 	}

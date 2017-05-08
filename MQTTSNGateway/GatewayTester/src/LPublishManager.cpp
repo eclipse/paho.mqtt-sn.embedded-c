@@ -153,7 +153,7 @@ void LPublishManager::sendPublish(PubElement* elm)
 	theClient->getGwProxy()->resetPingReqTimer();
 	if ((elm->flag & 0x60) == MQTTSN_FLAG_QOS_0)
 	{
-		ASSERT("\033[0m\033[0;32m Topic \"%s\" was Published. \033[0m\033[0;37m\n\n", elm->topicName);
+		DISPLAY("\033[0m\033[0;32m Topic \"%s\" was Published. \033[0m\033[0;37m\n\n", elm->topicName);
 		remove(elm);  // PUBLISH Done
 		return;
 	}
@@ -234,7 +234,7 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 		{
 			if (elm->status == WAIT_PUBACK)
 			{
-				ASSERT("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
+				DISPLAY("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
 				remove(elm); // PUBLISH Done
 			}
 		}
@@ -270,7 +270,7 @@ void LPublishManager::responce(const uint8_t* msg, uint16_t msglen)
 		}
 		if (elm->status == WAIT_PUBCOMP)
 		{
-			ASSERT("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
+			DISPLAY("\033[0m\033[0;32m Topic \"%s\"  Id : %d was Published. \033[0m\033[0;37m\n\n", elm->topicName, elm->topicId);
 			remove(elm);  // PUBLISH Done
 		}
 	}
