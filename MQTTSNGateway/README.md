@@ -6,8 +6,8 @@ $ git clone -b gateway https://github.com/eclipse/paho.mqtt-sn.embedded-c
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
 $ make   
 $ make install   
-$ make clean
-```       
+$ make clean    
+````      
 MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into ../ directory.
 
     
@@ -22,7 +22,7 @@ $ ./MQTT-SNGateway [-f Config file name]
 ### **How to Change the configuration of the gateway**    
 **../gateway.conf**   Contents are follows: 
    
-````
+````    
 
 # config file of MQTT-SN Gateway
 
@@ -38,22 +38,22 @@ ClientAuthentication=NO
 #CertKey=/path/to/your_cert.pem
 #PrivateKey=/path/to/your_private-key.pem
     
-GatewayID=1
-GatewayName=PahoGateway-01
-KeepAlive=900
-#LoginID=your_ID
-#Password=your_Password
+GatewayID=1    
+GatewayName=PahoGateway-01    
+KeepAlive=900    
+#LoginID=your_ID    
+#Password=your_Password    
 
 # UDP
-GatewayPortNo=10000
-MulticastIP=225.1.1.1
-MulticastPortNo=1883
+GatewayPortNo=10000    
+MulticastIP=225.1.1.1    
+MulticastPortNo=1883    
 
 # XBee
-Baudrate=38400
-SerialDevice=/dev/ttyUSB0
-ApiMode=2
-```
+Baudrate=38400    
+SerialDevice=/dev/ttyUSB0    
+ApiMode=2    
+````    
 
 **BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
 **MulticastIP** and **MulticastPortNo** is a multicast address for ADVERTISE, GWSEARCH and GWINFO messages. Gateway is waiting GWSEARCH multicast message and when receiving it send GWINFO message via Broadcast address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom(),
