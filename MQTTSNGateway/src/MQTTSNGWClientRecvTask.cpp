@@ -53,6 +53,7 @@ void ClientRecvTask::run()
 {
 	Event* ev = 0;
 	Client* client = 0;
+	char buf[128];
 
 	while (true)
 	{
@@ -106,14 +107,19 @@ void ClientRecvTask::run()
 			{
 				MQTTSNPacket_connectData data;
 				memset(&data, 0, sizeof(MQTTSNPacket_connectData));
-				packet->getCONNECT(&data);
+				if ( !packet->getCONNECT(&data) )
+				{
+					log(0, packet, &data.clientID);
+					WRITELOG("%s CONNECT message form %s is incorrect.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+					delete packet;
+					continue;
+				}
 
 				/* create a client */
 				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
 				log(client, packet, &data.clientID);
 				if (!client)
 				{
-					char buf[128];
 					WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
