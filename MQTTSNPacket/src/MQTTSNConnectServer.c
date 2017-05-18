@@ -38,7 +38,7 @@ int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, len, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 2)
 		goto exit;
@@ -50,7 +50,7 @@ int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf
 	data->cleansession = flags.bits.cleanSession;
 	data->willFlag = flags.bits.will;
 
-	if ((version = (int)readChar(&curdata)) != 1) /* Protocol version */
+	if ((version = (int)readChar(&curdata)) != MQTTSN_PROTOCOL_VERSION)
 		goto exit;
 
 	data->duration = readInt(&curdata);
