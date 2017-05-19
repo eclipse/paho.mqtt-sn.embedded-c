@@ -41,7 +41,10 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 	MQTTSN_topicid topicFilter;
 	Topic* topic = 0;
 
-	packet->getSUBSCRIBE(&dup, &qos, &msgId, &topicFilter);
+	if ( packet->getSUBSCRIBE(&dup, &qos, &msgId, &topicFilter) == 0 )
+	{
+		return;
+	}
 
 	if (topicFilter.type <= MQTTSN_TOPIC_TYPE_SHORT)
 	{
@@ -139,7 +142,10 @@ void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* pac
 	uint16_t msgId;
 	MQTTSN_topicid topicFilter;
 
-	packet->getUNSUBSCRIBE(&msgId, &topicFilter);
+	if ( packet->getUNSUBSCRIBE(&msgId, &topicFilter) == 0 )
+	{
+		return;
+	}
 
 	if ( topicFilter.type == MQTTSN_TOPIC_TYPE_PREDEFINED )
 	{

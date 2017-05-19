@@ -56,7 +56,10 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 		return;
 	}
 
-	packet->getPUBLISH(&dup, &qos, &retained, &msgId, &topicid, &payload, &payloadlen);
+	if ( packet->getPUBLISH(&dup, &qos, &retained, &msgId, &topicid, &payload, &payloadlen) ==0 )
+	{
+		return;
+	}
 	pub.msgId = msgId;
 	pub.header.bits.dup = dup;
 	pub.header.bits.qos = qos;
@@ -180,7 +183,12 @@ void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)
 		return;
 	}
 	MQTTGWPacket* pubAck = new MQTTGWPacket();
-	packet->getPUBACK(&topicId, &msgId, &rc);
+
+	if ( packet->getPUBACK(&topicId, &msgId, &rc) == 0 )
+	{
+		return;
+	}
+
 	if ( rc == MQTTSN_RC_ACCEPTED)
 	{
 		pubAck->setAck(PUBACK, msgId);
@@ -202,7 +210,10 @@ void MQTTSNPublishHandler::handleAck(Client* client, MQTTSNPacket* packet, uint8
 	{
 		return;
 	}
-	packet->getACK(&msgId);
+	if ( packet->getACK(&msgId) == 0 )
+	{
+		return;
+	}
 	MQTTGWPacket* ackPacket = new MQTTGWPacket();
 	ackPacket->setAck(packetType, msgId);
 	Event* ev1 = new Event();
@@ -223,7 +234,10 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 		return;
 	}
 	MQTTSNPacket* regAck = new MQTTSNPacket();
-	packet->getREGISTER(&id, &msgId, &topicName);
+	if ( packet->getREGISTER(&id, &msgId, &topicName) == 0 )
+	{
+		return;
+	}
 
 	topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
 	topicid.data.long_.len = topicName.lenstring.len;

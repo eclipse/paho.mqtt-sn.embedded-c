@@ -36,7 +36,7 @@ int MQTTSNDeserialize_advertise(unsigned char* gatewayid, unsigned short* durati
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;
@@ -105,7 +105,7 @@ int MQTTSNDeserialize_gwinfo(unsigned char* gatewayid, unsigned short* gatewayad
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;

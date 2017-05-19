@@ -200,7 +200,7 @@ int MQTTSNDeserialize_pingresp(unsigned char* buf, int buflen)
 	int mylen;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 2)
 		goto exit;
@@ -428,7 +428,7 @@ int MQTTSNDeserialize_willtopicresp(int* resp_rc, unsigned char* buf, int buflen
 	int mylen;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - buf < 3)
 		goto exit;
@@ -460,7 +460,7 @@ int MQTTSNDeserialize_willmsgresp(int* resp_rc, unsigned char* buf, int buflen)
 	int mylen;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - buf < 3)
 		goto exit;
