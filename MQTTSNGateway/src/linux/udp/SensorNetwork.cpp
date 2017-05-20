@@ -32,7 +32,19 @@ using namespace std;
 using namespace MQTTSNGW;
 
 /*===========================================
- Class  SensorNetAddreess
+  Class  SensorNetAddreess
+
+  These 4 methods are minimum requirements for the SensorNetAddress class.
+   isMatch(SensorNetAddress* )
+   operator =(SensorNetAddress& )
+   setAddress(string* )
+   sprint(char* )
+
+  UDPPort class requires these 3 methods.
+   getIpAddress(void)
+   getPortNo(void)
+   setAddress(uint32_t IpAddr, uint16_t port)
+
  ============================================*/
 SensorNetAddress::SensorNetAddress()
 {
@@ -62,13 +74,26 @@ void SensorNetAddress::setAddress(uint32_t IpAddr, uint16_t port)
 }
 
 /**
- *  convert Text data to SensorNetAddress
- *  @param  buf is pointer of IP_Address:PortNo format text
+ *  Set Address data to SensorNetAddress
+ *
+ *  @param  *ip_port is "IP_Address:PortNo" format string
  *  @return success = 0,  Invalid format = -1
+ *
+ *  This function is used in ClientList::authorize(const char* fileName)
+ *  e.g.
+ *  Authorized clients are defined by fileName = "clients.conf"
+ *
+ *  Client02,172.16.1.7:12002
+ *  Client03,172.16.1.8:13003
+ *  Client01,172.16.1.6:12001
+ *
+ *  This definition is necessary when using TLS connection.
+ *  Gateway rejects clients not on the list for security reasons.
+ *
  */
-int SensorNetAddress::setAddress(string* data)
+int SensorNetAddress::setAddress(string* ip_port)
 {
-	size_t pos = data->find_first_of(":");
+	size_t pos = ip_port->find_first_of(":");
 
 	if ( pos == string::npos )
 	{
@@ -77,8 +102,8 @@ int SensorNetAddress::setAddress(string* data)
 		return -1;
 	}
 
-	string ip = data->substr(0, pos);
-	string port = data->substr(pos + 1);
+	string ip = ip_port->substr(0, pos);
+	string port = ip_port->substr(pos + 1);
 	int portNo = 0;
 
 	if ((portNo = atoi(port.c_str())) == 0 || (_IpAddr = inet_addr(ip.c_str())) == INADDR_NONE)
@@ -110,9 +135,22 @@ char* SensorNetAddress::sprint(char* buf)
 	sprintf( buf + strlen(buf), "%d", ntohs(_portNo));
 	return buf;
 }
-/*===========================================
- Class  SensorNetwork
- ============================================*/
+
+
+/*================================================================
+   Class  SensorNetwork
+
+   In Gateway version 1.0
+
+   getDescpription( )  is used by Gateway::initialize( )
+   initialize( )       is used by ClientSendTask::initialize( )
+   getSenderAddress( ) is used by ClientRecvTask::run( )
+   broadcast( )        is used by MQTTSNPacket::broadcast( )
+   unicast( )          is used by MQTTSNPacket::unicast( )
+   read( )             is used by MQTTSNPacket::recv( )
+
+ ================================================================*/
+
 SensorNetwork::SensorNetwork()
 {
 }
@@ -136,6 +174,12 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return UDPPort::recv(buf, bufLen, &_clientAddr);
 }
 
+/**
+ *  Prepare UDP sockets and description of SensorNetwork like
+ *   "UDP Multicast 225.1.1.1:1883 Gateway Port 10000".
+ *   The description is for a start up prompt.
+ *  @return success = 0, error = -1
+ */
 int SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
@@ -143,6 +187,18 @@ int SensorNetwork::initialize(void)
 	uint16_t unicastPortNo = 0;
 	string ip;
 
+	/*
+	 * theProcess->getParam( ) copies
+	 * a text specified by "Key" into param[] from the Gateway.conf
+	 *
+	 *  in Gateway.conf e.g.
+	 *
+	 *  # UDP
+     *  GatewayPortNo=10000
+     *  MulticastIP=225.1.1.1
+     *  MulticastPortNo=1883
+     *
+	 */
 	if (theProcess->getParam("MulticastIP", param) == 0)
 	{
 		ip = param;
@@ -162,6 +218,7 @@ int SensorNetwork::initialize(void)
 		_description += param;
 	}
 
+	/*  Prepare UDP sockets */
 	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo);
 }
 
