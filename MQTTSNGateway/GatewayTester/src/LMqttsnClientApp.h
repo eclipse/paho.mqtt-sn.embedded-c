@@ -185,7 +185,7 @@ struct LUdpConfig{
 /*=================================
  *    Starting prompt
  ==================================*/
-#define TESTER_VERSION " * Version: 0.1.0"
+#define TESTER_VERSION " * Version: 1.0.0"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Gateway Tester"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"

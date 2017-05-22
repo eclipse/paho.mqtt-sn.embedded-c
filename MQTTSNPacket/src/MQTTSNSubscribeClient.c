@@ -115,7 +115,7 @@ int MQTTSNDeserialize_suback(int* qos, unsigned short* topicid, unsigned short* 
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;

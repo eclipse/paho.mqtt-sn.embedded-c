@@ -222,7 +222,7 @@ void LSubscribeManager::responce(const uint8_t* msg)
 			{
 				tt->add((char*) elm->topicName, topicId, elm->topicType, elm->callback);
 				getElement(msgId)->done = SUB_DONE;
-				DISPLAY("\033[0m\033[0;32m Topic \"%s\" Id : %d was Subscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
+				DISPLAY("\033[0m\033[0;32m Topic \"%s\" Id : %d was Subscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, topicId);
 			}
 			else
 			{
@@ -239,7 +239,7 @@ void LSubscribeManager::responce(const uint8_t* msg)
 		{
 			LTopicTable* tt = theClient->getGwProxy()->getTopicTable();
 			tt->setCallback(elm->topicName, 0);
-			DISPLAY("\033[0m\033[0;32m Topic  \"%s\"  Id : %d was Unsubscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, getElement(msgId)->topicId);
+			DISPLAY("\033[0m\033[0;32m Topic  \"%s\"  was Unsubscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
 			remove(getElement(msgId));
 		}
 		else

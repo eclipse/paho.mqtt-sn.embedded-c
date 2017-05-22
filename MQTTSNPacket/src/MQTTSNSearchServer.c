@@ -68,7 +68,7 @@ int MQTTSNDeserialize_searchgw(unsigned char* radius, unsigned char* buf, int bu
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;
