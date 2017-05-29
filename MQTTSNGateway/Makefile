@@ -15,6 +15,7 @@ SUBDIR := ../MQTTSNPacket/src
 
 OS := linux
 SENSORNET := udp
+#SENSORNET := udp6
 TEST := tests
 
 CPPSRCS :=  \
@@ -71,6 +72,7 @@ INCLUDES += -I$(SRCDIR) \
 DEFS :=
 LIBS += -L/usr/local/lib
 LDFLAGS := 
+#CXXFLAGS := -Wall -O3 -std=c++11 -ggdb
 CXXFLAGS := -Wall -O3 -std=c++11
 LDADD := -lpthread -lssl -lcrypto -lrt
 OUTDIR := Build
