@@ -14,8 +14,8 @@ SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
 
 OS := linux
-#SENSORNET := udp
-SENSORNET := udp6
+
+SENSORNET := udp
 TEST := tests
 
 CPPSRCS :=  \
@@ -139,4 +139,3 @@ install:
 exectest:
 	./$(OUTDIR)/$(TESTPROGNAME) -f ./gateway.conf
 
-	

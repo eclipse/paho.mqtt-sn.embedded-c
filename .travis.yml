@@ -24,4 +24,3 @@ script:
 notifications:
   emails:
     - tomoaki@tomy-tech.com
-    
