@@ -13,7 +13,9 @@ addons:
 script: 
   - cd MQTTSNGateway
   - make CXX="g++-4.8" SENSORNET="xbee"
-  - make CXX="g++-4.8" SENSORNET="udp"
+  - make CXX="g++-4.8" SENSORNET="udp"  
+  - make CXX="g++-4.8" SENSORNET="udp6"
+  
   - make test
     
   - cd GatewayTester
