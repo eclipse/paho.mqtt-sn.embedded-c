@@ -1,5 +1,6 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2017, Benjamin Aigner
+ * Copyright (c) 2016, Tomoaki Yamaguchi (original UDPv4 implementation)
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,6 +12,7 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
+ *    Benjamin Aigner - Adaption of the UDPv4 code to use UDPv6
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 #include <stdio.h>
@@ -376,7 +378,7 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	return 0;
 }
 
-//TODO: test if this is working...
+//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
 	struct timeval timeout;
@@ -399,7 +401,7 @@ int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 	return rc;
 }
 
-//TODO: test if this is working...
+//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
 {
 	sockaddr_in6 sender;
