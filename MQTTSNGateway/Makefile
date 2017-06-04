@@ -14,6 +14,7 @@ SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
 
 OS := linux
+
 SENSORNET := udp
 TEST := tests
 
@@ -71,6 +72,7 @@ INCLUDES += -I$(SRCDIR) \
 DEFS :=
 LIBS += -L/usr/local/lib
 LDFLAGS := 
+#CXXFLAGS := -Wall -O3 -std=c++11 -ggdb
 CXXFLAGS := -Wall -O3 -std=c++11
 LDADD := -lpthread -lssl -lcrypto -lrt
 OUTDIR := Build
@@ -137,4 +139,3 @@ install:
 exectest:
 	./$(OUTDIR)/$(TESTPROGNAME) -f ./gateway.conf
 
-	
