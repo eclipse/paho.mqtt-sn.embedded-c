@@ -257,6 +257,8 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 		return errnu;
 	}
 	
+	strcpy(_interfaceName,interfaceName);
+	
 	//restrict the socket to IPv6 only
 	int on = 1;
 	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on));
@@ -321,7 +323,6 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
 	char bufstr[INET6_ADDRSTRLEN+1];
-	struct sockaddr_in6 dest;
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET6;  // use IPv6
@@ -334,19 +335,27 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	} else {
 		portStr = to_string(_uniPortNo);
 	}
-	//TODO: problem, cannot assign address mit dem port 1883, aber mit "0" als port: invalid arguement
-	getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
-	//getaddrinfo(addr->getAddress(), NULL, &hints, &res);
+
+	if(strlen(_interfaceName) != 0)
+	{
+		char destStr[80];
+		strcpy(destStr, addr->getAddress());
+		strcat(destStr,"%");
+		strcat(destStr,_interfaceName);
+		getaddrinfo(destStr, portStr.c_str(), &hints, &res);
+	} else {
+		getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
+	}
 		
 	int status = ::sendto(_sockfdUnicast, buf, length, 0, res->ai_addr, res->ai_addrlen);
+
 	if (status < 0)
 	{
 		perror("UDP6::unicast: ");
 		cout << "errno == %d in UDPPort::sendto\n", errno;
 	}
 	
-	inet_ntop(AF_INET6, &dest.sin6_addr, bufstr, INET6_ADDRSTRLEN);
-	cout << "sendto " << bufstr << ":" << ntohs(dest.sin6_port) << " length = " << status << "\n";
+	cout << "unicast sendto " << destStr << ", port: " << portStr << " length = " << status << "\n";
 
 	return status;
 }
@@ -361,7 +370,18 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	hint.ai_socktype = SOCK_DGRAM;
 	hint.ai_protocol = 0;
 	
-	err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
+	
+	
+	if(strlen(_interfaceName) != 0)
+	{
+		char destStr[80];
+		strcpy(destStr, _grpAddr.getAddress());
+		strcat(destStr,"%");
+		strcat(destStr,_interfaceName);
+		err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
+	} else {
+		err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
+	}
 	
 	if( err != 0 ) {
 	    perror( "UDP6::broadcast - getaddrinfo: " );
@@ -383,7 +403,6 @@ int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
 	struct timeval timeout;
 	fd_set recvfds;
-	int maxSock = 0;
 
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 1000000;    // 1 sec

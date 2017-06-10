@@ -78,6 +78,7 @@ private:
 
 	int _sockfdUnicast;
 	int _sockfdMulticast;
+	char _interfaceName[10];
 
 	SensorNetAddress _grpAddr;
 	SensorNetAddress _clientAddr;
