@@ -322,7 +322,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 //TODO: test if unicast is working too....
 int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
-	char bufstr[INET6_ADDRSTRLEN+1];
+	char destStr[INET6_ADDRSTRLEN+10];
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET6;  // use IPv6
@@ -338,7 +338,6 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 
 	if(strlen(_interfaceName) != 0)
 	{
-		char destStr[80];
 		strcpy(destStr, addr->getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
@@ -352,7 +351,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	if (status < 0)
 	{
 		perror("UDP6::unicast: ");
-		cout << "errno == %d in UDPPort::sendto\n", errno;
+		cout << "errno in UDPPort::sendto:" << errno << "\n";
 	}
 	
 	cout << "unicast sendto " << destStr << ", port: " << portStr << " length = " << status << "\n";
