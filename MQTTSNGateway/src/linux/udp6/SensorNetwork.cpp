@@ -228,7 +228,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 
 	if (uniPortNo == 0)
 	{
-		cout << "error portNo undefined in UDPPort::open\n";
+		WRITELOG("error portNo undefined in UDPPort::open\n");
 		return -1;
 	}
 
@@ -243,7 +243,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	_sockfdMulticast = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if(_sockfdMulticast <0)
 	{
-		perror("UDP6::open - multicast:");
+		WRITELOG("UDP6::open - multicast: %s",strerror(_sockfdMulticast));
 		return errno;
 	}
 
@@ -253,7 +253,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex,sizeof(ifindex));
 	if(errnu <0)
 	{
-		perror("UDP6::open - limit IF:");
+		WRITELOG("UDP6::open - limit IF: %s",strerror(errnu));
 		return errnu;
 	}
 
@@ -264,7 +264,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on));
 	if(errnu <0)
 	{
-		perror("UDP6::open - limit IPv6:");
+		WRITELOG("UDP6::open - limit IPv6: %s",strerror(errnu));
 		return errnu;
 	}
 
@@ -285,7 +285,7 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	_sockfdUnicast = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (_sockfdUnicast < 0)
 	{
-		perror("UDP6::open - unicast socket:");
+		WRITELOG("UDP6::open - unicast socket: %s",strerror(_sockfdUnicast));
 		return -1;
 	}
 
@@ -300,10 +300,10 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	setsockopt(_sockfdUnicast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
 	//finally: bind...
-	if (::bind(_sockfdUnicast, res->ai_addr, res->ai_addrlen) < 0)
+	errnu = ::bind(_sockfdUnicast, res->ai_addr, res->ai_addrlen);
+	if (errnu  < 0)
 	{
-		perror("bind: ");
-		cout << "error can't bind unicast socket in UDPPort::open\n";
+		WRITELOG("error can't bind unicast socket in UDPPort::open: %s\n",strerror(errnu));
 		return -1;
 	}
 
@@ -350,11 +350,10 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 
 	if (status < 0)
 	{
-		perror("UDP6::unicast: ");
-		cout << "errno in UDPPort::sendto:" << errno << "\n";
+		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
 	}
 
-	cout << "unicast sendto " << destStr << ", port: " << portStr << " length = " << status << "\n";
+	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,portStr,status);
 
 	return status;
 }
@@ -383,14 +382,14 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	}
 
 	if( err != 0 ) {
-	    perror( "UDP6::broadcast - getaddrinfo: " );
+	    WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(err));
 	    return err;
 	}
 
 	err = sendto(_sockfdMulticast, buf, length, 0, info->ai_addr, info->ai_addrlen );
 
 	if(err < 0 ) {
-	    perror( "UDP6::broadcast - sendto: " );
+	    WRITELOG("UDP6::broadcast - sendto: %s",strerror(err));
 	    return errno;
 	}
 
@@ -430,7 +429,7 @@ int UDPPort6::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, Se
 
 	if (status < 0 && errno != EAGAIN)
 	{
-		cout << "errno == " << errno << " in UDPPort::recvfrom\n";
+		WRITELOG("errno == %d in UDPPort::recvfrom: %s\n",errno,strerror(errno));
 		return -1;
 	}
 	addr->setAddress(&sender, (uint16_t)sender.sin6_port);
