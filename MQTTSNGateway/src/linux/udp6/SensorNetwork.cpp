@@ -353,7 +353,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
 	}
 
-	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,portStr,status);
+	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,portStr.c_str(),status);
 
 	return status;
 }
