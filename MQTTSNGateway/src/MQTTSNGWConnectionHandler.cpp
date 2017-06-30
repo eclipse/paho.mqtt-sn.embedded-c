@@ -69,7 +69,10 @@ void MQTTSNConnectionHandler::handleSearchgw(MQTTSNPacket* packet)
 void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet)
 {
 	MQTTSNPacket_connectData data;
-	packet->getCONNECT(&data);
+	if ( packet->getCONNECT(&data) == 0 )
+	{
+		return;
+	}
 
 	/* clear ConnectData of Client */
 	Connect* connectData = client->getConnectData();
@@ -142,7 +145,10 @@ void MQTTSNConnectionHandler::handleWilltopic(Client* client, MQTTSNPacket* pack
 	uint8_t willRetain;
 	MQTTSNString willTopic;
 
-	packet->getWILLTOPIC(&willQos, &willRetain, &willTopic);
+	if ( packet->getWILLTOPIC(&willQos, &willRetain, &willTopic) == 0 )
+	{
+		return;
+	}
 	client->setWillTopic(willTopic);
 	Connect* connectData = client->getConnectData();
 
@@ -168,17 +174,6 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 	if ( !client->isWaitWillMsg() )
 	{
 		DEBUGLOG("     MQTTSNConnectionHandler::handleWillmsg  WaitWillMsgFlg is off.\n");
-		//if ( !client->isSecureNetwork() )
-		//{
-		//	/* create CONNACK message */
-		//	MQTTSNPacket* connack =  new MQTTSNPacket();
-		//	connack->setCONNACK(MQTTSN_RC_REJECTED_CONGESTED);
-
-		//	/* return to the client */
-		//	Event* evt = new Event();
-		//	evt->setClientSendEvent(client, connack);
-		//	_gateway->getClientSendQue()->post(evt);
-		//}
 		return;
 	}
 
@@ -188,7 +183,10 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 	if( client->isConnectSendable() )
 	{
 		/* save WillMsg in the client */
-		packet->getWILLMSG(&willmsg);
+		if ( packet->getWILLMSG(&willmsg) == 0 )
+		{
+			return;
+		}
 		client->setWillMsg(willmsg);
 
 		/* create CONNECT message */
@@ -216,7 +214,10 @@ void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* pac
 	_gateway->getClientSendQue()->post(ev);
 
 	uint16_t duration = 0;
-	packet->getDISCONNECT(&duration);
+	if ( packet->getDISCONNECT(&duration) == 0 )
+	{
+		return;
+	}
 	if ( duration == 0 )
 	{
 		MQTTGWPacket* mqMsg = new MQTTGWPacket();

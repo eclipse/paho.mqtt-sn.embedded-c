@@ -38,7 +38,7 @@ int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, len, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 2)
 		goto exit;
@@ -50,7 +50,7 @@ int MQTTSNDeserialize_connect(MQTTSNPacket_connectData* data, unsigned char* buf
 	data->cleansession = flags.bits.cleanSession;
 	data->willFlag = flags.bits.will;
 
-	if ((version = (int)readChar(&curdata)) != 1) /* Protocol version */
+	if ((version = (int)readChar(&curdata)) != MQTTSN_PROTOCOL_VERSION)
 		goto exit;
 
 	data->duration = readInt(&curdata);
@@ -110,7 +110,7 @@ int MQTTSNDeserialize_disconnect(int* duration, unsigned char* buf, int buflen)
 	int mylen;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 1)
 		goto exit;
@@ -202,7 +202,7 @@ int MQTTSNDeserialize_pingreq(MQTTSNString* clientID, unsigned char* buf, int le
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, len, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata < 1)
 		goto exit;
@@ -265,7 +265,7 @@ int MQTTSNDeserialize_willtopic1(int *willQoS, unsigned char *willRetain, MQTTSN
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, len, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata > buf + len)
 		goto exit;
@@ -327,7 +327,7 @@ int MQTTSNDeserialize_willmsg1(MQTTSNString* willMsg, unsigned char* buf, int le
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, len, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, len, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata > buf + len)
 		goto exit;

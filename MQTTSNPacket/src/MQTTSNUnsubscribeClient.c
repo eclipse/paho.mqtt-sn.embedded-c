@@ -97,7 +97,7 @@ int MQTTSNDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int
 	int mylen = 0;
 
 	FUNC_ENTRY;
-	curdata += (rc = MQTTSNPacket_decode(curdata, buflen, &mylen)); /* read length */
+	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
 	if (enddata - curdata > buflen)
 		goto exit;

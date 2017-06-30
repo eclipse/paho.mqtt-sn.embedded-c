@@ -60,10 +60,8 @@ MQTTSNCONF = {
 	300,            //KeepAlive (seconds)
 	true,           //Clean session
 	0,              //Sleep duration in msecs
-	//"willTopic",    //WillTopic
-	//"willMessage",  //WillMessage
-	"",
-	"",
+	"willTopic",    //WillTopic
+	"willMessage",  //WillMessage
     0,              //WillQos
     false           //WillRetain
 };
