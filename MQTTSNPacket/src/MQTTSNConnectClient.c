@@ -202,7 +202,7 @@ int MQTTSNDeserialize_pingresp(unsigned char* buf, int buflen)
 	FUNC_ENTRY;
 	curdata += MQTTSNPacket_decode(curdata, buflen, &mylen); /* read length */
 	enddata = buf + mylen;
-	if (enddata - curdata < 2)
+	if (enddata - curdata < 1)
 		goto exit;
 
 	if (readChar(&curdata) != MQTTSN_PINGRESP)
@@ -475,5 +475,3 @@ exit:
 	FUNC_EXIT_RC(rc);
 	return rc;
 }
-
-

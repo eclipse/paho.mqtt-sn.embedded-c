@@ -378,7 +378,7 @@ int test1(struct Options options)
 	assert("good rc from deserialize disconnect", rc == 1, "rc was %d\n", rc);
 
 	/* data after should be the same as data before */
-	assert("durations should be the same", 0 == duration_after, "durations were different\n", rc);
+	assert("durations should be the same", -1 == duration_after, "durations were different\n", rc);
 
 	/* Disconnect with duration */
 	rc = MQTTSNSerialize_disconnect(buf, buflen, 33);
