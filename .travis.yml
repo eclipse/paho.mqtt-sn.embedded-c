@@ -9,8 +9,12 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.8
+    - cmake
+    - cmake-data
     
 script: 
+  - ./travis-build.sh
+ 
   - cd MQTTSNGateway
   - make CXX="g++-4.8" SENSORNET="xbee"
   - make CXX="g++-4.8" SENSORNET="udp"  
@@ -20,7 +24,6 @@ script:
     
   - cd GatewayTester
   - make CXX="g++-4.8"
- 
   
 notifications:
   emails:
