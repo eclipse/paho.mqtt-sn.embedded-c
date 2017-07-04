@@ -120,7 +120,7 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 int SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
-	uint16_t baudrate = 9600;
+	uint32_t baudrate = 9600;
 	uint8_t apimode = 2;
 
 	if (theProcess->getParam("ApiMode", param) == 0)
@@ -134,7 +134,7 @@ int SensorNetwork::initialize(void)
 
 	if (theProcess->getParam("Baudrate", param) == 0)
 	{
-		baudrate = (uint16_t)atoi(param);
+		baudrate = (uint32_t)atoi(param);
 	}
 	_description += ", Baudrate ";
 	sprintf(param ,"%d", baudrate);
