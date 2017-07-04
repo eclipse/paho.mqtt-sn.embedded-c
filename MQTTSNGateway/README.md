@@ -2,7 +2,7 @@
 
 ### **step1. Build the gateway**   
 ````
-$ git clone -b gateway https://github.com/eclipse/paho.mqtt-sn.embedded-c 
+$ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c   
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
 $ make   
 $ make install   
