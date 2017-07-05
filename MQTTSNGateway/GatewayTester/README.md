@@ -56,7 +56,7 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 
 ### **step1. Build **   
 ````
-$ git clone -b gateway https://github.com/eclipse/paho.mqtt-sn.embedded-c 
+$ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c 
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway/GatewayTester       
 $ make   
 $ make install   
