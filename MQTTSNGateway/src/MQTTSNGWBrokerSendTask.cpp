@@ -100,8 +100,8 @@ void BrokerSendTask::run()
 				if ( !rc )
 				{
 					/* disconnect the broker and the client */
-					WRITELOG("%s BrokerSendTask can't connect to the broker.  %s%s\n",
-							ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+					WRITELOG("%s BrokerSendTask: %s can't connect to the broker. errno=%d %s %s\n",
+							ERRMSG_HEADER, client->getClientId(), errno, strerror(errno), ERRMSG_FOOTER);
 					delete ev;
 					client->getNetwork()->close();
 					continue;
@@ -120,8 +120,8 @@ void BrokerSendTask::run()
 			}
 			else
 			{
-				WRITELOG("%s BrokerSendTask can't send a packet to the broker errno=%d %s%s\n",
-						ERRMSG_HEADER, rc == -1 ? errno : 0, client->getClientId(), ERRMSG_FOOTER);
+				WRITELOG("%s BrokerSendTask: %s can't send a packet to the broker. errno=%d %s %s\n",
+						ERRMSG_HEADER, client->getClientId(), rc == -1 ? errno : 0, strerror(errno), ERRMSG_FOOTER);
 				client->getNetwork()->close();
 
 				/* Disconnect the client */
