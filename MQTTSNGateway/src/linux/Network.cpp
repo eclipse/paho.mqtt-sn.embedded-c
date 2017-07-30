@@ -306,6 +306,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 				throw false;
 			}
 
+
 			if (!SSL_CTX_load_verify_locations(_ctx, caFile, caPath))
 			{
 				ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));

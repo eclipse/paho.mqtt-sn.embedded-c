@@ -204,23 +204,26 @@ int MQTTGWPacket::recv(Network* network)
 		multiplier *= 128;
 	} while ((c & 128) != 0);
 
-	/* allocate buffer */
-	_data = (unsigned char*)calloc(_remainingLength, 1);
-	if ( !_data )
+	if ( _remainingLength > 0 )
 	{
-		return -3;
-	}
+		/* allocate buffer */
+		_data = (unsigned char*)calloc(_remainingLength, 1);
+		if ( !_data )
+		{
+			return -3;
+		}
 
-	/* read Payload */
-	int remlen = network->recv(_data, _remainingLength);
+		/* read Payload */
+		int remlen = network->recv(_data, _remainingLength);
 
-	if (remlen == -1 )
-	{
-		return -1;
-	}
-	else if ( remlen != _remainingLength )
-	{
-		return -2;
+		if (remlen == -1 )
+		{
+			return -1;
+		}
+		else if ( remlen != _remainingLength )
+		{
+			return -2;
+		}
 	}
 	return 1 + len + _remainingLength;
 }
