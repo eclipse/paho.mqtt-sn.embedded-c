@@ -390,7 +390,7 @@ int MQTTSN::Client<Network, Timer, MAX_PACKET_SIZE, b>::readPacket(Timer& timer)
     int lenlen = 0;
     int datalen = 0;
 
-    #define MQTTSN_MIN_PACKET_LENGTH 3
+    #define MQTTSN_MIN_PACKET_LENGTH 2
     // 1. read the packet, datagram style 
     if ((len = ipstack.read(readbuf, MAX_PACKET_SIZE, timer.left_ms())) < MQTTSN_MIN_PACKET_LENGTH)
         goto exit;
