@@ -328,12 +328,15 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	hints.ai_family = AF_INET6;  // use IPv6
 	hints.ai_socktype = SOCK_DGRAM;
 
+	int port = 0;
 	string portStr;
 	if(addr->getPortNo() != 0)
 	{
-		portStr = to_string(addr->getPortNo());
+		port = htons(addr->getPortNo());
+		portStr = to_string(port);
 	} else {
-		portStr = to_string(_uniPortNo);
+		port = _uniPortNo;
+		portStr = to_string(port);
 	}
 
 	if(strlen(_interfaceName) != 0)
@@ -341,8 +344,16 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		strcpy(destStr, addr->getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		getaddrinfo(destStr, portStr.c_str(), &hints, &res);
+		if(IN6_IS_ADDR_LINKLOCAL(addr->getAddress()))
+		{
+			getaddrinfo(destStr, portStr.c_str(), &hints, &res);
+		}
+		else
+		{
+			getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
+		}
 	} else {
+		strcpy(destStr, addr->getAddress());
 		getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
 	}
 
@@ -353,7 +364,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
 	}
 
-	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,portStr.c_str(),status);
+	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,port,status);
 
 	return status;
 }
@@ -376,7 +387,15 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 		strcpy(destStr, _grpAddr.getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
+		if(IN6_IS_ADDR_MC_NODELOCAL(_grpAddr.getAddress()) ||
+		   IN6_IS_ADDR_MC_LINKLOCAL(_grpAddr.getAddress()))
+		{
+			err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
+		}
+		else
+		{
+			err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
+		}
 	} else {
 		err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
 	}
