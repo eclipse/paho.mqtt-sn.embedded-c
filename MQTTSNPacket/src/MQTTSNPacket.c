@@ -248,7 +248,7 @@ int MQTTSNstrlen(MQTTSNString MQTTSNString)
 int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int))
 {
 	int rc = MQTTSNPACKET_READ_ERROR;
-	const int MQTTSN_MIN_PACKET_LENGTH = 3;
+	const int MQTTSN_MIN_PACKET_LENGTH = 2;
 	int len = 0;  /* the length of the whole packet including length field */
 	int lenlen = 0;
 	int datalen = 0;
