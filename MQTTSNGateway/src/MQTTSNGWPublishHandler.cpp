@@ -45,7 +45,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	Publish pub;
 	char  shortTopic[2];
 
-	if ( !client->isActive() )
+	if ( !client->isActive() && !client->isSleep())
 	{
 		/* Reply DISCONNECT to the client */
 		Event* ev = new Event();
