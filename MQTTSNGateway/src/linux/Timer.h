@@ -17,7 +17,7 @@
 #define MQTTSNGATEWAY_SRC_LINUX_TIMER_H_
 
 #include "MQTTSNGWDefines.h"
-#include <time.h>
+#include <sys/time.h>
 namespace MQTTSNGW
 {
 /*==========================================================
