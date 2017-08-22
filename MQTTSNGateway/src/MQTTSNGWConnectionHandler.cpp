@@ -260,6 +260,13 @@ void MQTTSNConnectionHandler::handleWillmsgupd(Client* client, MQTTSNPacket* pac
 void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet)
 {
 	/* send PINGREQ to the broker */
+	MQTTSNPacket* publish = new MQTTSNPacket();
+	while ((publish = client->getClientSleepPacket()) != 0)
+	{
+		Event* ev1 = new Event();
+		ev1->setClientSendEvent(client, publish);
+		_gateway->getClientSendQue()->post(ev1);
+	}
 	MQTTGWPacket* pingreq = new MQTTGWPacket();
 	pingreq->setHeader(PINGREQ);
 	Event* evt = new Event();
