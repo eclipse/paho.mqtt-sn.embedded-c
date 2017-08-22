@@ -136,7 +136,6 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 	if (client->isSleep())
 	{
 		/* client is sleeping. save PUBLISH */
-		client->setClientSleepPacket(snPacket);
 		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
 		RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
 		int type = 0;

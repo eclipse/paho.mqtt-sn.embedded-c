@@ -56,6 +56,7 @@ public:
 		{
 			_mutex.lock();
 			packet = _que->front();
+			_que->pop();
 			_mutex.unlock();
 			return packet;
 		}
