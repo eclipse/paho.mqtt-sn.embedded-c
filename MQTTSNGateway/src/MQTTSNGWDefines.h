@@ -19,7 +19,6 @@
 
 namespace MQTTSNGW
 {
-#define DEBUG
 /*=================================
  *    Config Parametrs
  ==================================*/
