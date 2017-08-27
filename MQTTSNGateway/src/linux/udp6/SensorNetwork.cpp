@@ -25,7 +25,6 @@
 #include <netdb.h>
 #include <string.h>
 #include <iostream>
-#include <errno.h>
 #include <regex>
 #include <string>
 #include <stdlib.h>

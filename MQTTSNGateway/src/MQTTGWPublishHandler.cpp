@@ -36,9 +36,39 @@ MQTTGWPublishHandler::~MQTTGWPublishHandler()
 
 void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 {
-	if ( !client->isActive() && !client->isSleep() )
+	if ( !client->isActive() && !client->isSleep() && !client->isAwake())
 	{
-		WRITELOG("     The client is neither active nor sleep %s\n", client->getStatus());
+		WRITELOG("%s     The client is neither active nor sleep %s%s\n", ERRMSG_HEADER, client->getStatus(), ERRMSG_FOOTER);
+		return;
+	}
+
+	/* client is sleeping. save PUBLISH */
+	if ( client->isSleep() )
+	{
+		Publish pub;
+		packet->getPUBLISH(&pub);
+
+		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
+		RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
+
+		if (pub.header.bits.qos == 1)
+		{
+			replyACK(client, &pub, PUBACK);
+		}
+		else if ( pub.header.bits.qos == 2)
+		{
+			replyACK(client, &pub, PUBREC);
+		}
+
+		MQTTGWPacket* msg = new MQTTGWPacket();
+		*msg = *packet;
+		if ( msg->getType() == 0 )
+		{
+			WRITELOG("%s MQTTGWPublishHandler::handlePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
+			delete msg;
+			return;
+		}
+		client->setClientSleepPacket(msg);
 		return;
 	}
 
@@ -102,19 +132,10 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 				uint16_t regackMsgId = client->getNextSnMsgId();
 				regPacket->setREGISTER(id, regackMsgId, &topicName);
 
-				if (client->isSleep())
-				{
-					client->setClientSleepPacket(regPacket);
-					WRITELOG(FORMAT_BL_NL, currentDateTime(), regPacket->getName(),
-					RIGHTARROW, client->getClientId(), "is sleeping. REGISTER was saved.");
-				}
-				else if (client->isActive())
-				{
-					/* send REGISTER */
-					Event* evrg = new Event();
-					evrg->setClientSendEvent(client, regPacket);
-					_gateway->getClientSendQue()->post(evrg);
-				}
+				/* send REGISTER */
+				Event* evrg = new Event();
+				evrg->setClientSendEvent(client, regPacket);
+				_gateway->getClientSendQue()->post(evrg);
 
 				/* send PUBLISH */
 				topicId.data.id = id;
@@ -125,47 +146,18 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 			}
 			else
 			{
-				WRITELOG("\x1b[0m\x1b[31mMQTTGWPublishHandler Can't create a Topic.\n");
+				WRITELOG("%sMQTTGWPublishHandler Can't create a Topic.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
 				delete snPacket;
 				return;
 			}
 		}
 	}
 
-	/* TopicId was acquired. */
-	if (client->isSleep())
-	{
-		/* client is sleeping. save PUBLISH */
-		client->setClientSleepPacket(snPacket);
-		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
-		RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
-		int type = 0;
-		if (pub.header.bits.qos == 1)
-		{
-			type = PUBACK;
-		}
-		else if ( pub.header.bits.qos == 2)
-		{
-			WRITELOG(" While Client is sleeping, QoS2 is not supported.\n");
-			type = PUBREC;
-		}
-		replyACK(client, &pub, type);
-		pub.header.bits.qos = 0;
-		replyACK(client, &pub, PUBACK);
-		pub.msgId = 0;
-		snPacket->setPUBLISH((uint8_t) pub.header.bits.dup, (int) pub.header.bits.qos,
-				(uint8_t) pub.header.bits.retain, (uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload,
-				pub.payloadlen);
-		client->setClientSleepPacket(snPacket);
-	}
-	else if (client->isActive())
-	{
-		snPacket->setPUBLISH((uint8_t) pub.header.bits.dup, (int) pub.header.bits.qos, (uint8_t) pub.header.bits.retain,
-				(uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload, pub.payloadlen);
-		Event* ev1 = new Event();
-		ev1->setClientSendEvent(client, snPacket);
-		_gateway->getClientSendQue()->post(ev1);
-	}
+	snPacket->setPUBLISH((uint8_t) pub.header.bits.dup, (int) pub.header.bits.qos, (uint8_t) pub.header.bits.retain,
+			(uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload, pub.payloadlen);
+	Event* ev1 = new Event();
+	ev1->setClientSendEvent(client, snPacket);
+	_gateway->getClientSendQue()->post(ev1);
 
 }
 
@@ -201,22 +193,37 @@ void MQTTGWPublishHandler::handleAck(Client* client, MQTTGWPacket* packet, int t
 {
 	Ack ack;
 	packet->getAck(&ack);
-	MQTTSNPacket* mqttsnPacket = new MQTTSNPacket();
-	if (type == PUBREC)
-	{
-		mqttsnPacket->setPUBREC((uint16_t) ack.msgId);
-	}
-	else if (type == PUBREL)
-	{
-		mqttsnPacket->setPUBREL((uint16_t) ack.msgId);
-	}
-	else if (type == PUBCOMP)
-	{
-		mqttsnPacket->setPUBCOMP((uint16_t) ack.msgId);
-	}
 
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(client, mqttsnPacket);
-	_gateway->getClientSendQue()->post(ev1);
+	if ( client->isActive() || client->isAwake() )
+	{
+		MQTTSNPacket* mqttsnPacket = new MQTTSNPacket();
+		if (type == PUBREC)
+		{
+			mqttsnPacket->setPUBREC((uint16_t) ack.msgId);
+		}
+		else if (type == PUBREL)
+		{
+			mqttsnPacket->setPUBREL((uint16_t) ack.msgId);
+		}
+		else if (type == PUBCOMP)
+		{
+			mqttsnPacket->setPUBCOMP((uint16_t) ack.msgId);
+		}
+
+		Event* ev1 = new Event();
+		ev1->setClientSendEvent(client, mqttsnPacket);
+		_gateway->getClientSendQue()->post(ev1);
+	}
+	else if ( client->isSleep() )
+	{
+		if (type == PUBREL)
+		{
+			MQTTGWPacket* pubComp = new MQTTGWPacket();
+			pubComp->setAck(PUBCOMP, (uint16_t)ack.msgId);
+			Event* ev1 = new Event();
+			ev1->setBrokerSendEvent(client, pubComp);
+			_gateway->getBrokerSendQue()->post(ev1);
+		}
+	}
 }
 

@@ -66,7 +66,7 @@ public:
 	void     setAdvertiseDuration(uint16_t duration);
 	void     reconnect(void);
 	int      writeMsg(const uint8_t* msg);
-	void     resetPingReqTimer(void);
+	void     setPingReqTimer(void);
 	uint16_t getNextMsgId();
 	LTopicTable* getTopicTable(void);
 	LRegisterManager* getRegisterManager(void);
@@ -78,6 +78,7 @@ private:
 	void     checkAdvertise(void);
 	int      getConnectResponce(void);
 	int      getDisconnectResponce(void);
+	bool     isPingReqRequired(void);
 
 	LNetwork     _network;
 	uint8_t*    _mqttsnMsg;
@@ -103,6 +104,7 @@ private:
 	LTimer       _gwAliveTimer;
 	LTimer       _keepAliveTimer;
 	uint16_t    _tSleep;
+	uint16_t    _tWake;
 	char        _msg[MQTTSN_MAX_MSG_LENGTH + 1];
 };
 

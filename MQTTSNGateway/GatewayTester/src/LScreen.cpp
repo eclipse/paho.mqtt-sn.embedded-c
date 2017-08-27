@@ -23,7 +23,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <stdarg.h>
 
 #include "LScreen.h"

@@ -142,7 +142,7 @@ void LSubscribeManager::send(SubElement* elm)
 
 	theClient->getGwProxy()->connect();
 	theClient->getGwProxy()->writeMsg(msg);
-	theClient->getGwProxy()->resetPingReqTimer();
+	theClient->getGwProxy()->setPingReqTimer();
 	elm->sendUTC = time(NULL);
 	elm->retryCount--;
 }

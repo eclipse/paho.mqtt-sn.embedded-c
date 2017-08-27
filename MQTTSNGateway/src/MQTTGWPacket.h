@@ -205,6 +205,7 @@ public:
 	int setUNSUBSCRIBE(const char* topics, unsigned short msgid);
 	char* getMsgId(char* buf);
 	char* print(char* buf);
+	MQTTGWPacket& operator =(MQTTGWPacket& packet);
 
 private:
 	void  clearData(void);

@@ -16,7 +16,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-
 #include "LMqttsnClientApp.h"
 #include "LTimer.h"
 
@@ -63,3 +62,17 @@ void LTimer::stop(){
   _millis = 0;
 }
 
+uint32_t LTimer::getRemain(void)
+{
+    struct timeval curTime;
+    uint32_t secs, usecs;
+    if (_millis <= 0){
+        return 0;
+    }else{
+        gettimeofday(&curTime, 0);
+        secs  = (curTime.tv_sec  - _startTime.tv_sec) * 1000;
+        usecs = (curTime.tv_usec - _startTime.tv_usec) / 1000.0;
+        secs = _millis - (secs + usecs);
+        return secs;
+    }
+}

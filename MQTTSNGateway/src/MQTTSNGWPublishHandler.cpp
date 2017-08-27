@@ -178,27 +178,26 @@ void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)
 	uint16_t msgId;
 	uint8_t rc;
 
-	if ( !client->isActive() )
+	if ( client->isActive() )
 	{
-		return;
-	}
-	MQTTGWPacket* pubAck = new MQTTGWPacket();
+		MQTTGWPacket* pubAck = new MQTTGWPacket();
 
-	if ( packet->getPUBACK(&topicId, &msgId, &rc) == 0 )
-	{
-		return;
-	}
+		if ( packet->getPUBACK(&topicId, &msgId, &rc) == 0 )
+		{
+			return;
+		}
 
-	if ( rc == MQTTSN_RC_ACCEPTED)
-	{
-		pubAck->setAck(PUBACK, msgId);
-		Event* ev1 = new Event();
-		ev1->setBrokerSendEvent(client, pubAck);
-		_gateway->getBrokerSendQue()->post(ev1);
-	}
-	else if ( rc == MQTTSN_RC_REJECTED_INVALID_TOPIC_ID)
-	{
-		WRITELOG("  PUBACK   %d : Invalid Topic ID\n", msgId);
+		if ( rc == MQTTSN_RC_ACCEPTED)
+		{
+			pubAck->setAck(PUBACK, msgId);
+			Event* ev1 = new Event();
+			ev1->setBrokerSendEvent(client, pubAck);
+			_gateway->getBrokerSendQue()->post(ev1);
+		}
+		else if ( rc == MQTTSN_RC_REJECTED_INVALID_TOPIC_ID)
+		{
+			WRITELOG("  PUBACK   %d : Invalid Topic ID\n", msgId);
+		}
 	}
 }
 
@@ -206,19 +205,18 @@ void MQTTSNPublishHandler::handleAck(Client* client, MQTTSNPacket* packet, uint8
 {
 	uint16_t msgId;
 
-	if ( !client->isActive() )
+	if ( client->isActive() )
 	{
-		return;
+		if ( packet->getACK(&msgId) == 0 )
+		{
+			return;
+		}
+		MQTTGWPacket* ackPacket = new MQTTGWPacket();
+		ackPacket->setAck(packetType, msgId);
+		Event* ev1 = new Event();
+		ev1->setBrokerSendEvent(client, ackPacket);
+		_gateway->getBrokerSendQue()->post(ev1);
 	}
-	if ( packet->getACK(&msgId) == 0 )
-	{
-		return;
-	}
-	MQTTGWPacket* ackPacket = new MQTTGWPacket();
-	ackPacket->setAck(packetType, msgId);
-	Event* ev1 = new Event();
-	ev1->setBrokerSendEvent(client, ackPacket);
-	_gateway->getBrokerSendQue()->post(ev1);
 }
 
 void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
@@ -229,24 +227,23 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 	MQTTSN_topicid topicid;
 
 
-	if ( !client->isActive() )
+	if ( client->isActive() || client->isAwake())
 	{
-		return;
-	}
-	MQTTSNPacket* regAck = new MQTTSNPacket();
-	if ( packet->getREGISTER(&id, &msgId, &topicName) == 0 )
-	{
-		return;
-	}
+		MQTTSNPacket* regAck = new MQTTSNPacket();
+		if ( packet->getREGISTER(&id, &msgId, &topicName) == 0 )
+		{
+			return;
+		}
 
-	topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topicid.data.long_.len = topicName.lenstring.len;
-	topicid.data.long_.name = topicName.lenstring.data;
+		topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
+		topicid.data.long_.len = topicName.lenstring.len;
+		topicid.data.long_.name = topicName.lenstring.data;
 
-	id = client->getTopics()->add(&topicid)->getTopicId();
-	regAck->setREGACK(id, msgId, MQTTSN_RC_ACCEPTED);
-	Event* ev = new Event();
-	ev->setClientSendEvent(client, regAck);
-	_gateway->getClientSendQue()->post(ev);
+		id = client->getTopics()->add(&topicid)->getTopicId();
+		regAck->setREGACK(id, msgId, MQTTSN_RC_ACCEPTED);
+		Event* ev = new Event();
+		ev->setClientSendEvent(client, regAck);
+		_gateway->getClientSendQue()->post(ev);
+	}
 
 }

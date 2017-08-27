@@ -59,6 +59,7 @@ public:
     void run(void);
     void addTask(bool test);
     void setSleepDuration(uint32_t duration);
+    void setSleepMode(uint32_t duration);
     void sleep(void);
 	const char* getClientId(void);
     LGwProxy*          getGwProxy(void);

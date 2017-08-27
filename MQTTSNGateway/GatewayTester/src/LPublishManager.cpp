@@ -150,7 +150,7 @@ void LPublishManager::sendPublish(PubElement* elm)
 	memcpy(msg + org + 7, elm->payload, elm->payloadlen);
 
 	theClient->getGwProxy()->writeMsg(msg);
-	theClient->getGwProxy()->resetPingReqTimer();
+	theClient->getGwProxy()->setPingReqTimer();
 	if ((elm->flag & 0x60) == MQTTSN_FLAG_QOS_0)
 	{
 		DISPLAY("\033[0m\033[0;32m Topic \"%s\" was Published. \033[0m\033[0;37m\n\n", elm->topicName);
