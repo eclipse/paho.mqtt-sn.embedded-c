@@ -44,26 +44,26 @@ extern int run(void);
  *
  */
 /*------------------------------------------------------
- *    UDP Configuration
+ *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-	"GatewayTester",     // ClientId
+	"GatewayTestClient", // ClientId
 	{225,1,1,1},         // Multicast group IP
 	1883,                // Multicast group Port
 	20001,               // Local PortNo
 };
 
 /*------------------------------------------------------
- *    Client Configuration
+ *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {
-	300,            //KeepAlive (seconds)
-	true,           //Clean session
-	0,              //Sleep duration in msecs
-	"willTopic",    //WillTopic
-	"willMessage",  //WillMessage
-    0,              //WillQos
-    false           //WillRetain
+	60,            //KeepAlive [seconds]
+	true,          //Clean session
+	300,           //Sleep duration [seconds]
+	"",            //WillTopic
+	"",            //WillMessage
+    0,             //WillQos
+    false          //WillRetain
 };
 
 /*------------------------------------------------------
@@ -162,6 +162,11 @@ void disconnect(void)
 	DISCONNECT(0);
 }
 
+void asleep(void)
+{
+	DISCONNECT(theMqcon.sleepDuration);
+}
+
 /*------------------------------------------------------
  *    A List of Test functions
  *------------------------------------------------------*/
@@ -175,7 +180,9 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 			 TEST("Step6:Publish topic2",     publishTopic2),
 			 TEST("Step7:subscribe again",    subscribechangeCallback),
 			 TEST("Step8:Publish topic2",     publishTopic2),
-			 TEST("Step9:Disconnect",         disconnect),
+			 TEST("Step9:Sleep     ",         asleep),
+			 TEST("Step10:Publish topic1",    publishTopic1),
+			 TEST("Step11:Disconnect",        disconnect),
 			 END_OF_TEST_LIST
 			};
 

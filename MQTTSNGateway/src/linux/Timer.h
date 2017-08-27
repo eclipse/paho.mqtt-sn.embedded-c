@@ -16,8 +16,10 @@
 #ifndef MQTTSNGATEWAY_SRC_LINUX_TIMER_H_
 #define MQTTSNGATEWAY_SRC_LINUX_TIMER_H_
 
+#include <stdint.h>
+#include <sys/time.h>
 #include "MQTTSNGWDefines.h"
-#include <time.h>
+
 namespace MQTTSNGW
 {
 /*==========================================================

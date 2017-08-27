@@ -198,12 +198,17 @@ void LMqttsnClient::run()
 {
 	_gwProxy.connect();
 	_taskMgr.run();
-	sleep();
+}
+
+void LMqttsnClient::setSleepMode(uint32_t duration)
+{
+	// ToDo:  set WDT and sleep mode
+	DISPLAY("\033[0m\033[0;32m\n\n Get into SLEEP mode %u [msec].\033[0m\033[0;37m\n\n", duration);
 }
 
 void LMqttsnClient::sleep(void)
 {
-
+	disconnect(_sleepDuration);
 }
 
 void LMqttsnClient::setSleepDuration(uint32_t duration)

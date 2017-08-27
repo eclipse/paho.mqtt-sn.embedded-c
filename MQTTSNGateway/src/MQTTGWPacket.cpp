@@ -543,3 +543,20 @@ char* MQTTGWPacket::print(char* pbuf)
 	return ptr;
 }
 
+MQTTGWPacket& MQTTGWPacket::operator =(MQTTGWPacket& packet)
+{
+	clearData();
+	this->_header.byte = packet._header.byte;
+	this->_remainingLength = packet._remainingLength;
+	_data = (unsigned char*)calloc(_remainingLength, 1);
+	if (_data)
+	{
+		memcpy(this->_data, packet._data, _remainingLength);
+	}
+	else
+	{
+		clearData();
+	}
+	return *this;
+}
+

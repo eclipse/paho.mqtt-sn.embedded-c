@@ -43,6 +43,7 @@ public:
 		_que = new Que<T>;
 	}
 
+
 	~PacketQue()
 	{
 		clear();
@@ -65,11 +66,14 @@ public:
 		}
 	}
 
-	void post(T* packet)
+	int
+	post(T* packet)
 	{
+		int rc;
 		_mutex.lock();
-		_que->post(packet);
+		rc = _que->post(packet);
 		_mutex.unlock();
+		return rc;
 	}
 
 	void pop()
@@ -91,6 +95,11 @@ public:
 			_que->pop();
 		}
 		_mutex.unlock();
+	}
+
+	void setMaxSize(int size)
+	{
+		_que->setMaxSize(size);
 	}
 
 private:
@@ -232,7 +241,8 @@ public:
 	Connect* getConnectData(void);
 	uint16_t getWaitedPubTopicId(uint16_t msgId);
 	uint16_t getWaitedSubTopicId(uint16_t msgId);
-	MQTTSNPacket* getClientSleepPacket();
+	MQTTGWPacket* getClientSleepPacket(void);
+	void deleteFirstClientSleepPacket(void);
 	WaitREGACKPacketList* getWaitREGACKPacketList(void);
 
 	void eraseWaitedPubTopicId(uint16_t msgId);
@@ -240,7 +250,7 @@ public:
 	void clearWaitedPubTopicId(void);
 	void clearWaitedSubTopicId(void);
 
-	void setClientSleepPacket(MQTTSNPacket*);
+	int  setClientSleepPacket(MQTTGWPacket*);
 	void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 	void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 
@@ -277,6 +287,7 @@ public:
 	bool isDisconnect(void);
 	bool isActive(void);
 	bool isSleep(void);
+	bool isAwake(void);
 	bool isSecureNetwork(void);
 	bool isSensorNetStable(void);
 	bool isWaitWillMsg(void);
@@ -286,7 +297,7 @@ public:
 	void    setOTAClient(Client* cl);
 
 private:
-	PacketQue<MQTTSNPacket> _clientSleepPacketQue;
+	PacketQue<MQTTGWPacket> _clientSleepPacketQue;
 	WaitREGACKPacketList    _waitREGACKList;
 
 	Topics* _topics;

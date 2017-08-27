@@ -18,10 +18,8 @@
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
 
