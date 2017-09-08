@@ -91,7 +91,6 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	{
 	case MQTTSN_ADVERTISE:
 	case MQTTSN_GWINFO:
-	case MQTTSN_PINGRESP:
 		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, CLIENTS, packet->print(pbuf));
 		break;
 	case MQTTSN_CONNACK:
@@ -100,6 +99,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	case MQTTSN_WILLMSGREQ:
 	case MQTTSN_WILLTOPICRESP:
 	case MQTTSN_WILLMSGRESP:
+	case MQTTSN_PINGRESP:
 		WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_REGISTER:

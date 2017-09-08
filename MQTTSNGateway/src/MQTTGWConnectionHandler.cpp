@@ -84,6 +84,7 @@ void MQTTGWConnectionHandler::handlePingresp(Client* client, MQTTGWPacket* packe
 	snPacket->setPINGRESP();
 	Event* ev1 = new Event();
 	ev1->setClientSendEvent(client, snPacket);
+	client->updateStatus(snPacket);
 	_gateway->getClientSendQue()->post(ev1);
 }
 
