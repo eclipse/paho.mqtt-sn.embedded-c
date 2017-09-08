@@ -1,4 +1,4 @@
-/**************************************************************************************
+/****************************************************************************
  * Copyright (c) 2016, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
@@ -10,22 +10,11 @@
  * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
- * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation 
- **************************************************************************************/
-
-#include "LMqttsnClientApp.h"
-#include "LMqttsnClient.h"
-#include "LScreen.h"
-
-using namespace std;
-using namespace linuxAsyncClient;
-extern LMqttsnClient* theClient;
-extern LScreen* theScreen;
-extern int run(void);
-
-/*
- *   Functions supported.
+ *---------------------------------------------------------------------------
+ *
+ *   MQTT-SN GATEWAY TEST CLIENT
+ *
+ *   Supported functions.
  *
  *   void PUBLISH    ( const char* topicName, uint8_t* payload,
  *                     uint16_t len, uint8_t qos, bool retain = false );
@@ -42,7 +31,20 @@ extern int run(void);
  *
  *   void DISPLAY( format, .....);    <== instead of printf()
  *
- */
+ *
+ * Contributors:
+ *    Tomoaki Yamaguchi - initial API and implementation
+ ***************************************************************************/
+
+#include "LMqttsnClientApp.h"
+#include "LMqttsnClient.h"
+#include "LScreen.h"
+
+using namespace std;
+using namespace linuxAsyncClient;
+extern LMqttsnClient* theClient;
+extern LScreen* theScreen;
+
 /*------------------------------------------------------
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
@@ -168,7 +170,9 @@ void asleep(void)
 }
 
 /*------------------------------------------------------
- *    A List of Test functions
+ *    A List of Test functions is valid in case of
+ *    line 23 of LMqttsnClientApp.h is commented out.
+ *    //#define CLIENT_MODE
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
@@ -188,12 +192,16 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 
 
 /*------------------------------------------------------
- *    unused for Test
+ *    List of tasks is valid in case of line23 of
+ *    LMqttsnClientApp.h is uncommented.
+ *    #define CLIENT_MODE
  *------------------------------------------------------*/
 TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			//TASK(test1, 4);
+			TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
+			TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
              END_OF_TASK_LIST
             };
+
 
 /*------------------------------------------------------
  *    Initialize function
@@ -203,11 +211,5 @@ void setup(void)
 
 }
 
-/*------------------------------------------------------
- *    main
- *------------------------------------------------------*/
 
-int main(int argc, char** argv)
-{
-	return run();
-}
+/*****************  END OF  PROGRAM ********************/
