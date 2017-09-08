@@ -174,10 +174,10 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 	switch (packet->getType())
 	{
 	case MQTTSN_SEARCHGW:
-	case MQTTSN_PINGREQ:
 		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, CLIENT, packet->print(pbuf));
 		break;
 	case MQTTSN_CONNECT:
+	case MQTTSN_PINGREQ:
 		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;
 	case MQTTSN_DISCONNECT:
