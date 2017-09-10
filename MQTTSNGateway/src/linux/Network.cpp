@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
-#include <error.h>
 #include <regex>
 
 #include "Network.h"
