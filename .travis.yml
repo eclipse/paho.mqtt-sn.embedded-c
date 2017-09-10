@@ -1,30 +1,33 @@
 language: cpp
-compiler: g++
+compiler: 
+	- g++
+    - clang
 
 install:
+	- if ["$CXX" = "g++" ]; then export CXX="g++-4.8"; fi
 
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
     packages:
     - g++-4.8
     - cmake
     - cmake-data
+	- clang
     
 script: 
   - ./travis-build.sh
 
   - cd MQTTSNGateway
-  - make CXX="g++-4.8" SENSORNET="xbee"
-  - make CXX="g++-4.8" SENSORNET="udp"  
-  - make CXX="g++-4.8" SENSORNET="udp6"
+  - make SENSORNET="xbee"
+  - make SENSORNET="udp"  
+  - make SENSORNET="udp6"
   
   - make test
     
   - cd GatewayTester
-  - make CXX="g++-4.8"
+  - make 
   
 notifications:
   emails:
