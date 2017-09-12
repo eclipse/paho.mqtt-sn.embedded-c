@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 using namespace MQTTSNGW;
-
+char* currentDateTime(void);
 /*=====================================
  Class ClientList
  =====================================*/
@@ -185,7 +185,6 @@ Client* ClientList::getClient(uint8_t* clientId)
 
 	while (client != 0)
 	{
-		//printf("ClientList: clientId = %s\n", client->getClientId());
 		if (strcmp((const char*)client->getClientId(), (const char*)clientId) == 0 )
 		{
 			_mutex.unlock();
@@ -259,7 +258,7 @@ bool ClientList::isAuthorized()
 /*=====================================
  Class Client
  =====================================*/
-static const char* theClientStatus[] = { "Disconnected", "TryConnecting", "Connecting", "Active", "Awake", "Asleep", "Lost" };
+static const char* theClientStatus[] = { "Disconnected", "TryConnecting", "Connecting", "Active", "Asleep", "Awake", "Lost" };
 
 Client::Client(bool secure)
 {
@@ -288,6 +287,7 @@ Client::Client(bool secure)
 	_otaClient = 0;
 	_prevClient = 0;
 	_nextClient = 0;
+	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
 }
 
 Client::~Client()
@@ -335,9 +335,28 @@ uint16_t Client::getWaitedSubTopicId(uint16_t msgId)
 	return _waitedSubTopicIdMap.getTopicId(msgId, &type);
 }
 
-MQTTSNPacket* Client::getClientSleepPacket()
+MQTTGWPacket* Client::getClientSleepPacket()
 {
 	return _clientSleepPacketQue.getPacket();
+}
+
+void Client::deleteFirstClientSleepPacket()
+{
+	_clientSleepPacketQue.pop();
+}
+
+int Client::setClientSleepPacket(MQTTGWPacket* packet)
+{
+	int rc = _clientSleepPacketQue.post(packet);
+	if ( rc )
+	{
+		WRITELOG("%s    %s is sleeping. the packet was saved.\n", currentDateTime(), _clientId);
+	}
+	else
+	{
+		WRITELOG("%s    %s is sleeping　but discard the packet.\n", currentDateTime(), _clientId);
+	}
+	return rc;
 }
 
 Connect* Client::getConnectData(void)
@@ -372,12 +391,6 @@ void Client::setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicT
 void Client::setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
 {
 	_waitedSubTopicIdMap.add(msgId, topicId, type);
-}
-
-void Client::setClientSleepPacket(MQTTSNPacket* packet)
-{
-	updateStatus(packet);
-	_clientSleepPacketQue.post(packet);
 }
 
 bool Client::checkTimeover(void)
@@ -426,50 +439,33 @@ void Client::updateStatus(MQTTSNPacket* packet)
 			_keepAliveTimer.start(_keepAliveMsec * 1.5);
 			break;
 		case MQTTSN_DISCONNECT:
-		{
 			uint16_t duration;
 			packet->getDISCONNECT(&duration);
 			if (duration)
 			{
 				_status = Cstat_Asleep;
-				_keepAliveMsec = duration * 1000UL;
 			}
 			else
 			{
 				disconnected();
 			}
-		}
 			break;
 		default:
 			break;
 		}
-
 	}
-	else if (_status == Cstat_Asleep)
-	{
-		if (packet->getType() == MQTTSN_CONNECT)
-		{
-			setKeepAlive(packet);
-			_status = Cstat_Connecting;
-		}
-		else if (packet->getType() == MQTTSN_PINGREQ)
-		{
-			if ( packet->getPINGREQ() > 0 )
-			{
-				_status = Cstat_Awake;
-			}
-		}
-	}
-	else if (_status == Cstat_Awake)
+	else if (_status == Cstat_Awake || _status == Cstat_Asleep)
 	{
 		switch (packet->getType())
 		{
 		case MQTTSN_CONNECT:
-			_status = Cstat_Connecting;
-			setKeepAlive(packet);
+			_status = Cstat_Active;
 			break;
 		case MQTTSN_DISCONNECT:
 			disconnected();
+			break;
+		case MQTTSN_PINGREQ:
+			_status = Cstat_Awake;
 			break;
 		case MQTTSN_PINGRESP:
 			_status = Cstat_Asleep;
@@ -478,6 +474,7 @@ void Client::updateStatus(MQTTSNPacket* packet)
 			break;
 		}
 	}
+	DEBUGLOG("Client Status = %s\n", theClientStatus[_status]);
 }
 
 void Client::updateStatus(ClientStatus stat)
@@ -593,6 +590,11 @@ bool Client::isActive(void)
 bool Client::isSleep(void)
 {
 	return (_status == Cstat_Asleep);
+}
+
+bool Client::isAwake(void)
+{
+	return (_status == Cstat_Awake);
 }
 
 bool Client::isSecureNetwork(void)

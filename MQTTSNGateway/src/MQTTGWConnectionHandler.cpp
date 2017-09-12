@@ -76,14 +76,6 @@ void MQTTGWConnectionHandler::handleConnack(Client* client, MQTTGWPacket* packet
 	ev1->setClientSendEvent(client, snPacket);
 	client->connackSended(rc);  // update the client's status
 	_gateway->getClientSendQue()->post(ev1);
-
-	MQTTSNPacket* sleepPacket = 0;
-	while ( (sleepPacket = client->getClientSleepPacket()) )
-	{
-		Event* ev1 = new Event();
-		ev1->setClientSendEvent(client, sleepPacket);
-		_gateway->getClientSendQue()->post(ev1);
-	}
 }
 
 void MQTTGWConnectionHandler::handlePingresp(Client* client, MQTTGWPacket* packet)
@@ -92,6 +84,7 @@ void MQTTGWConnectionHandler::handlePingresp(Client* client, MQTTGWPacket* packe
 	snPacket->setPINGRESP();
 	Event* ev1 = new Event();
 	ev1->setClientSendEvent(client, snPacket);
+	client->updateStatus(snPacket);
 	_gateway->getClientSendQue()->post(ev1);
 }
 

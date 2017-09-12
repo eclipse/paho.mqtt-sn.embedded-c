@@ -31,6 +31,7 @@ extern OnPublishList theOnPublishList[];
 extern MQTTSNCONF;
 extern UDPCONF;
 extern void setup(void);
+
 /*=====================================
           LMqttsnClient
  ======================================*/
@@ -39,10 +40,15 @@ LScreen* theScreen = new LScreen();
 bool theOTAflag = false;
 bool theClientMode = true;
 
-int run(void)
+
+/*-------------------------------------
+ *    main
+ *------------------------------------*/
+
+int main(int argc, char** argv)
 {
+#ifndef CLIENT_MODE
 	char c = 0;
-	setup();
 	printf("\n%s", PAHO_COPYRIGHT4);
 	printf("\n%s\n", PAHO_COPYRIGHT0);
 	printf("%s\n", PAHO_COPYRIGHT1);
@@ -51,31 +57,29 @@ int run(void)
 	printf("%s\n", TESTER_VERSION);
 	printf("%s\n", PAHO_COPYRIGHT4);
 
-#ifndef CLIENT_MODE
+	theClientMode = false;
+	PROMPT(" Do you like Tomoaki ? ( y/n ) : ");
+	while (true)
 	{
-		theClientMode = false;
-		PROMPT(" Do you like Tomoaki ? ( y/n ) : ");
-		while (true)
+		if (CHECKKEYIN(&c))
 		{
-			if (CHECKKEYIN(&c))
+			if ( toupper(c) == 'N' )
 			{
-				if ( toupper(c) == 'N' )
-				{
-					DISPLAY("\033[0;31m\n**** Sorry ****\033[0;37m\n\n");
-					PROMPT("");
-					return 0;
-				}
-			}
-			else if ( toupper(c) == 'Y' )
-			{
-				DISPLAY("\033[0m\033[0;32mAttempting to Connect the Broker.....\033[0m\033[0;37m\n");
+				DISPLAY("\033[0;31m\n**** Sorry ****\033[0;37m\n\n");
 				PROMPT("");
-				break;
+				return 0;
 			}
+		}
+		else if ( toupper(c) == 'Y' )
+		{
+			DISPLAY("\033[0m\033[0;32mAttempting to Connect the Broker.....\033[0m\033[0;37m\n");
+			PROMPT("");
+			break;
 		}
 	}
 #endif
 
+	setup();
 	theClient->addTask(theClientMode);
 	theClient->initialize( theNetcon, theMqcon);
 	do
@@ -198,12 +202,17 @@ void LMqttsnClient::run()
 {
 	_gwProxy.connect();
 	_taskMgr.run();
-	sleep();
+}
+
+void LMqttsnClient::setSleepMode(uint32_t duration)
+{
+	// ToDo:  set WDT and sleep mode
+	DISPLAY("\033[0m\033[0;32m\n\n Get into SLEEP mode %u [msec].\033[0m\033[0;37m\n\n", duration);
 }
 
 void LMqttsnClient::sleep(void)
 {
-
+	disconnect(_sleepDuration);
 }
 
 void LMqttsnClient::setSleepDuration(uint32_t duration)

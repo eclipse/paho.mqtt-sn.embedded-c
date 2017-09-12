@@ -35,6 +35,7 @@ public:
     bool isTimeUp(void);
     void stop(void);
     void changeUTC(void){};
+    uint32_t getRemain(void);
     static void setUnixTime(uint32_t utc){};
 private:
     struct timeval _startTime;

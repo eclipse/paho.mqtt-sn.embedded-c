@@ -1,4 +1,4 @@
-/**************************************************************************************
+/****************************************************************************
  * Copyright (c) 2016, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
@@ -10,22 +10,11 @@
  * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
- * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation 
- **************************************************************************************/
-
-#include "LMqttsnClientApp.h"
-#include "LMqttsnClient.h"
-#include "LScreen.h"
-
-using namespace std;
-using namespace linuxAsyncClient;
-extern LMqttsnClient* theClient;
-extern LScreen* theScreen;
-extern int run(void);
-
-/*
- *   Functions supported.
+ *---------------------------------------------------------------------------
+ *
+ *   MQTT-SN GATEWAY TEST CLIENT
+ *
+ *   Supported functions.
  *
  *   void PUBLISH    ( const char* topicName, uint8_t* payload,
  *                     uint16_t len, uint8_t qos, bool retain = false );
@@ -42,28 +31,41 @@ extern int run(void);
  *
  *   void DISPLAY( format, .....);    <== instead of printf()
  *
- */
+ *
+ * Contributors:
+ *    Tomoaki Yamaguchi - initial API and implementation
+ ***************************************************************************/
+
+#include "LMqttsnClientApp.h"
+#include "LMqttsnClient.h"
+#include "LScreen.h"
+
+using namespace std;
+using namespace linuxAsyncClient;
+extern LMqttsnClient* theClient;
+extern LScreen* theScreen;
+
 /*------------------------------------------------------
- *    UDP Configuration
+ *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-	"GatewayTester",     // ClientId
+	"GatewayTestClient", // ClientId
 	{225,1,1,1},         // Multicast group IP
 	1883,                // Multicast group Port
 	20001,               // Local PortNo
 };
 
 /*------------------------------------------------------
- *    Client Configuration
+ *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {
-	300,            //KeepAlive (seconds)
-	true,           //Clean session
-	0,              //Sleep duration in msecs
-	"willTopic",    //WillTopic
-	"willMessage",  //WillMessage
-    0,              //WillQos
-    false           //WillRetain
+	60,            //KeepAlive [seconds]
+	true,          //Clean session
+	300,           //Sleep duration [seconds]
+	"",            //WillTopic
+	"",            //WillMessage
+    0,             //WillQos
+    false          //WillRetain
 };
 
 /*------------------------------------------------------
@@ -162,8 +164,15 @@ void disconnect(void)
 	DISCONNECT(0);
 }
 
+void asleep(void)
+{
+	DISCONNECT(theMqcon.sleepDuration);
+}
+
 /*------------------------------------------------------
- *    A List of Test functions
+ *    A List of Test functions is valid in case of
+ *    line 23 of LMqttsnClientApp.h is commented out.
+ *    //#define CLIENT_MODE
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
@@ -175,18 +184,24 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 			 TEST("Step6:Publish topic2",     publishTopic2),
 			 TEST("Step7:subscribe again",    subscribechangeCallback),
 			 TEST("Step8:Publish topic2",     publishTopic2),
-			 TEST("Step9:Disconnect",         disconnect),
+			 TEST("Step9:Sleep     ",         asleep),
+			 TEST("Step10:Publish topic1",    publishTopic1),
+			 TEST("Step11:Disconnect",        disconnect),
 			 END_OF_TEST_LIST
 			};
 
 
 /*------------------------------------------------------
- *    unused for Test
+ *    List of tasks is valid in case of line23 of
+ *    LMqttsnClientApp.h is uncommented.
+ *    #define CLIENT_MODE
  *------------------------------------------------------*/
 TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			//TASK(test1, 4);
+			TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
+			TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
              END_OF_TASK_LIST
             };
+
 
 /*------------------------------------------------------
  *    Initialize function
@@ -196,11 +211,5 @@ void setup(void)
 
 }
 
-/*------------------------------------------------------
- *    main
- *------------------------------------------------------*/
 
-int main(int argc, char** argv)
-{
-	return run();
-}
+/*****************  END OF  PROGRAM ********************/

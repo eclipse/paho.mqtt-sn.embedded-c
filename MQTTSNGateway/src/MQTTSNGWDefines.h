@@ -38,6 +38,7 @@ namespace MQTTSNGW
 #define MAX_CLIENTS                 (100)  // Number of Clients can be handled.
 #define MAX_CLIENTID_LENGTH          (64)  // Max length of clientID
 #define MAX_INFLIGHTMESSAGES         (10)  // Number of inflight messages
+#define MAX_SAVED_PUBLISH            (20)  // Max number of PUBLISH message for Asleep state
 #define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size  (5+2+TopicLen+PayloadLen)
 #define SIZE_OF_LOG_PACKET          (500)  // Length of the packet log in bytes
 

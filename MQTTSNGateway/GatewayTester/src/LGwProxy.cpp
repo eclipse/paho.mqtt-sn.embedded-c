@@ -55,6 +55,8 @@ LGwProxy::LGwProxy(){
 	_cleanSession = 0;
 	_pingStatus = 0;
 	_connectRetry = MQTTSN_RETRY_COUNT;
+	_tSleep = 0;
+	_tWake = 0;
 }
 
 LGwProxy::~LGwProxy(){
@@ -91,7 +93,7 @@ void LGwProxy::connect(){
 			strcpy(pos,_willTopic);        // WILLTOPIC
 			_status = GW_WAIT_WILLMSGREQ;
 			writeGwMsg();
-		}else if (_status == GW_CONNECTING || _status == GW_DISCONNECTED){
+		}else if (_status == GW_CONNECTING || _status == GW_DISCONNECTED || _status == GW_SLEPT ){
 			uint8_t clientIdLen = uint8_t(strlen(_clientId) > 23 ? 23 : strlen(_clientId));
 			*pos++ = 6 + clientIdLen;
 			*pos++ = MQTTSN_TYPE_CONNECT;
@@ -105,7 +107,7 @@ void LGwProxy::connect(){
 			strncpy(pos, _clientId, clientIdLen);
 			_msg[ 6 + clientIdLen] = 0;
 			_status = GW_WAIT_CONNACK;
-			if (_willMsg && _willTopic){
+			if ( _willMsg && _willTopic &&  _status != GW_SLEPT ){
 				if (strlen(_willMsg) && strlen(_willTopic)){
 					_msg[2] = _msg[2] | MQTTSN_FLAG_WILL;   // CONNECT
 					_status = GW_WAIT_WILLTOPICREQ;
@@ -163,10 +165,14 @@ int LGwProxy::getConnectResponce(void){
 		if (_mqttsnMsg[1] == MQTTSN_RC_ACCEPTED){
 			_status = GW_CONNECTED;
 			_connectRetry = MQTTSN_RETRY_COUNT;
-			_keepAliveTimer.start(_tkeepAlive * 1000);
-			_topicTbl.clearTopic();
-			DISPLAY("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
-			theClient->onConnect();  // SUBSCRIBEs are conducted
+			setPingReqTimer();
+			if ( _tSleep ){
+				_tSleep = 0;
+			}else{
+				DISPLAY("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
+				_topicTbl.clearTopic();
+				theClient->onConnect();  // SUBSCRIBEs are conducted
+			}
 		}else{
 			_status = GW_CONNECTING;
 		}
@@ -182,16 +188,18 @@ void LGwProxy::reconnect(void){
 
 void LGwProxy::disconnect(uint16_t secs){
     _tSleep = secs;
-    _status = GW_DISCONNECTING;
-    
+    _tWake = 0;
+
 	_msg[1] = MQTTSN_TYPE_DISCONNECT;
 
 	if (secs){
 		_msg[0] = 4;
 		setUint16((uint8_t*) _msg + 2, secs);
+		_status = GW_SLEEPING;
 	}else{
 		_msg[0] = 2;
 		_keepAliveTimer.stop();
+		_status = GW_DISCONNECTING;
 	}
 
 	_retryCount = MQTTSN_RETRY_COUNT;
@@ -223,9 +231,13 @@ int LGwProxy::getDisconnectResponce(void){
 		}
 		return 0;
 	}else if (_mqttsnMsg[0] == MQTTSN_TYPE_DISCONNECT){
-		if (_tSleep){
-			_status = GW_SLEEPING;
-			_keepAliveTimer.start(_tSleep);
+		if (_status == GW_SLEEPING ){
+			_status = GW_SLEPT;
+			uint32_t remain = _keepAliveTimer.getRemain();
+			theClient->setSleepMode(remain);
+
+			/* Wake up and starts from this point. */
+
 		}else{
 			_status = GW_DISCONNECTED;
 		}
@@ -279,7 +291,18 @@ int LGwProxy::getMessage(void){
     }else if (_mqttsnMsg[0] == MQTTSN_TYPE_PINGRESP){
         if (_pingStatus == GW_WAIT_PINGRESP){
             _pingStatus = 0;
-            resetPingReqTimer();
+            setPingReqTimer();
+
+            if ( _tSleep > 0 ){
+            	_tWake += _tkeepAlive;
+            	if ( _tWake < _tSleep ){
+            		theClient->setSleepMode(_tkeepAlive * 1000UL);
+            	}else{
+            		DISPLAY("\033[0m\033[0;32m\n\n Get back to ACTIVE.\033[0m\033[0;37m\n\n");
+            		_tWake = 0;
+            		connect();
+            	}
+            }
         }
     }else if (_mqttsnMsg[0] == MQTTSN_TYPE_DISCONNECT){
     	_status = GW_LOST;
@@ -408,7 +431,7 @@ void LGwProxy::checkPingReq(void){
 	msg[0] = 0x02;
 	msg[1] = MQTTSN_TYPE_PINGREQ;
     
-	if (_status == GW_CONNECTED && _keepAliveTimer.isTimeUp() && _pingStatus != GW_WAIT_PINGRESP){
+	if ( (_status == GW_CONNECTED || _status == GW_SLEPT) && isPingReqRequired() && _pingStatus != GW_WAIT_PINGRESP){
 		_pingStatus = GW_WAIT_PINGRESP;
         _pingRetryCount = MQTTSN_RETRY_COUNT;
 
@@ -449,8 +472,12 @@ LRegisterManager* LGwProxy::getRegisterManager(void){
 	return &_regMgr;
 }
 
-void LGwProxy::resetPingReqTimer(void){
-	_keepAliveTimer.start(_tkeepAlive * 1000);
+bool LGwProxy::isPingReqRequired(void){
+	return _keepAliveTimer.isTimeUp(_tkeepAlive * 1000UL);
+}
+
+void LGwProxy::setPingReqTimer(void){
+	_keepAliveTimer.start(_tkeepAlive * 1000UL);
 }
 
 const char* LGwProxy::getClientId(void) {

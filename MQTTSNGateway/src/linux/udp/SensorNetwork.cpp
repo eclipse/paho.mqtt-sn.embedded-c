@@ -21,7 +21,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
-#include <errno.h>
 #include <regex>
 #include <string>
 #include <stdlib.h>
