@@ -56,9 +56,9 @@ ApiMode=2
 ````    
 
 **BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
-**MulticastIP** and **MulticastPortNo** is a multicast address for ADVERTISE, GWSEARCH and GWINFO messages. Gateway is waiting GWSEARCH multicast message and when receiving it send GWINFO message via Broadcast address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom(),
-Client should know the BroadcastIP and PortNo to send a SEARCHGW message.    
-**GatewayId** is defined by GWSEARCH message.    
+**MulticastIP** and **MulticastPortNo** is a multicast address for GWSEARCH messages. Gateway is waiting GWSEARCH  and when receiving it send GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom().
+Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW message.    
+**GatewayId** is used by GWINFO message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
 when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId and SensorNetwork Address. e.g. IP address and Port No.    
 
