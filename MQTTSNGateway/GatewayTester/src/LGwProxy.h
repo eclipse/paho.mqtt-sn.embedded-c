@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "LMqttsnClientApp.h"
 #include "LNetworkUdp.h"
@@ -92,11 +93,11 @@ private:
 	uint8_t     _gwId;
 	uint16_t    _tkeepAlive;
 	uint32_t    _tAdv;
-	uint32_t    _sendUTC;
+	time_t      _sendUTC;
 	int         _retryCount;
 	int         _connectRetry;
 	uint8_t     _status;
-	uint32_t    _pingSendUTC;
+	time_t    _pingSendUTC;
 	uint8_t     _pingRetryCount;
 	uint8_t     _pingStatus;
 	LRegisterManager _regMgr;
