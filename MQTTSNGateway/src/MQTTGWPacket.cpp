@@ -500,6 +500,7 @@ char* MQTTGWPacket::getMsgId(char* pbuf)
 	{
 	case PUBLISH:
 		Publish pub;
+		pub.msgId = 0;
 		getPUBLISH(&pub);
 		if ( _header.bits.dup )
 		{
