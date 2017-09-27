@@ -16,10 +16,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+
 #include "LMqttsnClientApp.h"
 #include "LTimer.h"
 
-using namespace std;
+//using namespace std;
 using namespace linuxAsyncClient;
 
 /*=====================================
