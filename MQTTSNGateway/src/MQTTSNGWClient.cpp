@@ -230,12 +230,10 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 	else
 	{
 		MQTTSNString  dummyId;
-		char* id = (char*)malloc(1);
-		*id = 0;
-		dummyId.cstring = id;
+		dummyId.cstring = strdup("");
 		dummyId.lenstring.len = 0;
 		client->setClientId(dummyId);
-		free(id);
+		 free(dummyId.cstring);
 	}
 
 	/* add the list */
