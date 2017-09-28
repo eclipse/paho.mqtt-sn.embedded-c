@@ -62,14 +62,16 @@ $(SUBDIR)/MQTTSNUnsubscribeServer.c
 CXX := g++
 CPPFLAGS += 
 
-INCLUDES += -I$(SRCDIR) \
+INCLUDE :=
+INCLUDES += $(INCLUDE) -I$(SRCDIR) \
 -I$(SRCDIR)/$(OS) \
 -I$(SRCDIR)/$(OS)/$(SENSORNET) \
 -I$(SUBDIR) \
 -I$(SRCDIR)/$(TEST)
 
 DEFS :=
-LIBS += -L/usr/local/lib
+LIB :=
+LIBS += $(LIB) -L/usr/local/lib
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
 LDADD := -lpthread -lssl -lcrypto -lrt
