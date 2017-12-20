@@ -534,8 +534,8 @@ char* MQTTGWPacket::print(char* pbuf)
 	char* ptr = pbuf;
 	char** pptr = &pbuf;
 	int len = getPacketData(packetData);
-
-	for (int i = 0; i < len; i++)
+	int size = len > SIZE_OF_LOG_PACKET ? SIZE_OF_LOG_PACKET : len;
+	for (int i = 0; i < size; i++)
 	{
 		sprintf(*pptr, " %02X", packetData[i]);
 		*pptr += 3;
