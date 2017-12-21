@@ -167,7 +167,7 @@ void PacketHandleTask::run()
 				_mqttsnPublish->handleRegister(client, snPacket);
 				break;
 			case MQTTSN_REGACK:
-				// NOP
+			    _mqttsnPublish->handleRegAck(client, snPacket);
 				break;
 			case MQTTSN_SUBSCRIBE:
 				_mqttsnSubscribe->handleSubscribe(client, snPacket);

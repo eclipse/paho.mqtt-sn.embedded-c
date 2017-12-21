@@ -31,7 +31,7 @@ public:
 	void handlePuback(Client* client, MQTTSNPacket* packet);
 	void handleAck(Client* client, MQTTSNPacket* packet, uint8_t packetType);
 	void handleRegister(Client* client, MQTTSNPacket* packet);
-
+	void handleRegAck( Client* client, MQTTSNPacket* packet);
 private:
 	Gateway* _gateway;
 };

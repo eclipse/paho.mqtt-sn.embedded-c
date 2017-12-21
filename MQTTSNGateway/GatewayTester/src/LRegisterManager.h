@@ -17,6 +17,7 @@
 #ifndef REGISTERQUE_H_
 #define REGISTERQUE_H_
 
+#include <time.h>
 #include "LMqttsnClientApp.h"
 
 namespace linuxAsyncClient {
@@ -27,7 +28,7 @@ typedef struct RegQueElement{
 	const char* topicName;
 	uint16_t msgId;
     int      retryCount;
-    uint32_t sendUTC;
+    time_t   sendUTC;
 	RegQueElement* prev;
 	RegQueElement* next;
 }RegQueElement;

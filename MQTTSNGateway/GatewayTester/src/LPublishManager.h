@@ -16,6 +16,7 @@
 #ifndef PUBLISHMANAGER_H_
 #define PUBLISHMANAGER_H_
 
+#include <time.h>
 #include "LMqttsnClientApp.h"
 #include "LTimer.h"
 #include "LTopicTable.h"
@@ -42,7 +43,7 @@ typedef struct PubElement{
     const char* topicName;
     uint8_t*  payload;
     uint16_t  payloadlen;
-    uint32_t  sendUTC;
+    time_t    sendUTC;
     int       (*callback)(void);
     int       retryCount;
     int       taskIndex;
