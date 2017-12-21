@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "LMqttsnClientApp.h"
 #include "LTimer.h"
@@ -29,8 +30,8 @@ namespace linuxAsyncClient {
 
 struct TaskList{
     void     (*callback)(void);
-	uint32_t interval;
-    uint32_t prevTime;
+	time_t   interval;
+    time_t    prevTime;
     uint8_t  count;
 };
 

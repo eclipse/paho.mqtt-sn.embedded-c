@@ -245,5 +245,28 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 		ev->setClientSendEvent(client, regAck);
 		_gateway->getClientSendQue()->post(ev);
 	}
+}
+
+void MQTTSNPublishHandler::handleRegAck( Client* client, MQTTSNPacket* packet)
+{
+    uint16_t id;
+    uint16_t msgId;
+    uint8_t rc;
+    if ( client->isActive() || client->isAwake())
+    {
+        if ( packet->getREGACK(&id, &msgId, &rc) == 0 )
+        {
+            return;
+        }
+
+        MQTTSNPacket* regAck = client->getWaitREGACKPacketList()->getPacket(msgId);
+        if ( regAck != 0 )
+        {
+            client->getWaitREGACKPacketList()->erase(msgId);
+            Event* ev = new Event();
+            ev->setClientSendEvent(client, regAck);
+            _gateway->getClientSendQue()->post(ev);
+        }
+    }
 
 }

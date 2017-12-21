@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "LMqttsnClientApp.h"
 #include "LRegisterManager.h"
@@ -33,7 +34,7 @@ typedef struct SubElement{
     TopicCallback callback;
     const char* topicName;
     uint16_t  msgId;
-    uint32_t  sendUTC;
+    time_t    sendUTC;
     uint16_t  topicId;
     uint8_t   msgType;
     uint8_t   topicType;
