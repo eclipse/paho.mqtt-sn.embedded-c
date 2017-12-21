@@ -122,7 +122,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 
 			if (id > 0)
 			{
-				/* create REGACK */
+				/* create REGISTER */
 				MQTTSNPacket* regPacket = new MQTTSNPacket();
 
 				MQTTSNString topicName;
@@ -143,6 +143,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 						(uint8_t) pub.header.bits.retain, (uint16_t) pub.msgId, topicId, (uint8_t*) pub.payload,
 						pub.payloadlen);
 				client->getWaitREGACKPacketList()->setPacket(snPacket, regackMsgId);
+				return;
 			}
 			else
 			{

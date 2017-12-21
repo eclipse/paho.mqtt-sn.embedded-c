@@ -227,6 +227,14 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 	{
 		client->setClientId(*clientId);
 	}
+	else
+	{
+		MQTTSNString  dummyId;
+		dummyId.cstring = strdup("");
+		dummyId.lenstring.len = 0;
+		client->setClientId(dummyId);
+		 free(dummyId.cstring);
+	}
 
 	/* add the list */
 	if ( _firstClient == 0 )
