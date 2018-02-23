@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTGWPublishHandler.h"
@@ -113,6 +114,8 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 				{
 					replyACK(client, &pub, PUBREC);
 				}
+
+				delete snPacket;
 				return;
 			}
 
