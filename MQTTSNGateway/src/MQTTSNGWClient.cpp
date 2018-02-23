@@ -124,7 +124,7 @@ bool ClientList::authorize(const char* fileName)
 	return _authorize;
 }
 
-void ClientList::erase(Client* client)
+void ClientList::erase(Client*& client)
 {
 	if ( !_authorize && client->erasable())
 	{
