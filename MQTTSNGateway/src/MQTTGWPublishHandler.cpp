@@ -129,6 +129,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 				MQTTSNPacket* regPacket = new MQTTSNPacket();
 
 				MQTTSNString topicName;
+				topicName.cstring = 0;
 				topicName.lenstring.len = topicId.data.long_.len;
 				topicName.lenstring.data = topicId.data.long_.name;
 
