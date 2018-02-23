@@ -1155,8 +1155,12 @@ int WaitREGACKPacketList::setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId)
 		_first = elm;
 		_end = elm;
 	}
-	elm->_prev = _end;
-	_end->_next = elm;
+	else
+	{
+		_end->_next = elm;
+		elm->_prev = _end;
+		_end = elm;
+	}
 	return 1;
 }
 
