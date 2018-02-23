@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTSNGWClient.h"
@@ -235,6 +236,8 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 		client->setClientId(dummyId);
 		 free(dummyId.cstring);
 	}
+
+	_mutex.lock();
 
 	/* add the list */
 	if ( _firstClient == 0 )
