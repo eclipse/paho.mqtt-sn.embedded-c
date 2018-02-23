@@ -185,7 +185,6 @@ void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* pac
 	}
 	else if (topicFilter.type == MQTTSN_TOPIC_TYPE_SHORT)
 	{
-		MQTTGWPacket* unsubscribe = new MQTTGWPacket();
 		char shortTopic[3];
 		shortTopic[0] = topicFilter.data.short_name[0];
 		shortTopic[1] = topicFilter.data.short_name[1];
