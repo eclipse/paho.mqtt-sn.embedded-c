@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTSNGWPublishHandler.h"
@@ -180,8 +181,6 @@ void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)
 
 	if ( client->isActive() )
 	{
-		MQTTGWPacket* pubAck = new MQTTGWPacket();
-
 		if ( packet->getPUBACK(&topicId, &msgId, &rc) == 0 )
 		{
 			return;
@@ -189,6 +188,7 @@ void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)
 
 		if ( rc == MQTTSN_RC_ACCEPTED)
 		{
+			MQTTGWPacket* pubAck = new MQTTGWPacket();
 			pubAck->setAck(PUBACK, msgId);
 			Event* ev1 = new Event();
 			ev1->setBrokerSendEvent(client, pubAck);
@@ -226,10 +226,8 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 	MQTTSNString topicName;
 	MQTTSN_topicid topicid;
 
-
 	if ( client->isActive() || client->isAwake())
 	{
-		MQTTSNPacket* regAck = new MQTTSNPacket();
 		if ( packet->getREGISTER(&id, &msgId, &topicName) == 0 )
 		{
 			return;
@@ -240,6 +238,8 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 		topicid.data.long_.name = topicName.lenstring.data;
 
 		id = client->getTopics()->add(&topicid)->getTopicId();
+
+		MQTTSNPacket* regAck = new MQTTSNPacket();
 		regAck->setREGACK(id, msgId, MQTTSN_RC_ACCEPTED);
 		Event* ev = new Event();
 		ev->setClientSendEvent(client, regAck);

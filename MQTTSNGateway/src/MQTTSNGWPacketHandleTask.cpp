@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTSNGWDefines.h"
@@ -155,6 +156,7 @@ void PacketHandleTask::run()
 			case MQTTSN_PUBACK:
 				_mqttsnPublish->handlePuback(client, snPacket);
 				break;
+			case MQTTSN_PUBREC:
 				_mqttsnPublish->handleAck(client, snPacket, PUBREC);
 				break;
 			case MQTTSN_PUBREL:

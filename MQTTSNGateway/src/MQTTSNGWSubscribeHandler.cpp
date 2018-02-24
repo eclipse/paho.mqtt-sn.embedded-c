@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTSNGWSubscribeHandler.h"
@@ -89,6 +90,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 		}
 		else
 		{
+			uint16_t topicId = 0;
 			MQTTGWPacket* subscribe = new MQTTGWPacket();
 			topic = client->getTopics()->getTopic(&topicFilter);
 			if (topic == 0)
@@ -96,6 +98,7 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 				if (topicFilter.type == MQTTSN_TOPIC_TYPE_NORMAL)
 				{
 					topic = client->getTopics()->add(&topicFilter);
+					topicId = topic->getTopicId();
 					subscribe->setSUBSCRIBE((char*)topic->getTopicName()->c_str(), (uint8_t)qos, (uint16_t)msgId);
 				}
 				else if (topicFilter.type == MQTTSN_TOPIC_TYPE_SHORT)
@@ -104,17 +107,19 @@ void MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packe
 					topic[0] = topicFilter.data.short_name[0];
 					topic[1] = topicFilter.data.short_name[1];
 					topic[2] = 0;
+					topicId = topicFilter.data.id;
 					subscribe->setSUBSCRIBE(topic, (uint8_t)qos, (uint16_t)msgId);
 				}
 			}
 			else
 			{
+				topicId = topic->getTopicId();
 				subscribe->setSUBSCRIBE((char*)topic->getTopicName()->c_str(), (uint8_t)qos, (uint16_t)msgId);
 			}
 
 			if ( msgId > 0 )
 			{
-				client->setWaitedSubTopicId(msgId, topic->getTopicId(), topicFilter.type);
+				client->setWaitedSubTopicId(msgId, topicId, topicFilter.type);
 			}
 
 			Event* ev1 = new Event();
@@ -180,7 +185,6 @@ void MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* pac
 	}
 	else if (topicFilter.type == MQTTSN_TOPIC_TYPE_SHORT)
 	{
-		MQTTGWPacket* unsubscribe = new MQTTGWPacket();
 		char shortTopic[3];
 		shortTopic[0] = topicFilter.data.short_name[0];
 		shortTopic[1] = topicFilter.data.short_name[1];
