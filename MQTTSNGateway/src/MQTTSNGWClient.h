@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #ifndef MQTTSNGWCLIENT_H_
@@ -341,7 +342,7 @@ public:
 	ClientList();
 	~ClientList();
 	bool authorize(const char* fileName);
-	void erase(Client*);
+	void erase(Client*&);
 	Client* getClient(SensorNetAddress* addr);
 	Client* getClient(uint8_t* clientId);
 	Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine,

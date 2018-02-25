@@ -12,6 +12,7 @@
  *
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
 #include "MQTTSNGWClient.h"
@@ -123,7 +124,7 @@ bool ClientList::authorize(const char* fileName)
 	return _authorize;
 }
 
-void ClientList::erase(Client* client)
+void ClientList::erase(Client*& client)
 {
 	if ( !_authorize && client->erasable())
 	{
@@ -235,6 +236,8 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 		client->setClientId(dummyId);
 		 free(dummyId.cstring);
 	}
+
+	_mutex.lock();
 
 	/* add the list */
 	if ( _firstClient == 0 )
@@ -1152,8 +1155,12 @@ int WaitREGACKPacketList::setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId)
 		_first = elm;
 		_end = elm;
 	}
-	elm->_prev = _end;
-	_end->_next = elm;
+	else
+	{
+		_end->_next = elm;
+		elm->_prev = _end;
+		_end = elm;
+	}
 	return 1;
 }
 
