@@ -735,6 +735,7 @@ uint16_t Topic::getTopicId(void)
 bool Topic::isMatch(string* topicName)
 {
 	string::size_type tlen = _topicName->size();
+
 	if (topicName->size() < tlen - 2)
 	{
 		return false;

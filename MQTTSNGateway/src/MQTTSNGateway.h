@@ -44,6 +44,8 @@ namespace MQTTSNGW
 #define UNKNOWNCL   "Unknown Client !"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
+#define LEFTARROWB   "<==="
+#define RIGHTARROWB  "===>"
 
 #define FORMAT_Y_G_G_NL        "\n%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
 #define FORMAT_Y_G_G             "%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
