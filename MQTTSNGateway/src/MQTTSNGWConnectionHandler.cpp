@@ -217,25 +217,25 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
  */
 void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* packet)
 {
-	Event* ev = new Event();
-	MQTTSNPacket* snMsg = new MQTTSNPacket();
-	snMsg->setDISCONNECT(0);
-	ev->setClientSendEvent(client, snMsg);
-	_gateway->getClientSendQue()->post(ev);
+    uint16_t duration = 0;
+    Event* ev = new Event();
 
-	uint16_t duration = 0;
-	if ( packet->getDISCONNECT(&duration) == 0 )
-	{
-		return;
-	}
-	if ( duration == 0 )
-	{
-		MQTTGWPacket* mqMsg = new MQTTGWPacket();
-		mqMsg->setHeader(DISCONNECT);
-		ev = new Event();
-		ev->setBrokerSendEvent(client, mqMsg);
-		_gateway->getBrokerSendQue()->post(ev);
-	}
+    if ( packet->getDISCONNECT(&duration) != 0 )
+    {
+        if ( duration == 0 )
+        {
+            MQTTGWPacket* mqMsg = new MQTTGWPacket();
+            mqMsg->setHeader(DISCONNECT);
+            ev = new Event();
+            ev->setBrokerSendEvent(client, mqMsg);
+            _gateway->getBrokerSendQue()->post(ev);
+        }
+    }
+
+    MQTTSNPacket* snMsg = new MQTTSNPacket();
+    snMsg->setDISCONNECT(0);
+    ev->setClientSendEvent(client, snMsg);
+    _gateway->getClientSendQue()->post(ev);
 }
 
 /*
