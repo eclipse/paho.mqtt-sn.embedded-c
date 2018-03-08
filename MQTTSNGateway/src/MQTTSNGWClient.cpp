@@ -736,11 +736,6 @@ bool Topic::isMatch(string* topicName)
 {
 	string::size_type tlen = _topicName->size();
 
-	if (topicName->size() < tlen - 2)
-	{
-		return false;
-	}
-
 	string::size_type tpos = 0;
 	string::size_type tloc = 0;
 	string::size_type pos = 0;
@@ -809,17 +804,22 @@ bool Topic::isMatch(string* topicName)
 				return false;
 			}
 		}
-		else if ( loc != string::npos && tloc == string::npos )
+		else if ( loc == string::npos && tloc != string::npos )
 		{
-			tloc = _topicName->find('#', --tpos);
-			if ( tloc == string::npos )
+			string subtopic = topicName->substr(pos);
+			string subtopict = _topicName->substr(tpos, tloc - tpos);
+			if ( subtopic != subtopict)
 			{
 				return false;
 			}
-			else
-			{
-				return true;
-			}
+
+			tpos = tloc + 1;
+
+			return _topicName->substr(tpos) == wildcard;
+		}
+		else if ( loc != string::npos && tloc == string::npos )
+		{
+			return _topicName->substr(tpos) == wildcard;
 		}
 	}
 }
@@ -854,7 +854,8 @@ uint16_t Topics::getTopicId(const MQTTSN_topicid* topicid)
 	Topic* p = _first;
 	while (p)
 	{
-		if (strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0)
+		if ( (int)strlen(p->_topicName->c_str()) == topicid->data.long_.len &&
+		     strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0)
 		{
 			return p->_topicId;
 		}
@@ -882,7 +883,8 @@ Topic* Topics::getTopic(const MQTTSN_topicid* topicid)
 	Topic* p = _first;
 	while (p)
 	{
-		if (strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0 )
+		if ( (int)strlen(p->_topicName->c_str()) == topicid->data.long_.len &&
+		     strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0 )
 		{
 			return p;
 		}
