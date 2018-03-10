@@ -10,6 +10,20 @@ $ make clean
 ````      
 MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into ../ directory.
 
+In case the follwing error appears...
+
+```
+src/linux/Network.h:24:25: fatal error: openssl/ssl.h: No such file or directory
+#include <openssl/ssl.h>
+                        ^
+```
+
+...install `ssl` with 
+
+```
+sudo apt-get install libssl-dev
+```
+
     
 ### **step2. Execute the Gateway.**     
 
