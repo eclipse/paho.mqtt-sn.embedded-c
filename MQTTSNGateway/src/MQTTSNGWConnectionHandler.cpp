@@ -234,8 +234,9 @@ void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* pac
 
     MQTTSNPacket* snMsg = new MQTTSNPacket();
     snMsg->setDISCONNECT(0);
-    ev->setClientSendEvent(client, snMsg);
-    _gateway->getClientSendQue()->post(ev);
+    Event* evt = new Event();
+    evt->setClientSendEvent(client, snMsg);
+    _gateway->getClientSendQue()->post(evt);
 }
 
 /*

@@ -57,6 +57,7 @@ LGwProxy::LGwProxy(){
 	_connectRetry = MQTTSN_RETRY_COUNT;
 	_tSleep = 0;
 	_tWake = 0;
+	_initialized = 0;
 }
 
 LGwProxy::~LGwProxy(){
@@ -72,6 +73,7 @@ void LGwProxy::initialize(LUdpConfig netconf, LMqttsnConfig mqconf){
     _retainWill = mqconf.willRetain;
     _cleanSession = mqconf.cleanSession;
     _tkeepAlive = mqconf.keepAlive;
+    _initialized = 1;
 }
 
 void LGwProxy::connect(){
@@ -170,8 +172,13 @@ int LGwProxy::getConnectResponce(void){
 				_tSleep = 0;
 			}else{
 				DISPLAY("\033[0m\033[0;32m\n\n Connected to the Broker\033[0m\033[0;37m\n\n");
-				_topicTbl.clearTopic();
-				theClient->onConnect();  // SUBSCRIBEs are conducted
+
+				if ( _cleanSession || _initialized == 1 )
+				{
+	                _topicTbl.clearTopic();
+				    _initialized = 0;
+				    theClient->onConnect();  // SUBSCRIBEs are conducted
+				}
 			}
 		}else{
 			_status = GW_CONNECTING;
@@ -483,3 +490,5 @@ void LGwProxy::setPingReqTimer(void){
 const char* LGwProxy::getClientId(void) {
 	return _clientId;
 }
+
+

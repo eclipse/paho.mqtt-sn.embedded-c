@@ -103,7 +103,7 @@ void ClientRecvTask::run()
 		else
 		{
 			/* new client */
-			if (packet->getType() == MQTTSN_CONNECT)
+ 		    if (packet->getType() == MQTTSN_CONNECT)
 			{
 				MQTTSNPacket_connectData data;
 				memset(&data, 0, sizeof(MQTTSNPacket_connectData));

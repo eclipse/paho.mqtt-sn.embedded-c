@@ -74,7 +74,7 @@ void ClientSendTask::run()
 
 		if ( rc < 0 )
 		{
-			WRITELOG("%s ClientSendTask can't send a packet to the client.\n",
+			WRITELOG("%s ClientSendTask can't send a packet to the client %s%s.\n",
 				ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), ERRMSG_FOOTER);
 		}
 		delete ev;

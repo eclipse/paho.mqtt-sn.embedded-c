@@ -79,6 +79,7 @@ struct LUdpConfig{
 #define MQTTSN_CONFIG    MqttsnConfig  theMqttsnConfig
 #define NETWORK_CONFIG   UdpConfig theNetworkConfig
 
+#define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)
 #define PUBLISH(...)     theClient->publish(__VA_ARGS__)
 #define SUBSCRIBE(...)   theClient->subscribe(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theClient->unsubscribe(__VA_ARGS__)

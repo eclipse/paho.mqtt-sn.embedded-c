@@ -66,7 +66,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="MQTTSNGateway/src/linux/udp|MQTTSNGateway/src/tests|MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="MQTTSNGateway/src/linux/xbee|MQTTSNGateway/src/linux/udp6|MQTTSNGateway/src/tests|MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -138,7 +138,7 @@
 					<sourceEntries>
 						<entry excluding="MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNPacket/src|MQTTSNGateway/src|MQTTSNGateway/src/linux|MQTTSNGateway/src/linux/udp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNPacket/test|MQTTSNPacket/samples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry excluding="tests|tests/mainTestProcessFramework.cpp|mainLogmonitor.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
-						<entry excluding="udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
+						<entry excluding="xbee|udp6" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNPacket/src"/>
 					</sourceEntries>
 				</configuration>
