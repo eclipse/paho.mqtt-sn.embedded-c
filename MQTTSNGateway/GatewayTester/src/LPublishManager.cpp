@@ -441,6 +441,15 @@ PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_
 		elm->status = TOPICID_IS_READY;
 		elm->topicId = topicId;
 	}
+	else
+	{
+	    uint16_t id = theClient->getTopicId(topicName);
+        if ( id )
+        {
+            elm->status = TOPICID_IS_READY;
+            elm->topicId = id;
+        }
+	}
 
 	elm->payloadlen = len;
 	elm->msgId = msgId;

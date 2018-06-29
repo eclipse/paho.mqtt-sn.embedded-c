@@ -1,12 +1,18 @@
-PROGNAME := MQTT-SNGatewayTester
-APPL := mainTest
+PROGTEST := MQTT-SNGatewayTester
+TESTAPPL := mainTest
 
+PRGPUB := MQTT-SNPub
+PUBAPPL := mainPub
+
+PRGSUB := MQTT-SNSub
+SUBAPPL := mainSub
 
 SRCDIR := samples
+SRCPUB := ClientPub
+SRCSUB := ClientSub
 SUBDIR := src
 
 CPPSRCS :=  \
-$(SRCDIR)/$(APPL).cpp \
 $(SUBDIR)/LGwProxy.cpp \
 $(SUBDIR)/LMqttsnClient.cpp \
 $(SUBDIR)/LNetworkUdp.cpp \
@@ -19,7 +25,9 @@ $(SUBDIR)/LTopicTable.cpp \
 $(SUBDIR)/LScreen.cpp \
 $(SUBDIR)/Payload.cpp \
 $(SUBDIR)/Util.cpp \
-
+#$(SRCDIR)/$(TESTAPPL).cpp \
+#$(SRCDIR)/$(SRCPUB)/$(PUBAPPL).cpp \
+#$(SRCDIR)/$(SRCSUB)/$(SUBAPPL).cpp \
 
 CXX := g++ 
 CPPFLAGS += 
@@ -32,38 +40,52 @@ CXXFLAGS := -Wall -O3 -std=c++11
 LDADD := 
 OUTDIR := Build
 
-PROG := $(OUTDIR)/$(PROGNAME)
+PROG := $(OUTDIR)/$(PROGTEST)
 OBJS := $(CPPSRCS:%.cpp=$(OUTDIR)/%.o)
 DEPS := $(CPPSRCS:%.cpp=$(OUTDIR)/%.d)
 
+PROGPUB := $(OUTDIR)/$(PRGPUB)
+PROGSUB := $(OUTDIR)/$(PRGSUB)
 
 .PHONY: install clean 
 
-all: $(PROG) 
+all: $(PROG) $(PROGPUB) $(PROGSUB)
 
 
 
 -include $(DEPS)
 
-$(PROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(APPL).o
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS) $(LDADD)
+$(PROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(TESTAPPL).o
+	$(CXX) $(LDFLAGS) -o $(PROG) $(OUTDIR)/$(SRCDIR)/$(TESTAPPL).o $(OBJS) $(LIBS) $(LDADD)
+
+$(PROGPUB): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCPUB)/$(PUBAPPL).o
+	$(CXX) $(LDFLAGS) -o $(PROGPUB) $(OUTDIR)/$(SRCDIR)/$(SRCPUB)/$(PUBAPPL).o $(OBJS) $(LIBS) $(LDADD)
+
+$(PROGSUB): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/$(SUBAPPL).o
+	$(CXX) $(LDFLAGS) -o $(PROGSUB) $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/$(SUBAPPL).o $(OBJS) $(LIBS) $(LDADD)
 
 
 $(OUTDIR)/$(SUBDIR)/%.o:$(SUBDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
-	
+
 $(OUTDIR)/$(SRCDIR)/%.o:$(SRCDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
+$(OUTDIR)/$(SRCDIR)/$(SRCPUB)/%.o:$(SRCDIR)/$(SRCPUB)%.cpp
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
+$(OUTDIR)/$(SRCDIR)/$(SRCSUB)/%.o:$(SRCDIR)/$(SRCSUB)%.cpp
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 clean:
 	rm -rf $(OUTDIR)
 
 install:
 	cp -pf $(PROG) ../../../
-
-	
+	cp -pf $(PROGPUB) ../../../
+	cp -pf $(PROGSUB) ../../../	
 	

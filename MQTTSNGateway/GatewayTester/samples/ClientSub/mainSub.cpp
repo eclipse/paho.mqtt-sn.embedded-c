@@ -51,18 +51,18 @@ extern LScreen* theScreen;
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-	"GatewayTestClient", // ClientId
+	"ty4twGatewaySubClient", // ClientId
 	{225,1,1,1},         // Multicast group IP
 	1883,                // Multicast group Port
-	20001,               // Local PortNo
+	20002,               // Local PortNo
 };
 
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {
-	60,            //KeepAlive [seconds]
-	true,          //Clean session
+	300,            //KeepAlive [seconds]
+	false,          //Clean session
 	300,           //Sleep duration [seconds]
 	"",            //WillTopic
 	"",            //WillMessage
@@ -76,6 +76,8 @@ MQTTSNCONF = {
 const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
+const char* topic4 = "a";
+const char* topic5 = "#";
 
 
 /*------------------------------------------------------
@@ -100,7 +102,7 @@ int on_Topic02(uint8_t* pload, uint16_t ploadlen)
 
 int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 {
-	DISPLAY("\n\nNew callback recv Topic2\n");
+	DISPLAY("\n\nNew callback recv TopicA\n");
 	pload[ploadlen-1]= 0;   // set null terminator
 	DISPLAY("Payload -->%s　<--\n\n",pload);
 	return 0;
@@ -111,7 +113,8 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
  *------------------------------------------------------*/
 
 SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
-				  SUB(topic1, on_Topic01, 1),
+				  //SUB(topic1, on_Topic01, 1),
+                  //SUB(topic4, on_Topic03, 1),
 				  END_OF_SUBSCRIBE_LIST
 				 };
 
@@ -120,12 +123,11 @@ SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
  *    Test functions
  *------------------------------------------------------*/
 
-void publishTopic1(void)
+
+void subscribeTopic1(void)
 {
-	char payload[300];
-	sprintf(payload, "publish \"ty4tw/Topic1\" \n");
-	uint8_t qos = 0;
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
+    uint8_t qos = 1;
+    SUBSCRIBE(topic1, on_Topic01, qos);
 }
 
 void subscribeTopic2(void)
@@ -134,36 +136,15 @@ void subscribeTopic2(void)
 	SUBSCRIBE(topic2, on_Topic02, qos);
 }
 
-void publishTopic2(void)
-{
-	char payload[300];
-	sprintf(payload, "publish \"ty4tw/topic2\" \n");
-	uint8_t qos = 0;
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
-}
-
-void unsubscribe(void)
-{
-	UNSUBSCRIBE(topic2);
-}
-
-void subscribechangeCallback(void)
-{
-	uint8_t qos = 1;
-	SUBSCRIBE(topic2, on_Topic03, qos);
-}
-
-void test3(void)
-{
-	char payload[300];
-	sprintf(payload, "TEST3 ");
-	uint8_t qos = 0;
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
-}
 
 void disconnect(void)
 {
 	DISCONNECT(0);
+}
+
+void connect(void)
+{
+	CONNECT();
 }
 
 void asleep(void)
@@ -178,17 +159,9 @@ void asleep(void)
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-			 TEST("Step1:Publish topic1",     publishTopic1),
-			 TEST("Step2:Publish topic2",     publishTopic2),
-			 TEST("Step3:Subscribe topic2",   subscribeTopic2),
-			 TEST("Step4:Publish topic2",     publishTopic2),
-			 TEST("Step5:Unsubscribe topic2", unsubscribe),
-			 TEST("Step6:Publish topic2",     publishTopic2),
-			 TEST("Step7:subscribe again",    subscribechangeCallback),
-			 TEST("Step8:Publish topic2",     publishTopic2),
-			 TEST("Step9:Sleep     ",         asleep),
-			 TEST("Step10:Publish topic1",    publishTopic1),
-			 TEST("Step11:Disconnect",        disconnect),
+			 TEST("Step1:Subscribe topic1",     subscribeTopic1),
+			 //TEST("Step2:Subscribe topic2",     subscribeTopic2),
+			 TEST("Step2:Disconnect",     disconnect),
 			 END_OF_TEST_LIST
 			};
 
@@ -199,8 +172,6 @@ TEST_LIST = {// e.g. TEST( Label, Test),
  *    #define CLIENT_MODE
  *------------------------------------------------------*/
 TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
-			TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
              END_OF_TASK_LIST
             };
 

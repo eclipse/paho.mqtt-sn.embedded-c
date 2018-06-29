@@ -62,6 +62,7 @@ public:
     void setSleepMode(uint32_t duration);
     void sleep(void);
 	const char* getClientId(void);
+	uint16_t getTopicId(const char* topicName);
     LGwProxy*          getGwProxy(void);
     LPublishManager*   getPublishManager(void);
     LSubscribeManager* getSubscribeManager(void);

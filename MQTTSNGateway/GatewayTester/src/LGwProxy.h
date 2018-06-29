@@ -88,6 +88,7 @@ private:
 	const char* _willTopic;
 	const char* _willMsg;
 	uint8_t     _cleanSession;
+	uint8_t    _initialized;
 	uint8_t     _retainWill;
 	uint8_t     _qosWill;
 	uint8_t     _gwId;

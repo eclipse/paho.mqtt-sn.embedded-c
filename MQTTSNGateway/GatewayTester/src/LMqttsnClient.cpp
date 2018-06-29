@@ -222,7 +222,7 @@ void LMqttsnClient::setSleepDuration(uint32_t duration)
 
 void LMqttsnClient::onConnect(void)
 {
-	_subMgr.onConnect();
+        _subMgr.onConnect();
 }
 
 const char* LMqttsnClient::getClientId(void)
@@ -230,6 +230,8 @@ const char* LMqttsnClient::getClientId(void)
 	return _gwProxy.getClientId();
 }
 
-
-
+uint16_t LMqttsnClient::getTopicId(const char* topicName)
+{
+    return _gwProxy.getTopicTable()->getTopicId(topicName);
+}
 
