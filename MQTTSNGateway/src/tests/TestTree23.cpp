@@ -33,7 +33,6 @@ TestTree23::~TestTree23()
 
 void TestTree23::test(void)
 {
-	printf("Test  Tree23         ");
 	int N = 100;
 
 	Key* r1[100];

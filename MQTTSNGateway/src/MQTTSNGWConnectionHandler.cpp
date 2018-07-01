@@ -116,10 +116,8 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 		/* renew the TopicList */
 		if (topics)
 		{
-			delete topics;
+			topics->eraseNormal();;
 		}
-		topics = new Topics();
-		client->setTopics(topics);
 		client->setSessionStatus(true);
 	}
 

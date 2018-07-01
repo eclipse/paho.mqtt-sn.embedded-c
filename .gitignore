@@ -5,3 +5,8 @@
 *.pyc
 /doc/MQTTSNClient/
 /doc/MQTTSNPacket/
+/rbmutex.key
+/ringbuffer.key
+/Release/
+/Debug/
+/core

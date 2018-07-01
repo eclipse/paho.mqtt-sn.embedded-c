@@ -42,7 +42,7 @@ public:
     TopicCallback getCallback(void);
 private:
     uint16_t  _topicId;
-    uint8_t   _topicType;
+    MQTTSN_topicTypes   _topicType;
     char*     _topicStr;
     TopicCallback  _callback;
     uint8_t  _malocFlg;
@@ -60,16 +60,16 @@ public:
       uint16_t getTopicId(const char* topic);
       char*    getTopicName(LTopic* topic);
       LTopic*   getTopic(const char* topic);
-      LTopic*   getTopic(uint16_t topicId, uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL);
-      void     setTopicId(const char* topic, uint16_t id, uint8_t topicType);
+      LTopic*   getTopic(uint16_t topicId, MQTTSN_topicTypes topicType);
+      void     setTopicId(const char* topic, uint16_t id, MQTTSN_topicTypes topicType);
       bool     setCallback(const char* topic, TopicCallback callback);
-      bool     setCallback(uint16_t topicId, uint8_t type, TopicCallback callback);
-      int      execCallback(uint16_t topicId, uint8_t* payload, uint16_t payloadlen, uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL);
-      LTopic*  add(const char* topic, uint16_t id = 0, uint8_t type = MQTTSN_TOPIC_TYPE_NORMAL, TopicCallback callback = 0, uint8_t alocFlg = 0);
-      LTopic*  add(uint16_t topicId, uint16_t id, uint8_t type, TopicCallback callback, uint8_t alocFlg);
+      bool     setCallback(uint16_t topicId, MQTTSN_topicTypes type, TopicCallback callback);
+      int      execCallback(uint16_t topicId, uint8_t* payload, uint16_t payloadlen, MQTTSN_topicTypes topicType);
+      LTopic*  add(const char* topic, MQTTSN_topicTypes type, uint16_t id = 0, TopicCallback callback = 0, uint8_t alocFlg = 0);
+      //LTopic*  add(uint16_t topicId, uint16_t id, MQTTSN_topicTypes type, TopicCallback callback, uint8_t alocFlg);
       LTopic*  match(const char* topic);
       void     clearTopic(void);
-      void     remove(uint16_t topicId);
+      void     remove(uint16_t topicId, MQTTSN_topicTypes type);
 
 private:
     LTopic*  _first;

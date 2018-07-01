@@ -213,8 +213,10 @@ int readMQTTSNString(MQTTSNString* MQTTSNString, unsigned char** pptr, unsigned 
 		*pptr += MQTTSNString->lenstring.len;
 	}
 	else
+	{
 		MQTTSNString->lenstring.data = NULL;
-	MQTTSNString->cstring = NULL;
+		MQTTSNString->cstring = NULL;
+	}
 	rc = 1;
 	FUNC_EXIT_RC(rc);
 	return rc;

@@ -65,7 +65,14 @@ void LSubscribeManager::onConnect(void)
 	{
 		for (uint8_t i = 0; theOnPublishList[i].topic != 0; i++)
 		{
-			subscribe(theOnPublishList[i].topic, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
+		    if ( theOnPublishList[i].type == MQTTSN_TOPIC_TYPE_PREDEFINED)
+		    {
+		        subscribe(theOnPublishList[i].id, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
+		    }
+		    else
+		    {
+		        subscribe(theOnPublishList[i].topic, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
+		    }
 		}
 	}
 	else
@@ -149,30 +156,43 @@ void LSubscribeManager::send(SubElement* elm)
 
 void LSubscribeManager::subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos)
 {
-	uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL;
-	if ( strlen(topicName) <= 2)
-	{
-		topicType = MQTTSN_TOPIC_TYPE_SHORT;
-	}
-	SubElement* elm = add(MQTTSN_TYPE_SUBSCRIBE, topicName, 0, topicType, qos, onPublish);
-	send(elm);
+    MQTTSN_topicTypes topicType;
+    if ( strlen(topicName) > 2 )
+    {
+        topicType = MQTTSN_TOPIC_TYPE_NORMAL;
+    }
+    else
+    {
+        topicType = MQTTSN_TOPIC_TYPE_SHORT;
+    }
+    SubElement* elm = add(MQTTSN_TYPE_SUBSCRIBE, topicName, topicType, 0,  qos, onPublish);
+    send(elm);
 }
 
-void LSubscribeManager::subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos, uint8_t topicType)
+void LSubscribeManager::subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos)
 {
-	SubElement* elm = add(MQTTSN_TYPE_SUBSCRIBE, 0, topicId, topicType, qos, onPublish);
+	SubElement* elm = add(MQTTSN_TYPE_SUBSCRIBE, 0, MQTTSN_TOPIC_TYPE_PREDEFINED, topicId,  qos, onPublish);
 	send(elm);
 }
 
 void LSubscribeManager::unsubscribe(const char* topicName)
 {
-	SubElement* elm = add(MQTTSN_TYPE_UNSUBSCRIBE, topicName, 0, MQTTSN_TOPIC_TYPE_NORMAL, 0, 0);
+    MQTTSN_topicTypes topicType;
+    if ( strlen(topicName) > 2 )
+    {
+        topicType = MQTTSN_TOPIC_TYPE_NORMAL;
+    }
+    else
+    {
+        topicType = MQTTSN_TOPIC_TYPE_SHORT;
+    }
+	SubElement* elm = add(MQTTSN_TYPE_UNSUBSCRIBE, topicName, topicType, 0, 0, 0);
 	send(elm);
 }
 
-void LSubscribeManager::unsubscribe(uint16_t topicId, uint8_t topicType)
+void LSubscribeManager::unsubscribe( uint16_t topicId)
 {
-	SubElement* elm = add(MQTTSN_TYPE_UNSUBSCRIBE, 0, topicId, topicType, 0, 0);
+	SubElement* elm = add(MQTTSN_TYPE_UNSUBSCRIBE, 0, MQTTSN_TOPIC_TYPE_PREDEFINED, topicId, 0, 0);
 	send(elm);
 }
 
@@ -214,20 +234,19 @@ void LSubscribeManager::responce(const uint8_t* msg)
 		uint16_t msgId = getUint16(msg + 4);
 		uint8_t rc = msg[6];
 
-		LTopicTable* tt = theClient->getGwProxy()->getTopicTable();
 		SubElement* elm = getElement(msgId);
 		if (elm)
 		{
 			if ( rc == MQTTSN_RC_ACCEPTED )
 			{
-				tt->add((char*) elm->topicName, topicId, elm->topicType, elm->callback);
+			    theClient->getGwProxy()->getTopicTable()->add((char*) elm->topicName, elm->topicType, topicId, elm->callback);
 				getElement(msgId)->done = SUB_DONE;
 				DISPLAY("\033[0m\033[0;32m Topic \"%s\" Id : %d was Subscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName, topicId);
 			}
 			else
 			{
-				remove(elm);
 				DISPLAY("\033[0m\033[0;31m SUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
+				remove(elm);
 			}
 		}
 	}
@@ -237,22 +256,20 @@ void LSubscribeManager::responce(const uint8_t* msg)
 		SubElement* elm = getElement(msgId);
 		if (elm)
 		{
-			LTopicTable* tt = theClient->getGwProxy()->getTopicTable();
-			tt->setCallback(elm->topicName, 0);
+			//theClient->getGwProxy()->getTopicTable()->setCallback(elm->topicName, 0);
 			DISPLAY("\033[0m\033[0;32m Topic  \"%s\"  was Unsubscribed. \033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
-			remove(getElement(msgId));
+			remove(elm);
 		}
 		else
 		{
-			DISPLAY("\033[0m\033[0;31m UNSUBACK Invalid messageId. %s\033[0m\033[0;37m\n\n", getElement(msgId)->topicName);
-			remove(getElement(msgId));
+			DISPLAY("\033[0m\033[0;31m UNSUBACK Invalid messageId. \033[0m\033[0;37m\n\n");
 		}
 	}
 }
 
 /* SubElement operations */
 
-SubElement* LSubscribeManager::add(uint8_t msgType, const char* topicName, uint16_t topicId, uint8_t topicType,
+SubElement* LSubscribeManager::add(uint8_t msgType, const char* topicName, MQTTSN_topicTypes topicType, uint16_t topicId,
 		uint8_t qos, TopicCallback callback)
 {
 	SubElement* elm = 0;
@@ -358,7 +375,7 @@ SubElement* LSubscribeManager::getElement(const char* topicName, uint8_t msgType
 	SubElement* elm = _first;
 	while (elm)
 	{
-		if (strcmp(elm->topicName, topicName) == 0 && elm->msgType == msgType)
+		if ( elm->msgType == msgType &&  strncmp(elm->topicName, topicName, strlen(topicName)) == 0 )
 		{
 			return elm;
 		}
@@ -370,7 +387,7 @@ SubElement* LSubscribeManager::getElement(const char* topicName, uint8_t msgType
 	return 0;
 }
 
-SubElement* LSubscribeManager::getElement(uint16_t topicId, uint8_t topicType)
+SubElement* LSubscribeManager::getElement(uint16_t topicId, MQTTSN_topicTypes topicType)
 {
 	SubElement* elm = _first;
 	while (elm)

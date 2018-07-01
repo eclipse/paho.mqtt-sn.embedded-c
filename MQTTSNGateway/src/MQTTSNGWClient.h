@@ -39,73 +39,73 @@ namespace MQTTSNGW
 template<class T> class PacketQue
 {
 public:
-	PacketQue()
-	{
-		_que = new Que<T>;
-	}
+    PacketQue()
+    {
+        _que = new Que<T>;
+    }
 
 
-	~PacketQue()
-	{
-		clear();
-		delete _que;
-	}
+    ~PacketQue()
+    {
+        clear();
+        delete _que;
+    }
 
-	T* getPacket()
-	{
-		T* packet;
-		if (_que->size() > 0)
-		{
-			_mutex.lock();
-			packet = _que->front();
-			_mutex.unlock();
-			return packet;
-		}
-		else
-		{
-			return 0;
-		}
-	}
+    T* getPacket()
+    {
+        T* packet;
+        if (_que->size() > 0)
+        {
+            _mutex.lock();
+            packet = _que->front();
+            _mutex.unlock();
+            return packet;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 
-	int
-	post(T* packet)
-	{
-		int rc;
-		_mutex.lock();
-		rc = _que->post(packet);
-		_mutex.unlock();
-		return rc;
-	}
+    int
+    post(T* packet)
+    {
+        int rc;
+        _mutex.lock();
+        rc = _que->post(packet);
+        _mutex.unlock();
+        return rc;
+    }
 
-	void pop()
-	{
-		if (_que->size() > 0)
-		{
-			_mutex.lock();
-			_que->pop();
-			_mutex.unlock();
-		}
-	}
+    void pop()
+    {
+        if (_que->size() > 0)
+        {
+            _mutex.lock();
+            _que->pop();
+            _mutex.unlock();
+        }
+    }
 
-	void clear()
-	{
-		_mutex.lock();
-		while (_que->size() > 0)
-		{
-			delete _que->front();
-			_que->pop();
-		}
-		_mutex.unlock();
-	}
+    void clear()
+    {
+        _mutex.lock();
+        while (_que->size() > 0)
+        {
+            delete _que->front();
+            _que->pop();
+        }
+        _mutex.unlock();
+    }
 
-	void setMaxSize(int size)
-	{
-		_que->setMaxSize(size);
-	}
+    void setMaxSize(int size)
+    {
+        _que->setMaxSize(size);
+    }
 
 private:
-	Que<T>* _que;
-	Mutex _mutex;
+    Que<T>* _que;
+    Mutex _mutex;
 };
 
 
@@ -114,19 +114,21 @@ private:
  ======================================*/
 class Topic
 {
-	friend class Topics;
+    friend class Topics;
 public:
-	Topic();
-	Topic(string* topic);
-	~Topic();
-	string* getTopicName(void);
-	uint16_t getTopicId(void);
-	bool isMatch(string* topicName);
-
+    Topic();
+    Topic(string* topic, MQTTSN_topicTypes type);
+    ~Topic();
+    string* getTopicName(void);
+    uint16_t getTopicId(void);
+    MQTTSN_topicTypes getType(void);
+    bool isMatch(string* topicName);
+    void print(void);
 private:
-	uint16_t _topicId;
-	string*  _topicName;
-	Topic* _next;
+    MQTTSN_topicTypes _type;
+    uint16_t _topicId;
+    string*  _topicName;
+    Topic* _next;
 };
 
 /*=====================================
@@ -135,20 +137,21 @@ private:
 class Topics
 {
 public:
-	Topics();
-	~Topics();
-	Topic* add(const MQTTSN_topicid* topicid);
-	Topic* add(const string* topic);
-	uint16_t getTopicId(const MQTTSN_topicid* topic);
-	uint16_t getNextTopicId();
-	Topic* getTopic(uint16_t topicId);
-	Topic* getTopic(const MQTTSN_topicid* topicid);
-	Topic* match(const MQTTSN_topicid* topicid);
-
+    Topics();
+    ~Topics();
+    Topic* add(const MQTTSN_topicid* topicid);
+    Topic* add(const char* topicName, uint16_t id = 0);
+    Topic* getTopicByName(const MQTTSN_topicid* topic);
+    Topic* getTopicById(const MQTTSN_topicid* topicid);
+    Topic* match(const MQTTSN_topicid* topicid);
+    void eraseNormal(void);
+    uint16_t getNextTopicId();
+    void print(void);
+    uint8_t getCount(void);
 private:
-	uint16_t _nextTopicId;
-	Topic* _first;
-
+    uint16_t _nextTopicId;
+    Topic* _first;
+    uint8_t  _cnt;
 };
 
 /*=====================================
@@ -156,34 +159,36 @@ private:
  =====================================*/
 class TopicIdMapelement
 {
-	friend class TopicIdMap;
+    friend class TopicIdMap;
 public:
-	TopicIdMapelement(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-	~TopicIdMapelement();
+    TopicIdMapelement(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    ~TopicIdMapelement();
+    MQTTSN_topicTypes getTopicType(void);
+    uint16_t getTopicId(void);
 
 private:
-	uint16_t _msgId;
-	uint16_t _topicId;
-	MQTTSN_topicTypes _type;
-	TopicIdMapelement* _next;
-	TopicIdMapelement* _prev;
+    uint16_t _msgId;
+    uint16_t _topicId;
+    MQTTSN_topicTypes _type;
+    TopicIdMapelement* _next;
+    TopicIdMapelement* _prev;
 };
 
 class TopicIdMap
 {
 public:
-	TopicIdMap();
-	~TopicIdMap();
-	uint16_t getTopicId(uint16_t msgId, MQTTSN_topicTypes* type);
-	int add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-	void erase(uint16_t msgId);
-	void clear(void);
+    TopicIdMap();
+    ~TopicIdMap();
+    TopicIdMapelement* getElement(uint16_t msgId);
+    TopicIdMapelement* add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    void erase(uint16_t msgId);
+    void clear(void);
 private:
-	uint16_t* _msgIds;
-	TopicIdMapelement* _first;
-	TopicIdMapelement* _end;
-	int _cnt;
-	int _maxInflight;
+    uint16_t* _msgIds;
+    TopicIdMapelement* _first;
+    TopicIdMapelement* _end;
+    int _cnt;
+    int _maxInflight;
 };
 
 /*=====================================
@@ -191,16 +196,16 @@ private:
  =====================================*/
 class waitREGACKPacket
 {
-	friend class WaitREGACKPacketList;
+    friend class WaitREGACKPacketList;
 public:
-	waitREGACKPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
-	~waitREGACKPacket();
+    waitREGACKPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
+    ~waitREGACKPacket();
 
 private:
-	uint16_t _msgId;
-	MQTTSNPacket* _packet;
-	waitREGACKPacket* _next;
-	waitREGACKPacket* _prev;
+    uint16_t _msgId;
+    MQTTSNPacket* _packet;
+    waitREGACKPacket* _next;
+    waitREGACKPacket* _prev;
 };
 
 /*=====================================
@@ -209,15 +214,15 @@ private:
 class WaitREGACKPacketList
 {
 public:
-	WaitREGACKPacketList();
-	~WaitREGACKPacketList();
-	int setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
-	MQTTSNPacket* getPacket(uint16_t REGACKMsgId);
-	void erase(uint16_t REGACKMsgId);
+    WaitREGACKPacketList();
+    ~WaitREGACKPacketList();
+    int setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
+    MQTTSNPacket* getPacket(uint16_t REGACKMsgId);
+    void erase(uint16_t REGACKMsgId);
 
 private:
-	waitREGACKPacket* _first;
-	waitREGACKPacket* _end;
+    waitREGACKPacket* _first;
+    waitREGACKPacket* _end;
 };
 
 /*=====================================
@@ -227,110 +232,111 @@ private:
 
 typedef enum
 {
-	Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
+    Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
 } ClientStatus;
 
 
 class Client
 {
-	friend class ClientList;
+    friend class ClientList;
 public:
-	Client(bool secure = false);
-	Client(uint8_t maxInflightMessages, bool secure);
-	~Client();
+    Client(bool secure = false);
+    Client(uint8_t maxInflightMessages, bool secure);
+    ~Client();
 
-	Connect* getConnectData(void);
-	uint16_t getWaitedPubTopicId(uint16_t msgId);
-	uint16_t getWaitedSubTopicId(uint16_t msgId);
-	MQTTGWPacket* getClientSleepPacket(void);
-	void deleteFirstClientSleepPacket(void);
-	WaitREGACKPacketList* getWaitREGACKPacketList(void);
+    Connect* getConnectData(void);
+    TopicIdMapelement* getWaitedPubTopicId(uint16_t msgId);
+    TopicIdMapelement* getWaitedSubTopicId(uint16_t msgId);
+    MQTTGWPacket* getClientSleepPacket(void);
+    void deleteFirstClientSleepPacket(void);
+    WaitREGACKPacketList* getWaitREGACKPacketList(void);
 
-	void eraseWaitedPubTopicId(uint16_t msgId);
-	void eraseWaitedSubTopicId(uint16_t msgId);
-	void clearWaitedPubTopicId(void);
-	void clearWaitedSubTopicId(void);
+    void eraseWaitedPubTopicId(uint16_t msgId);
+    void eraseWaitedSubTopicId(uint16_t msgId);
+    void clearWaitedPubTopicId(void);
+    void clearWaitedSubTopicId(void);
 
-	int  setClientSleepPacket(MQTTGWPacket*);
-	void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-	void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    int  setClientSleepPacket(MQTTGWPacket*);
+    void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 
-	bool checkTimeover(void);
-	void updateStatus(MQTTSNPacket*);
-	void updateStatus(ClientStatus);
-	void connectSended(void);
-	void connackSended(int rc);
-	void disconnected(void);
-	bool isConnectSendable(void);
+    bool checkTimeover(void);
+    void updateStatus(MQTTSNPacket*);
+    void updateStatus(ClientStatus);
+    void connectSended(void);
+    void connackSended(int rc);
+    void disconnected(void);
+    bool isConnectSendable(void);
 
-	uint16_t getNextPacketId(void);
-	uint8_t getNextSnMsgId(void);
-	Topics* getTopics(void);
-	void setTopics(Topics* topics);
-	void setKeepAlive(MQTTSNPacket* packet);
+    uint16_t getNextPacketId(void);
+    uint8_t getNextSnMsgId(void);
+    Topics* getTopics(void);
+    void setTopics(Topics* topics);
+    void setKeepAlive(MQTTSNPacket* packet);
 
-	SensorNetAddress* getSensorNetAddress(void);
-	Network* getNetwork(void);
-	void setClientAddress(SensorNetAddress* sensorNetAddr);
-	void setSensorNetType(bool stable);
+    SensorNetAddress* getSensorNetAddress(void);
+    Network* getNetwork(void);
+    void setClientAddress(SensorNetAddress* sensorNetAddr);
+    void setSensorNetType(bool stable);
 
-	void setClientId(MQTTSNString id);
-	void setWillTopic(MQTTSNString willTopic);
-	void setWillMsg(MQTTSNString willmsg);
-	char* getClientId(void);
-	char* getWillTopic(void);
-	char* getWillMsg(void);
-	const char* getStatus(void);
-	void setWaitWillMsgFlg(bool);
-	void setSessionStatus(bool);  // true: clean session
-	bool erasable(void);
+    void setClientId(MQTTSNString id);
+    void setWillTopic(MQTTSNString willTopic);
+    void setWillMsg(MQTTSNString willmsg);
+    char* getClientId(void);
+    char* getWillTopic(void);
+    char* getWillMsg(void);
+    const char* getStatus(void);
+    void setWaitWillMsgFlg(bool);
+    void setSessionStatus(bool);  // true: clean session
+    bool erasable(void);
 
-	bool isDisconnect(void);
-	bool isActive(void);
-	bool isSleep(void);
-	bool isAwake(void);
-	bool isSecureNetwork(void);
-	bool isSensorNetStable(void);
-	bool isWaitWillMsg(void);
+    bool isDisconnect(void);
+    bool isActive(void);
+    bool isSleep(void);
+    bool isAwake(void);
+    bool isSecureNetwork(void);
+    bool isSensorNetStable(void);
+    bool isWaitWillMsg(void);
 
-	Client* getNextClient(void);
-	Client* getOTAClient(void);
-	void    setOTAClient(Client* cl);
+    Client* getNextClient(void);
+    Client* getOTAClient(void);
+    void    setOTAClient(Client* cl);
 
 private:
-	PacketQue<MQTTGWPacket> _clientSleepPacketQue;
-	WaitREGACKPacketList    _waitREGACKList;
+    PacketQue<MQTTGWPacket> _clientSleepPacketQue;
+    WaitREGACKPacketList    _waitREGACKList;
 
-	Topics* _topics;
-	TopicIdMap _waitedPubTopicIdMap;
-	TopicIdMap _waitedSubTopicIdMap;
+    Topics* _topics;
+    TopicIdMap _waitedPubTopicIdMap;
+    TopicIdMap _waitedSubTopicIdMap;
 
-	Connect _connectData;
-	MQTTSNPacket* _connAck;
+    Connect _connectData;
+    MQTTSNPacket* _connAck;
 
-	char* _clientId;
-	char* _willTopic;
-	char* _willMsg;
+    char* _clientId;
+    char* _willTopic;
+    char* _willMsg;
 
-	Timer _keepAliveTimer;
-	uint32_t _keepAliveMsec;
+    Timer _keepAliveTimer;
+    uint32_t _keepAliveMsec;
 
-	ClientStatus _status;
-	bool _waitWillMsgFlg;
+    ClientStatus _status;
+    bool _waitWillMsgFlg;
 
-	uint16_t _packetId;
-	uint8_t _snMsgId;
+    uint16_t _packetId;
+    uint8_t _snMsgId;
 
-	Network* _network;      // Broker
-	bool  _secureNetwork;    // SSL
-	bool _sensorNetype;     // false: unstable network like a G3
-	SensorNetAddress _sensorNetAddr;
+    Network* _network;      // Broker
+    bool  _secureNetwork;    // SSL
+    bool _sensorNetype;     // false: unstable network like a G3
+    SensorNetAddress _sensorNetAddr;
 
-	bool _sessionStatus;
+    bool _sessionStatus;
+    bool _hasPredefTopic;
 
-	Client* _nextClient;
-	Client* _prevClient;
-	Client* _otaClient;
+    Client* _nextClient;
+    Client* _prevClient;
+    Client* _otaClient;
 };
 
 /*=====================================
@@ -339,23 +345,24 @@ private:
 class ClientList
 {
 public:
-	ClientList();
-	~ClientList();
-	bool authorize(const char* fileName);
-	void erase(Client*&);
-	Client* getClient(SensorNetAddress* addr);
-	Client* getClient(uint8_t* clientId);
-	Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine,
-			bool secure);
-	uint16_t getClientCount(void);
-	Client* getClient(void);
-	bool isAuthorized();
+    ClientList();
+    ~ClientList();
+    bool authorize(const char* fileName);
+    bool setPredefinedTopics(const char* fileName);
+    void erase(Client*&);
+    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine, bool secure);
+    Client* getClient(SensorNetAddress* addr);
+    Client* getClient(MQTTSNString* clientId);
+    uint16_t getClientCount(void);
+    Client* getClient(void);
+    bool isAuthorized();
 private:
-	Client* _firstClient;
-	Client* _endClient;
-	Mutex _mutex;
-	uint16_t _clientCnt;
-	bool _authorize;
+    Client* createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t toipcId);
+    Client* _firstClient;
+    Client* _endClient;
+    Mutex _mutex;
+    uint16_t _clientCnt;
+    bool _authorize;
 };
 
 }

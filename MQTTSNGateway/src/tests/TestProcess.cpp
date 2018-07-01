@@ -87,26 +87,28 @@ void TestProcess::run(void)
 	printf("Timer Test completed\n\n");
 
 	/* Test Que */
+    printf("Test  Que            ");
 	TestQue* tque = new TestQue();
 	tque->test();
 	delete tque;
 
 	/* Test Tree23 */
+    printf("Test  Tree23         ");
 	TestTree23* tree23 = new TestTree23();
 	tree23->test();
 	delete tree23;
 
 	/* Test TopicTable */
+    printf("Test  Topic          ");
 	TestTopics* testTopic = new TestTopics();
 	testTopic->test();
 	delete testTopic;
 
 	/* Test TopicIdMap */
+    printf("Test  TopicIdMap     ");
 	TestTopicIdMap* testMap = new TestTopicIdMap();
 	testMap->test();
 	delete testMap;
-
-
 
 	/* Test EventQue */
 	printf("Test  EventQue       ");

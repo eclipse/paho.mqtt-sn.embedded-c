@@ -16,16 +16,17 @@
  *
  *   Supported functions.
  *
- *   void PUBLISH    ( const char* topicName, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void PUBLISH    ( uint16_t topicId, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void SUBSCRIBE  ( const char* topicName, TopicCallback onPublish,
- *                      uint8_t qos );
+ *  void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
  *
- *   void UNSUBSCRIBE( const char* topicName );
+ *  void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
+ *
+ *  void UNSUBSCRIBE ( const char* topicName );
+ *
+ *  void UNSUBSCRIBE ( uint16_t topicId );
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *

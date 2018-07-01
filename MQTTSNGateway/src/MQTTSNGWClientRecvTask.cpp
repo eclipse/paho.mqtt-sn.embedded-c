@@ -115,9 +115,21 @@ void ClientRecvTask::run()
 					continue;
 				}
 
-				/* create a client */
-				client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+				client = _gateway->getClientList()->getClient(&data.clientID);
+
+				if ( client )
+				{
+				    /* set SensorNet Address */
+				    client->setClientAddress(_sensorNetwork->getSenderAddress());
+				}
+				else
+				{
+				    /* create a client */
+				    client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+				}
+
 				log(client, packet, &data.clientID);
+
 				if (!client)
 				{
 					WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
@@ -126,7 +138,6 @@ void ClientRecvTask::run()
 				}
 
 				/* set sensorNetAddress & post Event */
-				client->setClientAddress(_sensorNetwork->getSenderAddress());
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
 				_gateway->getPacketEventQue()->post(ev);

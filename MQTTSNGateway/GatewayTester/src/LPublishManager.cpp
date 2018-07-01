@@ -66,25 +66,22 @@ void LPublishManager::publish(const char* topicName, Payload* payload, uint8_t q
 	publish(topicName, payload->getRowData(), payload->getLen(), qos, retain);
 }
 
-
 void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain)
 {
-	uint8_t topicType = MQTTSN_TOPIC_TYPE_NORMAL;
-	if ( strlen(topicName) < 2 )
-	{
-		topicType = MQTTSN_TOPIC_TYPE_SHORT;
-	}
-	publish(topicName, payload, len, qos, topicType, retain);
-}
-
-void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, uint8_t topicType, bool retain)
-{
 	uint16_t msgId = 0;
+	uint8_t topicType = MQTTSN_TOPIC_TYPE_SHORT;
+    if ( strlen(topicName) > 2 )
+    {
+        topicType = MQTTSN_TOPIC_TYPE_NORMAL;
+    }
+
 	if ( qos > 0 )
 	{
 		msgId = theClient->getGwProxy()->getNextMsgId();
 	}
+
 	PubElement* elm = add(topicName, 0, payload, len, qos, retain, msgId, topicType);
+
 	if (elm->status == TOPICID_IS_READY)
 	{
 		sendPublish(elm);
@@ -286,7 +283,7 @@ void LPublishManager::published(uint8_t* msg, uint16_t msglen)
 	}
 
 	_publishedFlg = NEG_TASK_INDEX;
-	theClient->getTopicTable()->execCallback(topicId, msg + 6, msglen - 6, msg[1] & 0x03);
+	theClient->getTopicTable()->execCallback(topicId, msg + 6, msglen - 6,  (MQTTSN_topicTypes)(msg[1] & MQTTSN_TOPIC_TYPE));
 	_publishedFlg = SAVE_TASK_INDEX;
 }
 

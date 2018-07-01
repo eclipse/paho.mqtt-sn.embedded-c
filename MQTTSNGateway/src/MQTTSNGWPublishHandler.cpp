@@ -40,8 +40,8 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	int qos;
 	uint8_t retained;
 	uint16_t msgId;
-	MQTTSN_topicid topicid;
 	uint8_t* payload;
+    MQTTSN_topicid topicid;
 	int payloadlen;
 	Publish pub;
 	char  shortTopic[2];
@@ -68,68 +68,6 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 
 	Topic* topic = 0;
 
-	if ( topicid.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
-	{
-		if(msgId)
-		{
-			/* Reply PubAck to the client */
-			MQTTSNPacket* pubAck = new MQTTSNPacket();
-			pubAck->setPUBACK( topicid.data.id, msgId, MQTTSN_RC_ACCEPTED);
-			Event* ev1 = new Event();
-			ev1->setClientSendEvent(client, pubAck);
-			_gateway->getClientSendQue()->post(ev1);
-		}
-
-#ifdef OTA_CLIENTS
-		if ( topicid.data.id == PREDEFINEDID_OTA_REQ )
-		{
-			uint8_t clientId[MAX_CLIENTID_LENGTH + 1];
-
-			if ( payloadlen <= MAX_CLIENTID_LENGTH )
-			{
-				memcpy(clientId, payload, payloadlen);
-				clientId[payloadlen] = 0;
-				Client* cl = _gateway->getClientList()->getClient(clientId);
-
-				if ( cl )
-				{
-					WRITELOG("\033[0m\033[0;33m OTA Client : %s\033[0m\033[0;37m\n",cl->getClientId());
-					MQTTSNPacket* pubota = new MQTTSNPacket();
-					pubota->setPUBLISH(0, 0, 0, 0, topicid, 0, 0);
-					cl->setOTAClient(client);
-					Event* evt = new Event();
-					evt->setClientSendEvent(cl, pubota);
-					_gateway->getClientSendQue()->post(evt);
-				}
-				else
-				{
-					MQTTSNPacket* publish = new MQTTSNPacket();
-					topicid.data.id = PREDEFINEDID_OTA_NO_CLIENT;
-					publish->setPUBLISH(0, 0, 0, 0, topicid, clientId, (uint16_t)strlen((const char*)clientId));
-					Event* evt = new Event();
-					evt->setClientSendEvent(client, publish);
-					_gateway->getClientSendQue()->post(evt);
-				}
-			}
-		}
-		else if ( topicid.data.id == PREDEFINEDID_OTA_READY )
-		{
-			Client* cl = client->getOTAClient();
-			if ( cl )
-			{
-				WRITELOG("\033[0m\033[0;33m OTA Manager : %s\033[0m\033[0;37m\n",cl->getClientId());
-				MQTTSNPacket* pubota = new MQTTSNPacket();
-				pubota->setPUBLISH(0, 0, 0, 0, topicid, payload, payloadlen);
-				client->setOTAClient(0);
-				Event* evt = new Event();
-				evt->setClientSendEvent(cl, pubota);
-				_gateway->getClientSendQue()->post(evt);
-			}
-		}
-#endif
-		return;
-	}
-
 	if( topicid.type ==  MQTTSN_TOPIC_TYPE_SHORT )
 	{
 		shortTopic[0] = topicid.data.short_name[0];
@@ -137,10 +75,10 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 		pub.topic = shortTopic;
 		pub.topiclen = 2;
 	}
-
-	if ( topicid.type == MQTTSN_TOPIC_TYPE_NORMAL )
+	else
 	{
-		topic = client->getTopics()->getTopic(topicid.data.id);
+	    topic = client->getTopics()->getTopicById(&topicid);
+
 		if( !topic && msgId && qos > 0 )
 		{
 			/* Reply PubAck with INVALID_TOPIC_ID to the client */

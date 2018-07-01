@@ -9,6 +9,7 @@ TESTAPPL := mainTestProcess
 
 CONFIG := gateway.conf
 CLIENTS := clients.conf
+PREDEFTOPIC := predefinedTopic.conf
 
 SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
@@ -135,6 +136,7 @@ install:
 	cp -pf $(LPROG) ../../
 	cp -pf $(CONFIG) ../../
 	cp -pf $(CLIENTS) ../../
+	cp -pf $(PREDEFTOPIC) ../../
 
 exectest:
 	./$(OUTDIR)/$(TESTPROGNAME) -f ./gateway.conf

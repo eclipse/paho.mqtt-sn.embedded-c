@@ -90,18 +90,21 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 	}
 	else
 	{
-		topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
-		topicId.data.long_.len = pub.topiclen;
-		topicId.data.long_.name = pub.topic;
-		id = client->getTopics()->getTopicId(&topicId);
+        topicId.data.long_.len = pub.topiclen;
+        topicId.data.long_.name = pub.topic;
+        Topic* tp = client->getTopics()->getTopicByName(&topicId);
 
-		if ( id > 0 )
-		{
-			topicId.data.id = id;
-		}
+        if ( tp )
+        {
+            topicId.type = tp->getType();
+            topicId.data.long_.len = pub.topiclen;
+            topicId.data.long_.name = pub.topic;
+            topicId.data.id = tp->getTopicId();
+        }
 		else
 		{
 			/* This message might be subscribed with wild card. */
+		    topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 			Topic* topic = client->getTopics()->match(&topicId);
 			if (topic == 0)
 			{
@@ -179,11 +182,11 @@ void MQTTGWPublishHandler::handlePuback(Client* client, MQTTGWPacket* packet)
 {
 	Ack ack;
 	packet->getAck(&ack);
-	uint16_t topicId = client->getWaitedPubTopicId((uint16_t)ack.msgId);
+	TopicIdMapelement* topicId = client->getWaitedPubTopicId((uint16_t)ack.msgId);
 	if (topicId)
 	{
 		MQTTSNPacket* mqttsnPacket = new MQTTSNPacket();
-		mqttsnPacket->setPUBACK(topicId, (uint16_t)ack.msgId, 0);
+		mqttsnPacket->setPUBACK(topicId->getTopicId(), (uint16_t)ack.msgId, 0);
 
 		client->eraseWaitedPubTopicId((uint16_t)ack.msgId);
 		Event* ev1 = new Event();

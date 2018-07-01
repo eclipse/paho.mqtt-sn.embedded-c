@@ -35,7 +35,6 @@ void TestQue::test(void)
 	int* v = 0;
 	int i = 0;
 
-	printf("Test  Que            ");
 	for ( i = 0; i < 10; i++ )
 	{
 		v = new int(i);

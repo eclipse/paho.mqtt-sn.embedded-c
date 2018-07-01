@@ -16,16 +16,17 @@
  *
  *   Supported functions.
  *
- *   void PUBLISH    ( const char* topicName, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void PUBLISH    ( uint16_t topicId, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void SUBSCRIBE  ( const char* topicName, TopicCallback onPublish,
- *                      uint8_t qos );
+ *  void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
  *
- *   void UNSUBSCRIBE( const char* topicName );
+ *  void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
+ *
+ *  void UNSUBSCRIBE ( const char* topicName );
+ *
+ *  void UNSUBSCRIBE ( uint16_t topicId );
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
@@ -76,6 +77,8 @@ MQTTSNCONF = {
 const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
+const char* topic4 = "ty4tw/topic4";
+const char* topic5 = "ty4tw/topic5";
 
 
 /*------------------------------------------------------
@@ -100,7 +103,7 @@ int on_Topic02(uint8_t* pload, uint16_t ploadlen)
 
 int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 {
-	DISPLAY("\n\nNew callback recv Topic2\n");
+	DISPLAY("\n\nNew callback recv Topic3\n");
 	pload[ploadlen-1]= 0;   // set null terminator
 	DISPLAY("Payload -->%s　<--\n\n",pload);
 	return 0;
@@ -110,8 +113,9 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
 
-SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
-				  SUB(topic1, on_Topic01, 1),
+SUBSCRIBE_LIST = {// e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
+				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
+				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
 				  END_OF_SUBSCRIBE_LIST
 				 };
 
@@ -119,28 +123,31 @@ SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
 /*------------------------------------------------------
  *    Test functions
  *------------------------------------------------------*/
+void subscribePredefTopic1(void)
+{
+    SUBSCRIBE(1, on_Topic03, QoS1);
+}
 
 void publishTopic1(void)
 {
 	char payload[300];
 	sprintf(payload, "publish \"ty4tw/Topic1\" \n");
-	uint8_t qos = 0;
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
+	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), QoS0);
 }
 
 void subscribeTopic2(void)
 {
-	uint8_t qos = 1;
-	SUBSCRIBE(topic2, on_Topic02, qos);
+	SUBSCRIBE(10, on_Topic02, QoS1);
 }
 
 void publishTopic2(void)
 {
 	char payload[300];
 	sprintf(payload, "publish \"ty4tw/topic2\" \n");
-	uint8_t qos = 0;
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
+	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), QoS1);
 }
+
+
 
 void unsubscribe(void)
 {
@@ -149,8 +156,7 @@ void unsubscribe(void)
 
 void subscribechangeCallback(void)
 {
-	uint8_t qos = 1;
-	SUBSCRIBE(topic2, on_Topic03, qos);
+	SUBSCRIBE(topic2, on_Topic02, QoS1);
 }
 
 void test3(void)
@@ -178,6 +184,7 @@ void asleep(void)
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
+            TEST("Step0:Subscribe predef topic1",     subscribePredefTopic1),
 			 TEST("Step1:Publish topic1",     publishTopic1),
 			 TEST("Step2:Publish topic2",     publishTopic2),
 			 TEST("Step3:Subscribe topic2",   subscribeTopic2),

@@ -73,6 +73,15 @@ struct LUdpConfig{
 	uint16_t uPortNo;
 };
 
+
+typedef enum
+{
+    MQTTSN_TOPIC_TYPE_NORMAL,
+    MQTTSN_TOPIC_TYPE_PREDEFINED,
+    MQTTSN_TOPIC_TYPE_SHORT
+} MQTTSN_topicTypes;
+
+
 /*======================================
       MACROs for Application
 =======================================*/
@@ -93,7 +102,7 @@ struct LUdpConfig{
 #define END_OF_TEST_LIST  {0, 0, 0}
 #define SUBSCRIBE_LIST    OnPublishList theOnPublishList[]
 #define SUB(...)          {__VA_ARGS__}
-#define END_OF_SUBSCRIBE_LIST {0,0,0}
+#define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
 #define UDPCONF  LUdpConfig theNetcon
 #define MQTTSNCONF LMqttsnConfig  theMqcon
 #ifdef CLIENT_MODE
@@ -129,6 +138,9 @@ struct LUdpConfig{
 /*======================================
       MQTT-SN Defines
 ========================================*/
+#define QoS0  0
+#define QoS1  1
+#define QoS2  2
 #define MQTTSN_TYPE_ADVERTISE     0x00
 #define MQTTSN_TYPE_SEARCHGW      0x01
 #define MQTTSN_TYPE_GWINFO        0x02
@@ -157,10 +169,7 @@ struct LUdpConfig{
 #define MQTTSN_TYPE_WILLMSGUPD    0x1C
 #define MQTTSN_TYPE_WILLMSGRESP   0x1D
 
-#define MQTTSN_TOPIC_TYPE_NORMAL     0x00
-#define MQTTSN_TOPIC_TYPE_PREDEFINED 0x01
-#define MQTTSN_TOPIC_TYPE_SHORT      0x02
-#define MQTTSN_TOPIC_TYPE            0x03
+#define MQTTSN_TOPIC_TYPE           0x03
 
 #define MQTTSN_FLAG_DUP     0x80
 #define MQTTSN_FLAG_QOS_0   0x0
@@ -179,14 +188,10 @@ struct LUdpConfig{
 #define MQTTSN_RC_REJECTED_INVALID_TOPIC_ID 0x02
 #define MQTTSN_RC_REJECTED_NOT_SUPPORTED    0x03
 
-#define PREDEFINEDID_OTA_REQ       (0x0ff0)
-#define PREDEFINEDID_OTA_READY     (0x0ff1)
-#define PREDEFINEDID_OTA_NO_CLIENT (0x0ff2)
-
 /*=================================
  *    Starting prompt
  ==================================*/
-#define TESTER_VERSION " * Version: 1.0.0"
+#define TESTER_VERSION " * Version: 2.0.0"
 
 #define PAHO_COPYRIGHT0 " * MQTT-SN Gateway Tester"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
