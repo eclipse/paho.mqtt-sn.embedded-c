@@ -34,7 +34,9 @@ namespace linuxAsyncClient {
 
 struct OnPublishList
 {
+    MQTTSN_topicTypes type;
 	const char* topic;
+	uint16_t id;
 	int (*pubCallback)(uint8_t* payload, uint16_t payloadlen);
 	uint8_t qos;
 };
@@ -52,8 +54,9 @@ public:
     void publish(uint16_t topicId, Payload* payload, uint8_t qos, bool retain = false);
     void publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false);
     void subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos);
-    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos, uint8_t topicType);
+    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
     void unsubscribe(const char* topicName);
+    void unsubscribe(const uint16_t topicId);
     void disconnect(uint16_t sleepInSecs);
     void initialize(LUdpConfig netconf, LMqttsnConfig mqconf);
     void run(void);

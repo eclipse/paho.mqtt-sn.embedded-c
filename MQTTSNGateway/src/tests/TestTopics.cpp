@@ -38,7 +38,7 @@ bool testIsMatch(const char* topicFilter, const char* topicName)
 	string* filter = new string(topicFilter);
 	string* name = new string(topicName);
 
-	Topic topic(filter);
+	Topic topic(filter, MQTTSN_TOPIC_TYPE_NORMAL);
 	bool isMatch = topic.isMatch(name);
 
 	delete name;
@@ -46,38 +46,82 @@ bool testIsMatch(const char* topicFilter, const char* topicName)
 	return isMatch;
 }
 
-bool testGetTopic(const char* topicName, const char* searchedTopicName)
+bool testGetTopicByName(const char* topicName, const char* searchedTopicName)
 {
 	Topics topics;
-	string name(topicName);
-	MQTTSN_topicid topicid;
+	MQTTSN_topicid topicid, serchId;
 	topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topicid.data.long_.len = strlen(searchedTopicName);
-	topicid.data.long_.name = const_cast<char*>(searchedTopicName);
+	topicid.data.long_.len = strlen(topicName);
+	topicid.data.long_.name = const_cast<char*>(topicName);
 
-	topics.add(&name);
+	topics.add(&topicid);
 
-	return topics.getTopic(&topicid) != 0;
+	serchId.type = MQTTSN_TOPIC_TYPE_NORMAL;
+	serchId.data.long_.len = strlen(searchedTopicName);
+	serchId.data.long_.name = const_cast<char*>(searchedTopicName);
+
+	return topics.getTopicByName(&serchId) != 0;
 }
 
-bool testGetTopicId(const char* topicName, const char* searchedTopicName)
+bool testGetTopicById(const char* topicName, const char* searchedTopicName)
 {
 	Topics topics;
-	string name(topicName);
-	MQTTSN_topicid topicid;
+	MQTTSN_topicid topicid, stopicid;
 	topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
-	topicid.data.long_.len = strlen(searchedTopicName);
-	topicid.data.long_.name = const_cast<char*>(searchedTopicName);
+	topicid.data.long_.len = strlen(topicName);
+	topicid.data.long_.name = const_cast<char*>(topicName);
+	stopicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
+    stopicid.data.long_.len = strlen(searchedTopicName);
+    stopicid.data.long_.name = const_cast<char*>(searchedTopicName);
 
-	topics.add(&name);
+	Topic* tp = topics.add(&topicid);
+	Topic*stp = topics.add(&stopicid);
+	topicid.data.id  = tp->getTopicId();
+	stopicid.data.id  = stp->getTopicId();
 
-	return topics.getTopicId(&topicid) != 0;
+	stp = topics.getTopicById(&stopicid);
+
+	return stp->getTopicId() == tp->getTopicId();
+}
+
+bool testGetPredefinedTopicByName(const char* topicName, const uint16_t id, const char* searchedTopicName)
+{
+    Topics topics;
+    MQTTSN_topicid topicid;
+
+    topics.add(topicName, id);
+
+    topicid.type = MQTTSN_TOPIC_TYPE_PREDEFINED;
+    topicid.data.long_.len = strlen(searchedTopicName);
+    topicid.data.long_.name = const_cast<char*>(searchedTopicName);
+
+    return topics.getTopicByName(&topicid) != 0;
+}
+
+bool testGetPredefinedTopicById(const char* topicName, const uint16_t id, uint16_t sid)
+{
+    Topics topics;
+    MQTTSN_topicid topicid;
+
+    Topic* t = topics.add(topicName, id);
+
+    topicid.type = MQTTSN_TOPIC_TYPE_PREDEFINED;
+    topicid.data.id  = sid;
+
+    Topic* tp = topics.getTopicById(&topicid);
+
+    if ( tp )
+    {
+        return tp->getTopicId() == id && strcmp(t->getTopicName()->c_str(), topicName) == 0;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void TestTopics::test(void)
 {
-	printf("Test  Topics         ");
-
 	const int TOPIC_COUNT = 13;
 
 	MQTTSN_topicid topic[TOPIC_COUNT];
@@ -116,6 +160,18 @@ void TestTopics::test(void)
 	topic[12].data.long_.len = strlen(tp[12]);
 	topic[12].data.long_.name = tp[12];
 
+
+	/* Test EraseNorma() */
+	for ( int i = 0; i < TOPIC_COUNT; i++ )
+    {
+        MQTTSN_topicid pos = topic[i];
+        Topic* t = _topics->add(&pos);
+        //printf("Topic=%s ID=%d\n", t->getTopicName()->c_str(), t->getTopicId());
+        assert(t !=0);
+    }
+	_topics->eraseNormal();
+	assert(_topics->getCount() == 0);
+
 	/* Add Topic to Topics */
 	for ( int i = 0; i < TOPIC_COUNT; i++ )
 	{
@@ -129,26 +185,30 @@ void TestTopics::test(void)
 	{
 		string str = "Test/";
 		str += 0x30 + i;
-		Topic* t = _topics->add(&str);
+		Topic* t = _topics->add(str.c_str());
 		//printf("Topic=%s ID=%d\n", t->getTopicName()->c_str(), t->getTopicId());
 		assert(t !=0);
 	}
 
-	/* Get Topic by MQTTSN_topicid */
+	/* Get Topic by MQTTSN_topicid  by Name*/
 	for ( int i = 0; i < TOPIC_COUNT; i++ )
 	{
-		Topic* t = _topics->getTopic(&topic[i]);
-		//printf("Topic=%s ID=%d ID=%d\n", t->getTopicName()->c_str(), t->getTopicId(),_topics->getTopicId(&topic[i]));
-		assert(t->getTopicId() == i + 1);
+		Topic* t = _topics->getTopicByName(&topic[i]);
+		//printf("Topic=%s ID=%d\n", t->getTopicName()->c_str(), t->getTopicId());
+		assert(strcmp(t->getTopicName()->c_str(), topic[i].data.long_.name) == 0 );
 	}
 
-	/* Get TopicId by MQTTSN_topicid */
-	for ( int i = 0; i < TOPIC_COUNT; i++ )
-	{
-		uint16_t id = _topics->getTopicId(&topic[i]);
-		//printf("ID=%d \n", id);
-		assert(id == i + 1);
-	}
+    /* Get Topic by MQTTSN_topicid  by ID*/
+    for ( int i = 0; i < TOPIC_COUNT; i++ )
+    {
+        Topic* t = _topics->getTopicByName(&topic[i]);
+        MQTTSN_topicid stpid;
+        stpid.type = MQTTSN_TOPIC_TYPE_NORMAL;
+        stpid.data.id =t->getTopicId();
+        Topic* st = _topics->getTopicById(&stpid);
+        //printf("Topic=%s ID=%d ID=%d\n", t->getTopicName()->c_str(), t->getTopicId(), st->getTopicId());
+        assert(t->getTopicId() == st->getTopicId() );
+    }
 
 	/* Test Wildcard */
 	for ( int i = 0; i < 10 ; i++ )
@@ -286,13 +346,20 @@ void TestTopics::test(void)
 	assert(testIsMatch("/+", "/finance"));
 	assert(!testIsMatch("+", "/finance"));
 
-	assert(testGetTopicId("mytopic", "mytopic"));
-	assert(!testGetTopicId("mytopic", "mytop"));
-	assert(!testGetTopicId("mytopic", "mytopiclong"));
+	assert(testGetTopicById("mytopic", "mytopic"));
+	assert(!testGetTopicById("mytopic", "mytop"));
+	assert(!testGetTopicById("mytopic", "mytopiclong"));
 
-	assert(testGetTopic("mytopic", "mytopic"));
-	assert(!testGetTopic("mytopic", "mytop"));
-	assert(!testGetTopic("mytopic", "mytopiclong"));
+	assert(testGetTopicByName("mytopic", "mytopic"));
+	assert(!testGetTopicByName("mytopic", "mytop"));
+	assert(!testGetTopicByName("mytopic", "mytopiclong"));
+
+    assert(testGetPredefinedTopicByName("mypretopic", 1, "mypretopic"));
+    assert(!testGetPredefinedTopicByName("mypretopic", 1, "mypretop"));
+    assert(!testGetPredefinedTopicByName("mypretopic", 1, "mypretopiclong"));
+
+    assert(testGetPredefinedTopicById("mypretopic2", 2, 2));
+    assert(!testGetPredefinedTopicById("mypretopic2", 2, 1));
 
 	printf("[ OK ]\n");
 }

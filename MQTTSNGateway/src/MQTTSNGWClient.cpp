@@ -15,6 +15,7 @@
  *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 
+#include "MQTTSNGWDefines.h"
 #include "MQTTSNGWClient.h"
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
@@ -124,6 +125,51 @@ bool ClientList::authorize(const char* fileName)
 	return _authorize;
 }
 
+bool ClientList::setPredefinedTopics(const char* fileName)
+{
+    FILE* fp;
+    char buf[MAX_CLIENTID_LENGTH + 256];
+    size_t pos0, pos1;
+    MQTTSNString clientId;
+    bool rc = false;
+
+    clientId.cstring = 0;
+    clientId.lenstring.data = 0;
+    clientId.lenstring.len = 0;
+
+    if ((fp = fopen(fileName, "r")) != 0)
+    {
+        while (fgets(buf, MAX_CLIENTID_LENGTH + 254, fp) != 0)
+        {
+            if (*buf == '#')
+            {
+                continue;
+            }
+            string data = string(buf);
+            while ((pos0 = data.find_first_of(" 　\t\n")) != string::npos)
+            {
+                data.erase(pos0, 1);
+            }
+            if (data.empty())
+            {
+                continue;
+            }
+
+            pos0 = data.find_first_of(",");
+            pos1 = data.find(",", pos0 + 1) ;
+            string id = data.substr(0, pos0);
+            clientId.cstring = strdup(id.c_str());
+            string topicName = data.substr(pos0 + 1, pos1 - pos0 -1);
+            uint16_t topicID = stoul(data.substr(pos1 + 1));
+            createPredefinedTopic( &clientId, topicName,  topicID);
+            free(clientId.cstring);
+        }
+        fclose(fp);
+        rc = true;
+    }
+    return rc;
+}
+
 void ClientList::erase(Client*& client)
 {
 	if ( !_authorize && client->erasable())
@@ -179,14 +225,21 @@ Client* ClientList::getClient(void)
 	return _firstClient;
 }
 
-Client* ClientList::getClient(uint8_t* clientId)
+
+Client* ClientList::getClient(MQTTSNString* clientId)
 {
 	_mutex.lock();
 	Client* client = _firstClient;
+	const char* clID =clientId->cstring;
+
+	if (clID == 0 )
+	{
+	    clID = clientId->lenstring.data;
+	}
 
 	while (client != 0)
 	{
-		if (strcmp((const char*)client->getClientId(), (const char*)clientId) == 0 )
+		if (strncmp((const char*)client->getClientId(), clID, MQTTSNstrlen(*clientId)) == 0 )
 		{
 			_mutex.unlock();
 			return client;
@@ -222,7 +275,10 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 	/* creat a new client */
 	client = new Client(secure);
-	client->setClientAddress(addr);
+	if ( addr )
+	{
+	    client->setClientAddress(addr);
+	}
 	client->setSensorNetType(unstableLine);
 	if ( MQTTSNstrlen(*clientId) )
 	{
@@ -254,6 +310,50 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 	_clientCnt++;
 	_mutex.unlock();
 	return client;
+}
+
+Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t topicId)
+{
+    Client* client = getClient(clientId);
+
+    if ( _authorize && client == 0)
+    {
+        return 0;
+    }
+
+    /*  anonimous clients */
+    if ( _clientCnt > MAX_CLIENTS )
+    {
+        return 0;  // full of clients
+    }
+
+    if ( client == 0 )
+    {
+        /* creat a new client */
+        client = new Client();
+        client->setClientId(*clientId);
+
+        _mutex.lock();
+
+        /* add the list */
+        if ( _firstClient == 0 )
+        {
+            _firstClient = client;
+            _endClient = client;
+        }
+        else
+        {
+            _endClient->_nextClient = client;
+            client->_prevClient = _endClient;
+            _endClient = client;
+        }
+        _clientCnt++;
+        _mutex.unlock();
+    }
+
+    // create Topic & Add it
+    client->getTopics()->add((const char*)topicName.c_str(), topicId);
+    return client;
 }
 
 uint16_t ClientList::getClientCount()
@@ -299,6 +399,7 @@ Client::Client(bool secure)
 	_prevClient = 0;
 	_nextClient = 0;
 	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
+	_hasPredefTopic = false;
 }
 
 Client::~Client()
@@ -334,16 +435,14 @@ Client::~Client()
 	}
 }
 
-uint16_t Client::getWaitedPubTopicId(uint16_t msgId)
+TopicIdMapelement* Client::getWaitedPubTopicId(uint16_t msgId)
 {
-	MQTTSN_topicTypes type;
-	return _waitedPubTopicIdMap.getTopicId(msgId, &type);
+	return _waitedPubTopicIdMap.getElement(msgId);
 }
 
-uint16_t Client::getWaitedSubTopicId(uint16_t msgId)
+TopicIdMapelement* Client::getWaitedSubTopicId(uint16_t msgId)
 {
-	MQTTSN_topicTypes type;
-	return _waitedSubTopicIdMap.getTopicId(msgId, &type);
+	return _waitedSubTopicIdMap.getElement(msgId);
 }
 
 MQTTGWPacket* Client::getClientSleepPacket()
@@ -426,7 +525,7 @@ void Client::setSessionStatus(bool status)
 
 bool Client::erasable(void)
 {
-	return _sessionStatus;
+	return _sessionStatus || !_hasPredefTopic;
 }
 
 void Client::updateStatus(MQTTSNPacket* packet)
@@ -702,13 +801,15 @@ void Client::setOTAClient(Client* cl)
  ======================================*/
 Topic::Topic()
 {
+    _type = MQTTSN_TOPIC_TYPE_NORMAL;
 	_topicName = 0;
 	_topicId = 0;
 	_next = 0;
 }
 
-Topic::Topic(string* topic)
+Topic::Topic(string* topic, MQTTSN_topicTypes type)
 {
+    _type = type;
 	_topicName = topic;
 	_topicId = 0;
 	_next = 0;
@@ -730,6 +831,11 @@ string* Topic::getTopicName(void)
 uint16_t Topic::getTopicId(void)
 {
 	return _topicId;
+}
+
+MQTTSN_topicTypes Topic::getType(void)
+{
+    return _type;
 }
 
 bool Topic::isMatch(string* topicName)
@@ -824,6 +930,11 @@ bool Topic::isMatch(string* topicName)
 	}
 }
 
+void Topic::print(void)
+{
+    WRITELOG("TopicName=%s  ID=%d  Type=%d\n", _topicName->c_str(), _topicId, _type);
+}
+
 /*=====================================
  Class Topics
  ======================================*/
@@ -831,6 +942,7 @@ Topics::Topics()
 {
 	_first = 0;
 	_nextTopicId = 0;
+	_cnt = 0;
 }
 
 Topics::~Topics()
@@ -844,113 +956,120 @@ Topics::~Topics()
 	}
 }
 
-uint16_t Topics::getTopicId(const MQTTSN_topicid* topicid)
+Topic* Topics::getTopicByName(const MQTTSN_topicid* topicid)
 {
-	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
-	{
-		return 0;
-	}
+    Topic* p = _first;
+    char* ch = topicid->data.long_.name;
 
+    string sname = string(ch, ch + topicid->data.long_.len);
+    while (p)
+    {
+         if (  p->_topicName->compare(sname) == 0 )
+         {
+             return p;
+         }
+         p = p->_next;
+    }
+    return 0;
+}
+
+Topic* Topics::getTopicById(const MQTTSN_topicid* topicid)
+{
 	Topic* p = _first;
+
 	while (p)
 	{
-		if ( (int)strlen(p->_topicName->c_str()) == topicid->data.long_.len &&
-		     strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0)
-		{
-			return p->_topicId;
-		}
+	    if ( p->_type == topicid->type && p->_topicId == topicid->data.id )
+	    {
+	        return p;
+	    }
 		p = p->_next;
 	}
 	return 0;
 }
 
-Topic* Topics::getTopic(uint16_t id)
-{
-	Topic* p = _first;
-	while (p)
-	{
-		if (p->_topicId == id)
-		{
-			return p;
-		}
-		p = p->_next;
-	}
-	return 0;
-}
-
-Topic* Topics::getTopic(const MQTTSN_topicid* topicid)
-{
-	Topic* p = _first;
-	while (p)
-	{
-		if ( (int)strlen(p->_topicName->c_str()) == topicid->data.long_.len &&
-		     strncmp(p->_topicName->c_str(), topicid->data.long_.name, topicid->data.long_.len) == 0 )
-		{
-			return p;
-		}
-		p = p->_next;
-	}
-	return 0;
-}
-
+// For MQTTSN_TOPIC_TYPE_NORMAL */
 Topic* Topics::add(const MQTTSN_topicid* topicid)
 {
-	Topic* topic;
-	uint16_t id = 0;
+	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL )
+	{
+	    return 0;
+	}
 
-	if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
-	{
-		return 0;
-	}
-	id = getTopicId(topicid);
+	Topic* topic = getTopicByName(topicid);
 
-	if (id)
-	{
-		topic = getTopic(id);
-	}
-	else
-	{
-		string topicName = string(topicid->data.long_.name, topicid->data.long_.len);
-		topic = add(&topicName);
-	}
-	return topic;
+	if ( topic )
+    {
+	    return topic;
+    }
+	string name(topicid->data.long_.name, topicid->data.long_.len);
+	return add(name.c_str(), 0);
 }
 
-
-Topic* Topics::add(const string* topicName)
+Topic* Topics::add(const char* topicName, uint16_t id)
 {
-	Topic* topic = 0;
+    MQTTSN_topicid topicId;
 
-	Topic* tp = _first;
+    if (  _cnt >= MAX_TOPIC_PAR_CLIENT )
+    {
+        return 0;
+    }
 
-	topic = new Topic();
+    topicId.data.long_.name = (char*)const_cast<char*>(topicName);
+    topicId.data.long_.len = strlen(topicName);
 
-	if (topic == 0)
-	{
-		return 0;
-	}
-	string* name = new string(*topicName);
-	topic->_topicName = name;
-	topic->_topicId = getNextTopicId();
 
-	if (tp == 0)
-	{
-		_first = topic;
-	}
+    Topic* topic = getTopicByName(&topicId);
 
-	while (tp)
-	{
-		if (tp->_next == 0)
-		{
-			tp->_next = topic;
-			break;
-		}
-		else
-		{
-			tp = tp->_next;
-		}
-	}
-	return topic;
+    if ( topic )
+    {
+        return topic;
+    }
+
+    topic = new Topic();
+
+    if (topic == 0)
+    {
+        return 0;
+    }
+
+    string* name = new string(topicName);
+    topic->_topicName = name;
+
+    if ( id == 0 )
+    {
+        topic->_type = MQTTSN_TOPIC_TYPE_NORMAL;
+        topic->_topicId = getNextTopicId();
+    }
+    else
+    {
+        topic->_type = MQTTSN_TOPIC_TYPE_PREDEFINED;
+        topic->_topicId  = id;
+    }
+
+    _cnt++;
+
+    if ( _first == 0)
+    {
+        _first = topic;
+    }
+    else
+    {
+        Topic* tp = _first;
+        while (tp)
+        {
+            if (tp->_next == 0)
+            {
+                tp->_next = topic;
+                break;
+            }
+            else
+            {
+                tp = tp->_next;
+            }
+        }
+    }
+    return topic;
 }
 
 uint16_t Topics::getNextTopicId()
@@ -978,6 +1097,60 @@ Topic* Topics::match(const MQTTSN_topicid* topicid)
 	return 0;
 }
 
+
+void Topics::eraseNormal(void)
+{
+    Topic* topic = _first;
+    Topic* next = 0;
+    Topic* prev = 0;
+
+    while (topic)
+    {
+        if ( topic->_type == MQTTSN_TOPIC_TYPE_NORMAL )
+        {
+            next = topic->_next;
+            if ( _first == topic )
+            {
+                _first = next;
+            }
+            if ( prev  )
+            {
+                prev->_next = next;
+            }
+            delete topic;
+            _cnt--;
+            topic = next;
+        }
+        else
+        {
+            prev = topic;
+            topic = topic->_next;
+        }
+    }
+}
+
+void Topics::print(void)
+{
+    Topic* topic = _first;
+    if (topic == 0 )
+    {
+        WRITELOG("No Topic.\n");
+    }
+    else
+    {
+        while (topic)
+        {
+            topic->print();
+            topic = topic->_next;
+        }
+    }
+}
+
+uint8_t Topics::getCount(void)
+{
+    return _cnt;
+}
+
 /*=====================================
  Class TopicIdMap
  =====================================*/
@@ -993,6 +1166,16 @@ TopicIdMapelement::TopicIdMapelement(uint16_t msgId, uint16_t topicId, MQTTSN_to
 TopicIdMapelement::~TopicIdMapelement()
 {
 
+}
+
+MQTTSN_topicTypes TopicIdMapelement::getTopicType(void)
+{
+    return _type;
+}
+
+uint16_t TopicIdMapelement::getTopicId(void)
+{
+    return  _topicId;
 }
 
 TopicIdMap::TopicIdMap()
@@ -1015,28 +1198,27 @@ TopicIdMap::~TopicIdMap()
 	}
 }
 
-uint16_t TopicIdMap::getTopicId(uint16_t msgId, MQTTSN_topicTypes* type)
+TopicIdMapelement* TopicIdMap::getElement(uint16_t msgId)
 {
 	TopicIdMapelement* p = _first;
 	while ( p )
 	{
 		if ( p->_msgId == msgId )
 		{
-			*type = p->_type;
-			return p->_topicId;
+			return p;
 		}
 		p = p->_next;
 	}
 	return 0;
 }
 
-int TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
+TopicIdMapelement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
 {
 	if ( _cnt > _maxInflight * 2 || topicId == 0)
 	{
 		return 0;
 	}
-	if ( getTopicId(msgId, &type) > 0 )
+	if ( getElement(msgId) > 0 )
 	{
 		erase(msgId);
 	}
@@ -1058,7 +1240,7 @@ int TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
 		_end = elm;
 	}
 	_cnt++;
-	return 1;
+	return elm;
 }
 
 void TopicIdMap::erase(uint16_t msgId)

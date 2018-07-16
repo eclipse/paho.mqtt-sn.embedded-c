@@ -13,7 +13,7 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-
+#include "MQTTSNGWDefines.h"
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
@@ -202,13 +202,40 @@ void Gateway::initialize(int argc, char** argv)
 
 			if (!_clientList.authorize(fileName.c_str()))
 			{
-				throw Exception("Gateway::initialize: No client list defined by configuration.");
+				throw Exception("Gateway::initialize: No client list defined by the configuration.");
 			}
 			_params.clientListName = strdup(fileName.c_str());
 		}
 	}
-	fileName = *getConfigDirName() + *getConfigFileName();
-	_params.configName = strdup(fileName.c_str());
+
+
+
+	if (getParam("PredefinedTopic", param) == 0 )
+	{
+	    if (!strcasecmp(param, "YES") )
+	    {
+            if (getParam("PredefinedTopicFile", param) == 0)
+            {
+                fileName =*getConfigDirName() + string(param);
+            }
+            else
+            {
+                fileName = *getConfigDirName() + string(PREDEFINEDTOPIC_FILE);
+            }
+           if (!_clientList.setPredefinedTopics(fileName.c_str()))
+           {
+               throw Exception("Gateway::initialize: No PredefinedTopic file defined by the configuration..");
+           }
+            _params.predefinedTopicFileName = strdup(fileName.c_str());
+	    }
+	    else
+	    {
+	        _params.predefinedTopicFileName = 0;
+	    }
+	}
+
+    fileName = *getConfigDirName() + *getConfigFileName();
+    _params.configName = strdup(fileName.c_str());
 }
 
 void Gateway::run(void)
@@ -229,6 +256,10 @@ void Gateway::run(void)
 	}
 	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
 	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+    if (  _params.predefinedTopicFileName )
+    {
+        WRITELOG(" PreDefFile: %s\n", _params.predefinedTopicFileName);
+    }
 	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
 	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
 	WRITELOG(" CertKey:    %s\n", _params.certKey);

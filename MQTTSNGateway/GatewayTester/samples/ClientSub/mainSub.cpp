@@ -16,16 +16,17 @@
  *
  *   Supported functions.
  *
- *   void PUBLISH    ( const char* topicName, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void PUBLISH    ( uint16_t topicId, uint8_t* payload,
- *                     uint16_t len, uint8_t qos, bool retain = false );
+ *   void PUBLISH  ( uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *   void SUBSCRIBE  ( const char* topicName, TopicCallback onPublish,
- *                      uint8_t qos );
+ *  void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
  *
- *   void UNSUBSCRIBE( const char* topicName );
+ *  void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
+ *
+ *  void UNSUBSCRIBE ( const char* topicName );
+ *
+ *  void UNSUBSCRIBE ( uint16_t topicId );
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
@@ -112,11 +113,13 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
 
-SUBSCRIBE_LIST = {// e.g. SUB(topic, callback, QoS),
-				  //SUB(topic1, on_Topic01, 1),
-                  //SUB(topic4, on_Topic03, 1),
-				  END_OF_SUBSCRIBE_LIST
-				 };
+SUBSCRIBE_LIST = {// e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
+
+                  // SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
+                  // SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
+                  END_OF_SUBSCRIBE_LIST
+                 };
+
 
 
 /*------------------------------------------------------

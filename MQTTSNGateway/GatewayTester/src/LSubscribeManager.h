@@ -37,7 +37,7 @@ typedef struct SubElement{
     time_t    sendUTC;
     uint16_t  topicId;
     uint8_t   msgType;
-    uint8_t   topicType;
+    MQTTSN_topicTypes   topicType;
     uint8_t   qos;
 
     int       retryCount;
@@ -56,9 +56,9 @@ public:
     ~LSubscribeManager();
     void onConnect(void);
     void subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos);
-    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos, uint8_t topicType);
+    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
     void unsubscribe(const char* topicName);
-    void unsubscribe(uint16_t topicId, uint8_t topicType);
+    void unsubscribe(uint16_t topicId);
     void responce(const uint8_t* msg);
     void checkTimeout(void);
     bool isDone(void);
@@ -66,9 +66,9 @@ private:
     void send(SubElement* elm);
     SubElement* getFirstElement(void);
     SubElement* getElement(uint16_t msgId);
-    SubElement* getElement(uint16_t topicId, uint8_t topicType);
+    SubElement* getElement(uint16_t topicId, MQTTSN_topicTypes topicType);
     SubElement* getElement(const char* topicName, uint8_t msgType);
-	SubElement* add(uint8_t msgType, const char* topicName, uint16_t topicId, uint8_t topicType, uint8_t qos, TopicCallback callback);
+	SubElement* add(uint8_t msgType, const char* topicName, MQTTSN_topicTypes topicType, uint16_t topicId, uint8_t qos, TopicCallback callback);
 	void remove(SubElement* elm);
 	SubElement* _first;
 	SubElement* _last;

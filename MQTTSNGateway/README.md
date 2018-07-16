@@ -32,6 +32,9 @@ BrokerSecurePortNo=8883
 
 ClientAuthentication=NO
 #ClientsList=/path/to/your_clients.conf    
+
+PredefinedTopic=NO
+#PredefinedTopicFile=/path/to/your_predefinedTopic.conf
     
 #RootCAfile=/path/to/your_Root_CA.crt    
 #RootCApath=/path/to/your_certs_directory/   
@@ -60,7 +63,9 @@ ApiMode=2
 Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW message.    
 **GatewayId** is used by GWINFO message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
-when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId and SensorNetwork Address. e.g. IP address and Port No.    
+when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId and SensorNetwork Address. e.g. IP address and Port No.   
+When **PredefinedTopic** is YES, Pre-definedTopicID file specified by PredefinedTopicFile is effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.
+ 
 
 
 

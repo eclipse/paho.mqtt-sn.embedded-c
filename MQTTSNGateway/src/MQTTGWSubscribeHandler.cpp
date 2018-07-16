@@ -38,12 +38,11 @@ void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
 	int qos = 0;
 
 	packet->getSUBACK(&msgId, &rc);
-	uint16_t topicId = client->getWaitedSubTopicId(msgId);
+	TopicIdMapelement* topicId = client->getWaitedSubTopicId(msgId);
 
 	if (topicId)
 	{
 		MQTTSNPacket* snPacket = new MQTTSNPacket();
-		client->eraseWaitedSubTopicId(msgId);
 
 		if (rc == 0x80)
 		{
@@ -54,10 +53,11 @@ void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
 			returnCode = MQTTSN_RC_ACCEPTED;
 			qos = rc;
 		}
-		snPacket->setSUBACK(qos, topicId, msgId, returnCode);
+		snPacket->setSUBACK(qos, topicId->getTopicId(), msgId, returnCode);
 		Event* evt = new Event();
 		evt->setClientSendEvent(client, snPacket);
 		_gateway->getClientSendQue()->post(evt);
+        client->eraseWaitedSubTopicId(msgId);
 	}
 }
 

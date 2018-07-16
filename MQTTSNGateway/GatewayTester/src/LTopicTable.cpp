@@ -131,7 +131,7 @@ LTopic* LTopicTable::getTopic(const char* topic){
 	return 0;
 }
 
-LTopic* LTopicTable::getTopic(uint16_t topicId, uint8_t topicType){
+LTopic* LTopicTable::getTopic(uint16_t topicId, MQTTSN_topicTypes topicType){
 	LTopic* p = _first;
 	while(p){
 		if (p->_topicId == topicId && p->_topicType == topicType){
@@ -156,12 +156,12 @@ char* LTopicTable::getTopicName(LTopic* topic){
 }
 
 
-void LTopicTable::setTopicId(const char* topic, uint16_t id, uint8_t type){
+void LTopicTable::setTopicId(const char* topic, uint16_t id, MQTTSN_topicTypes type){
     LTopic* tp = getTopic(topic);
     if (tp){
         tp->_topicId = id;
     }else{
-    	add(topic, id, type, 0);
+    	add(topic, type, id, 0);
     }
 }
 
@@ -176,7 +176,7 @@ bool LTopicTable::setCallback(const char* topic, TopicCallback callback){
 }
 
 
-bool LTopicTable::setCallback(uint16_t topicId, uint8_t topicType, TopicCallback callback){
+bool LTopicTable::setCallback(uint16_t topicId, MQTTSN_topicTypes topicType, TopicCallback callback){
 	LTopic* p = getTopic(topicId, topicType);
 	if (p){
 		p->_callback = callback;
@@ -186,7 +186,7 @@ bool LTopicTable::setCallback(uint16_t topicId, uint8_t topicType, TopicCallback
 }
 
 
-int LTopicTable::execCallback(uint16_t  topicId, uint8_t* payload, uint16_t payloadlen, uint8_t topicType){
+int LTopicTable::execCallback(uint16_t  topicId, uint8_t* payload, uint16_t payloadlen, MQTTSN_topicTypes topicType){
 	LTopic* p = getTopic(topicId, topicType);
 	if (p){;
 		return p->execCallback(payload, payloadlen);
@@ -195,7 +195,7 @@ int LTopicTable::execCallback(uint16_t  topicId, uint8_t* payload, uint16_t payl
 }
 
 
-LTopic* LTopicTable::add(const char* topicName, uint16_t id, uint8_t type, TopicCallback callback, uint8_t alocFlg)
+LTopic* LTopicTable::add(const char* topicName, MQTTSN_topicTypes type, uint16_t id, TopicCallback callback, uint8_t alocFlg)
 {
 	LTopic* elm;
 
@@ -234,9 +234,9 @@ exit:
 	return elm;
 }
 
-void LTopicTable::remove(uint16_t topicId)
+void LTopicTable::remove(uint16_t topicId, MQTTSN_topicTypes type)
 {
-	LTopic* elm = getTopic(topicId);
+	LTopic* elm = getTopic(topicId, type);
 
 	if (elm){
 		if (elm->_prev == 0)
