@@ -403,7 +403,7 @@ void XBee::setApiMode(uint8_t mode)
 SerialPort::SerialPort()
 {
 	_tio.c_iflag = IGNBRK | IGNPAR;
-	_tio.c_cflag = CS8 | CLOCAL | CRTSCTS;
+	_tio.c_cflag = CS8 | CLOCAL | CRTSCTS | CREAD;
 	_tio.c_cc[VINTR] = 0;
 	_tio.c_cc[VTIME] = 10;   // 1 sec.
 	_tio.c_cc[VMIN] = 1;
@@ -464,7 +464,7 @@ bool SerialPort::recv(unsigned char* buf)
     FD_SET(_fd, &rfds);
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000;    // 500ms
-    if ( select(1, &rfds, 0, 0, &timeout) > 0 )
+    if ( select(_fd + 1, &rfds, 0, 0, &timeout) > 0 )
     {
         if (read(_fd, buf, 1) > 0)
         {

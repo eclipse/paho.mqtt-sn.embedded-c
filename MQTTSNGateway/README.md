@@ -32,6 +32,9 @@ BrokerSecurePortNo=8883
 
 ClientAuthentication=NO
 #ClientsList=/path/to/your_clients.conf    
+
+PredefinedTopic=NO
+#PredefinedTopicFile=/path/to/your_predefinedTopic.conf
     
 #RootCAfile=/path/to/your_Root_CA.crt    
 #RootCApath=/path/to/your_certs_directory/   
