@@ -270,7 +270,7 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 {
 	MQTTGWPacket* msg = 0;
 
-	if ( client->isSleep() || client->isAwake() )
+	if ( ( client->isSleep() || client->isAwake() ) &&  client->getClientSleepPacket() )
 	{
 		while  ( ( msg = client->getClientSleepPacket() ) != 0 )
 		{
@@ -281,12 +281,16 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 			ev->setBrokerRecvEvent(client, msg);
 			_gateway->getPacketEventQue()->post(ev);
 		}
+		client->holdPingRequest();
 	}
-
-	/* send PINGREQ to the broker */
-	MQTTGWPacket* pingreq = new MQTTGWPacket();
-	pingreq->setHeader(PINGREQ);
-	Event* evt = new Event();
-	evt->setBrokerSendEvent(client, pingreq);
-	_gateway->getBrokerSendQue()->post(evt);
+	else
+	{
+        /* send PINGREQ to the broker */
+	    client->resetPingRequest();
+        MQTTGWPacket* pingreq = new MQTTGWPacket();
+        pingreq->setHeader(PINGREQ);
+        Event* evt = new Event();
+        evt->setBrokerSendEvent(client, pingreq);
+        _gateway->getBrokerSendQue()->post(evt);
+	}
 }

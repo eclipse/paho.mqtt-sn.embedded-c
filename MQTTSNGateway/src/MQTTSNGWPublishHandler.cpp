@@ -198,12 +198,23 @@ void MQTTSNPublishHandler::handleRegAck( Client* client, MQTTSNPacket* packet)
         }
 
         MQTTSNPacket* regAck = client->getWaitREGACKPacketList()->getPacket(msgId);
+
         if ( regAck != 0 )
         {
             client->getWaitREGACKPacketList()->erase(msgId);
             Event* ev = new Event();
             ev->setClientSendEvent(client, regAck);
             _gateway->getClientSendQue()->post(ev);
+        }
+        if (client->isHoldPringReqest() && client->getWaitREGACKPacketList()->getCount() == 0 )
+        {
+            /* send PINGREQ to the broker */
+           client->resetPingRequest();
+           MQTTGWPacket* pingreq = new MQTTGWPacket();
+           pingreq->setHeader(PINGREQ);
+           Event* evt = new Event();
+           evt->setBrokerSendEvent(client, pingreq);
+           _gateway->getBrokerSendQue()->post(evt);
         }
     }
 

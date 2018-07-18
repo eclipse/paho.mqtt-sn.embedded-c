@@ -62,7 +62,7 @@ UDPCONF  = {
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {
-	300,            //KeepAlive [seconds]
+	 60,            //KeepAlive [seconds]
 	false,          //Clean session
 	300,           //Sleep duration [seconds]
 	"",            //WillTopic
@@ -109,14 +109,22 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 	return 0;
 }
 
+int on_Topic05(uint8_t* pload, uint16_t ploadlen)
+{
+    DISPLAY("\n\nNew callback recv TopicA\n");
+    pload[ploadlen-1]= 0;   // set null terminator
+    DISPLAY("Payload -->%s　<--\n\n",pload);
+    return 0;
+}
+
 /*------------------------------------------------------
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
 
 SUBSCRIBE_LIST = {// e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
 
-                  // SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
-                  // SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
+                  // SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic5, 0, on_Topic05, QoS1),
+                  //SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
                   END_OF_SUBSCRIBE_LIST
                  };
 
@@ -139,6 +147,11 @@ void subscribeTopic2(void)
 	SUBSCRIBE(topic2, on_Topic02, qos);
 }
 
+void subscribeTopic5(void)
+{
+    uint8_t qos = 1;
+    SUBSCRIBE(topic5, on_Topic05, qos);
+}
 
 void disconnect(void)
 {
@@ -162,9 +175,9 @@ void asleep(void)
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-			 TEST("Step1:Subscribe topic1",     subscribeTopic1),
+			 TEST("Step1:Subscribe topic5",     subscribeTopic5),
 			 //TEST("Step2:Subscribe topic2",     subscribeTopic2),
-			 TEST("Step2:Disconnect",     disconnect),
+			 TEST("Step2:Disconnect",     asleep),
 			 END_OF_TEST_LIST
 			};
 

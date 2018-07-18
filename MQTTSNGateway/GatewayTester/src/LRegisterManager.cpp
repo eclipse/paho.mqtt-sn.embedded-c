@@ -206,7 +206,7 @@ void LRegisterManager::responceRegister(uint8_t* msg, uint16_t msglen)
 	uint8_t regack[7];
 	regack[0] = 7;
 	regack[1] = MQTTSN_TYPE_REGACK;
-	memcpy(regack + 2, msg + 2, 4);
+	memcpy(regack + 2, msg + 1, 4);
 
 	LTopic* tp = theClient->getGwProxy()->getTopicTable()->match((char*) msg + 5);
 	if (tp)

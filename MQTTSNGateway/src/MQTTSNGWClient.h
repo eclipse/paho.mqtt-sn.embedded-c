@@ -219,8 +219,10 @@ public:
     int setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
     MQTTSNPacket* getPacket(uint16_t REGACKMsgId);
     void erase(uint16_t REGACKMsgId);
+    uint8_t getCount(void);
 
 private:
+    uint8_t _cnt;
     waitREGACKPacket* _first;
     waitREGACKPacket* _end;
 };
@@ -298,6 +300,10 @@ public:
     bool isSensorNetStable(void);
     bool isWaitWillMsg(void);
 
+    void holdPingRequest(void);
+    void resetPingRequest(void);
+    bool isHoldPringReqest(void);
+
     Client* getNextClient(void);
     Client* getOTAClient(void);
     void    setOTAClient(Client* cl);
@@ -316,6 +322,8 @@ private:
     char* _clientId;
     char* _willTopic;
     char* _willMsg;
+
+    bool _holdPingRequest;
 
     Timer _keepAliveTimer;
     uint32_t _keepAliveMsec;

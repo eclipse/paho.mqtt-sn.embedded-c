@@ -400,6 +400,7 @@ Client::Client(bool secure)
 	_nextClient = 0;
 	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
 	_hasPredefTopic = false;
+	_holdPingRequest = false;
 }
 
 Client::~Client()
@@ -794,6 +795,21 @@ Client* Client::getOTAClient(void)
 void Client::setOTAClient(Client* cl)
 {
 	_otaClient =cl;
+}
+
+void Client::holdPingRequest(void)
+{
+    _holdPingRequest = true;
+}
+
+void Client::resetPingRequest(void)
+{
+    _holdPingRequest = false;
+}
+
+bool Client::isHoldPringReqest(void)
+{
+    return _holdPingRequest;
 }
 
 /*=====================================
@@ -1214,7 +1230,7 @@ TopicIdMapelement* TopicIdMap::getElement(uint16_t msgId)
 
 TopicIdMapelement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
 {
-	if ( _cnt > _maxInflight * 2 || topicId == 0)
+	if ( _cnt > _maxInflight * 2 || ( topicId == 0 && type != MQTTSN_TOPIC_TYPE_SHORT ) )
 	{
 		return 0;
 	}
@@ -1314,6 +1330,7 @@ WaitREGACKPacketList::WaitREGACKPacketList()
 {
 	_first = 0;
 	_end = 0;
+	_cnt = 0;
 }
 
 WaitREGACKPacketList::~WaitREGACKPacketList()
@@ -1346,6 +1363,7 @@ int WaitREGACKPacketList::setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId)
 		elm->_prev = _end;
 		_end = elm;
 	}
+	_cnt++;
 	return 1;
 }
 
@@ -1387,10 +1405,17 @@ void WaitREGACKPacketList::erase(uint16_t REGACKMsgId)
 			{
 				p->_next->_prev = p->_prev;
 			}
-			break;
-			// Do not delete element. Element is deleted after sending to Client.
+			_cnt--;
+            break;
+            // Do not delete element. Element is deleted after sending to Client.
 		}
 		p = p->_next;
 	}
 }
+
+uint8_t WaitREGACKPacketList::getCount(void)
+{
+    return _cnt;
+}
+
 

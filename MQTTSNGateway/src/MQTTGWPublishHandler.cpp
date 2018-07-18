@@ -82,7 +82,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 	MQTTSN_topicid topicId;
 	uint16_t id = 0;
 
-	if (pub.topiclen == 2)
+	if (pub.topiclen <= 2)
 	{
 		topicId.type = MQTTSN_TOPIC_TYPE_SHORT;
 		*(topicId.data.short_name) = *pub.topic;
