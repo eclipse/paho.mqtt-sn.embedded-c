@@ -63,7 +63,7 @@ UDPCONF  = {
  *------------------------------------------------------*/
 MQTTSNCONF = {
 	 60,            //KeepAlive [seconds]
-	false,          //Clean session
+	true,          //Clean session
 	300,           //Sleep duration [seconds]
 	"",            //WillTopic
 	"",            //WillMessage
@@ -78,7 +78,7 @@ const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
 const char* topic4 = "a";
-const char* topic5 = "#";
+const char* topic5 = "ty4tw/#";
 
 
 /*------------------------------------------------------
@@ -178,6 +178,8 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 			 TEST("Step1:Subscribe topic5",     subscribeTopic5),
 			 //TEST("Step2:Subscribe topic2",     subscribeTopic2),
 			 TEST("Step2:Disconnect",     asleep),
+			 TEST("Step3:Cconnect",     connect),
+			 TEST("Step4:Disconnect",     asleep),
 			 END_OF_TEST_LIST
 			};
 
@@ -202,3 +204,4 @@ void setup(void)
 
 
 /*****************  END OF  PROGRAM ********************/
+
