@@ -82,6 +82,8 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 		Event* ev = new Event();
 		ev->setClientSendEvent(client, packet);
 		_gateway->getClientSendQue()->post(ev);
+
+		sendStoredPublish(client);
 		return;
 	}
 
@@ -272,15 +274,7 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 
 	if ( ( client->isSleep() || client->isAwake() ) &&  client->getClientSleepPacket() )
 	{
-		while  ( ( msg = client->getClientSleepPacket() ) != 0 )
-		{
-			// ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
-			client->deleteFirstClientSleepPacket();  // pop the que to delete element.
-
-			Event* ev = new Event();
-			ev->setBrokerRecvEvent(client, msg);
-			_gateway->getPacketEventQue()->post(ev);
-		}
+	    sendStoredPublish(client);
 		client->holdPingRequest();
 	}
 	else
@@ -293,4 +287,19 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
         evt->setBrokerSendEvent(client, pingreq);
         _gateway->getBrokerSendQue()->post(evt);
 	}
+}
+
+void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
+{
+    MQTTGWPacket* msg = 0;
+
+    while  ( ( msg = client->getClientSleepPacket() ) != 0 )
+    {
+        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
+        client->deleteFirstClientSleepPacket();  // pop the que to delete element.
+
+        Event* ev = new Event();
+        ev->setBrokerRecvEvent(client, msg);
+        _gateway->getPacketEventQue()->post(ev);
+    }
 }
