@@ -216,7 +216,7 @@ void Gateway::initialize(int argc, char** argv)
 	    {
             if (getParam("PredefinedTopicFile", param) == 0)
             {
-                fileName =*getConfigDirName() + string(param);
+                fileName = string(param);
             }
             else
             {
