@@ -26,6 +26,8 @@
 #include "Network.h"
 #include "SensorNetwork.h"
 #include "MQTTSNPacket.h"
+#include "MQTTSNGWEncapsulatedPacket.h"
+#include "MQTTSNGWForwarder.h"
 
 namespace MQTTSNGW
 {
@@ -230,13 +232,13 @@ private:
 /*=====================================
  Class Client
  =====================================*/
-#define MQTTSN_CLIENTID_LENGTH 23
 
 typedef enum
 {
     Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
 } ClientStatus;
 
+class Forwarder;
 
 class Client
 {
@@ -280,6 +282,9 @@ public:
     Network* getNetwork(void);
     void setClientAddress(SensorNetAddress* sensorNetAddr);
     void setSensorNetType(bool stable);
+
+    Forwarder* getForwarder(void);
+    void setForwarder(Forwarder* forwader);
 
     void setClientId(MQTTSNString id);
     void setWillTopic(MQTTSNString willTopic);
@@ -339,6 +344,9 @@ private:
     bool _sensorNetype;     // false: unstable network like a G3
     SensorNetAddress _sensorNetAddr;
 
+    Forwarder* _forwarder;
+
+
     bool _sessionStatus;
     bool _hasPredefTopic;
 
@@ -372,6 +380,8 @@ private:
     uint16_t _clientCnt;
     bool _authorize;
 };
+
+
 
 }
 #endif /* MQTTSNGWCLIENT_H_ */

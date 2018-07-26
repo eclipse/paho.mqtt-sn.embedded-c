@@ -17,6 +17,7 @@
 #include "MQTTSNGWPacket.h"
 #include "MQTTSNGWPacket.h"
 #include "MQTTSNGateway.h"
+#include "MQTTSNGWEncapsulatedPacket.h"
 
 using namespace MQTTSNGW;
 using namespace std;
@@ -56,8 +57,22 @@ void ClientSendTask::run()
 		{
 			client = ev->getClient();
 			packet = ev->getMQTTSNPacket();
-			log(client, packet);
-			rc = packet->unicast(_sensorNetwork, client->getSensorNetAddress());
+			Forwarder* fwd = client->getForwarder();
+
+			if ( fwd )
+			{
+			    MQTTSNGWEncapsulatedPacket encap(packet);
+			    WirelessNodeId* wnId = fwd->getWirelessNodeId(client);
+			    encap.setWirelessNodeId(wnId);
+			    log(fwd, &encap);
+			    log(client, packet);
+			    rc = encap.unicast(_sensorNetwork,fwd->getSensorNetAddr());
+			}
+			else
+			{
+                log(client, packet);
+                rc = packet->unicast(_sensorNetwork, client->getSensorNetAddress());
+			}
 		}
 		else if (ev->getEventType() == EtBroadcast)
 		{
@@ -118,4 +133,11 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	default:
 		break;
 	}
+}
+
+void ClientSendTask::log(Forwarder* forwarder, MQTTSNGWEncapsulatedPacket* packet)
+{
+    char pbuf[SIZE_OF_LOG_PACKET * 3];
+    const char* forwarderId = forwarder->getId();
+    WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, forwarderId, packet->print(pbuf));
 }

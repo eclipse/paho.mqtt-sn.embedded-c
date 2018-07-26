@@ -35,6 +35,7 @@ public:
 
 private:
 	void log(Client*, MQTTSNPacket*);
+    void log(Forwarder*, MQTTSNGWEncapsulatedPacket*);
 
 	Gateway* _gateway;
 	SensorNetwork* _sensorNetwork;

@@ -46,6 +46,8 @@ Gateway::Gateway()
 	_params.privateKey = 0;
 	_params.clientListName = 0;
 	_params.configName = 0;
+	_params.predefinedTopicFileName = 0;
+	_params.forwarderListName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
@@ -99,6 +101,14 @@ Gateway::~Gateway()
 	{
 		free(_params.configName);
 	}
+    if ( _params.predefinedTopicFileName )
+    {
+        free(_params.predefinedTopicFileName);
+    }
+    if ( _params.forwarderListName )
+    {
+        free(_params.forwarderListName);
+    }
 }
 
 void Gateway::initialize(int argc, char** argv)
@@ -214,7 +224,7 @@ void Gateway::initialize(int argc, char** argv)
 	{
 	    if (!strcasecmp(param, "YES") )
 	    {
-            if (getParam("PredefinedTopicFile", param) == 0)
+            if (getParam("PredefinedTopicList", param) == 0)
             {
                 fileName = string(param);
             }
@@ -233,6 +243,30 @@ void Gateway::initialize(int argc, char** argv)
 	        _params.predefinedTopicFileName = 0;
 	    }
 	}
+
+	if (getParam("Forwarder", param) == 0 )
+	    {
+	        if (!strcasecmp(param, "YES") )
+	        {
+	            if (getParam("ForwardersList", param) == 0)
+	            {
+	                fileName = string(param);
+	            }
+	            else
+	            {
+	                fileName = *getConfigDirName() + string(FORWARDER_LIST);
+	            }
+	           if ( !_forwarderList.setFowerder(fileName.c_str()) )
+	           {
+	               throw Exception("Gateway::initialize: No ForwardersList file defined by the configuration..");
+	           }
+	            _params.forwarderListName = strdup(fileName.c_str());
+	        }
+	        else
+	        {
+	            _params.forwarderListName = 0;
+	        }
+	    }
 
     fileName = *getConfigDirName() + *getConfigFileName();
     _params.configName = strdup(fileName.c_str());
@@ -254,12 +288,17 @@ void Gateway::run(void)
 	{
 		WRITELOG(" ClientList:  %s\n", _params.clientListName);
 	}
-	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
-	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
     if (  _params.predefinedTopicFileName )
     {
         WRITELOG(" PreDefFile: %s\n", _params.predefinedTopicFileName);
     }
+    if (  _params.forwarderListName )
+    {
+        WRITELOG(" Forwarders: %s\n", _params.forwarderListName);
+    }
+	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
+	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+
 	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
 	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
 	WRITELOG(" CertKey:    %s\n", _params.certKey);
@@ -303,6 +342,11 @@ EventQue* Gateway::getBrokerSendQue()
 ClientList* Gateway::getClientList()
 {
 	return &_clientList;
+}
+
+ForwarderList* Gateway::getForwarderList(void)
+{
+    return &_forwarderList;
 }
 
 SensorNetwork* Gateway::getSensorNetwork()

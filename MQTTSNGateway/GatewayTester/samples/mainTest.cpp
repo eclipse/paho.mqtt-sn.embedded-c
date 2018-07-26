@@ -220,7 +220,7 @@ TASK_LIST = {// e.g. TASK( task, executing duration in second),
  *------------------------------------------------------*/
 void setup(void)
 {
-
+    //SetForwarderMode();
 }
 
 
