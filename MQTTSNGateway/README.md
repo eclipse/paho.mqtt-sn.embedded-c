@@ -5,17 +5,16 @@
 $ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c   
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
 $ make   
-$ make install   
+$ sudo make install   
 $ make clean    
 ````      
-MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into ../ directory.
+MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into /usr/local/bin directory.
 
     
 ### **step2. Execute the Gateway.**     
 
 ````    
-$ cd ../   
-$ ./MQTT-SNGateway [-f Config file name]
+$ MQTT-SNGateway [-f Config file name]
 ````   
 
 
@@ -76,13 +75,13 @@ Uncomment line32 in MQTTSNGWDefined.h.
 `//#define RINGBUFFER     // print out Packets log into shared memory./"`    
 ````    
 $ make   
-$ make install 
+$ sudo make install 
 $ make clean
 ````
 restart the gateway.    
 open ssh terminal and execute LogMonitor.
 
-`$ ./MQTT-SNLogmonitor`    
+`$ MQTT-SNLogmonitor`    
 
 Now you can get the Log on your terminal.
 

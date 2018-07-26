@@ -18,6 +18,12 @@ OS := linux
 SENSORNET := udp
 TEST := tests
 
+prefix := /usr/local
+bindir := ${prefix}/bin
+libdir := ${prefix}/lib
+sysconfdir = ${prefix}/etc/paho
+
+
 CPPSRCS :=  \
 $(SRCDIR)/MQTTGWConnectionHandler.cpp \
 $(SRCDIR)/MQTTGWPacket.cpp \
@@ -94,7 +100,6 @@ all: $(PROG) $(LPROG) $(TPROG)
 monitor: $(LPROG)
 
 test: $(TPROG) $(LPROG) exectest
-	
 
 -include $(DEPS)
 
@@ -132,13 +137,14 @@ clean:
 	rm -rf $(OUTDIR)
 
 install:
-	cp -pf $(PROG) ../../
-	cp -pf $(LPROG) ../../
-	cp -pf $(CONFIG) ../../
-	cp -pf $(CLIENTS) ../../
-	cp -pf $(PREDEFTOPIC) ../../
+	cp -pf $(PROG) ${bindir}
+	cp -pf $(LPROG) ${bindir}
+	mkdir -p ${sysconfdir}
+	cp -pf $(CONFIG) ${sysconfdir}
+	cp -pf $(CLIENTS) ${sysconfdir}
+	cp -pf $(PREDEFTOPIC) ${sysconfdir}
 
 exectest:
 	./$(OUTDIR)/$(TESTPROGNAME) -f ./gateway.conf
 
-	
+
