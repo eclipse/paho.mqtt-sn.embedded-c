@@ -26,6 +26,7 @@ namespace MQTTSNGW
 #define CONFIG_FILE      "gateway.conf"
 #define CLIENT_LIST      "clients.conf"
 #define PREDEFINEDTOPIC_FILE      "predefinedTopic.conf"
+#define FORWARDER_LIST     "forwarders.conf"
 
 /*==========================================================
  *    Gateway default parameters
@@ -41,7 +42,7 @@ namespace MQTTSNGW
 #define MAX_INFLIGHTMESSAGES         (10)  // Number of inflight messages
 #define MAX_SAVED_PUBLISH            (20)  // Max number of PUBLISH message for Asleep state
 #define MAX_TOPIC_PAR_CLIENT     (50)    // Max Topic count for a client. it should be less than 256
-#define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size  (5+2+TopicLen+PayloadLen)
+#define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size  (5+2+TopicLen+PayloadLen + Foward Encapsulation)
 #define SIZE_OF_LOG_PACKET          (500)  // Length of the packet log in bytes
 
 /*=================================

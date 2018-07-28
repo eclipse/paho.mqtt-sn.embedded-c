@@ -37,6 +37,8 @@ public:
 	void handleWillmsgupd(Client* client, MQTTSNPacket* packet);
 	void handlePingreq(Client* client, MQTTSNPacket* packet);
 private:
+	void sendStoredPublish(Client* client);
+
 	char _pbuf[MQTTSNGW_MAX_PACKET_SIZE * 3];
 	Gateway* _gateway;
 };

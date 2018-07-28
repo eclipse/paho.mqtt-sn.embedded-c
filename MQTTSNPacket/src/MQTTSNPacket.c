@@ -29,6 +29,7 @@ static const char* packet_names[] =
 		"WILLMSGRESP"
 };
 
+static const char* encapsulation_packet_name = "ENCAPSULATED";
 
 /**
  * Returns a character string representing the packet name given a MsgType code
@@ -37,6 +38,10 @@ static const char* packet_names[] =
  */
 const char* MQTTSNPacket_name(int code)
 {
+    if ( code == MQTTSN_ENCAPSULATED )
+    {
+        return encapsulation_packet_name;
+    }
 	return (code >= 0 && code <= MQTTSN_WILLMSGRESP) ? packet_names[code] : "UNKNOWN";
 }
 

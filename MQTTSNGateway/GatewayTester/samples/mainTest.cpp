@@ -78,7 +78,10 @@ const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
 const char* topic4 = "ty4tw/topic4";
-const char* topic5 = "ty4tw/topic5";
+const char* topic51 = "ty4tw/topic5/1";
+const char* topic52 = "ty4tw/topic5/2";
+const char* topic53 = "ty4tw/topic5/3";
+const char* topic50 = "ty4tw/topic5/+";
 
 
 /*------------------------------------------------------
@@ -217,7 +220,7 @@ TASK_LIST = {// e.g. TASK( task, executing duration in second),
  *------------------------------------------------------*/
 void setup(void)
 {
-
+    //SetForwarderMode();
 }
 
 

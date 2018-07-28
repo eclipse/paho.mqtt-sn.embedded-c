@@ -16,7 +16,12 @@
 
 #include "MQTTSNGWClientRecvTask.h"
 #include "MQTTSNGateway.h"
-#include <string.h>
+#include "MQTTSNPacket.h"
+#include "MQTTSNGWForwarder.h"
+#include "MQTTSNGWEncapsulatedPacket.h"
+#include <cstring>
+
+using namespace MQTTSNGW;
 char* currentDateTime(void);
 /*=====================================
  Class ClientRecvTask
@@ -55,8 +60,12 @@ void ClientRecvTask::run()
 	Client* client = 0;
 	char buf[128];
 
+
 	while (true)
 	{
+	    Forwarder* fwd = 0;
+	    WirelessNodeId nodeId;
+
 		MQTTSNPacket* packet = new MQTTSNPacket();
 		int packetLen = packet->recv(_sensorNetwork);
 
@@ -89,8 +98,38 @@ void ClientRecvTask::run()
 			continue;
 		}
 
-		/* get client from the ClientList of Gateway by sensorNetAddress. */
-		client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());
+		if ( packet->getType() == MQTTSN_ENCAPSULATED )
+		{
+		    fwd = _gateway->getForwarderList()->getForwarder(_sensorNetwork->getSenderAddress());
+
+		    if ( fwd  == 0 )
+		    {
+		        log(0, packet);
+		        WRITELOG("%s Forwarder  %s is not authorized.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+		        delete packet;
+		        continue;
+		    }
+		    else
+		    {
+		        MQTTSNString fwdName;
+		        fwdName.lenstring.data = const_cast<char *>( fwd->getName() );
+		        fwdName.lenstring.len = strlen(fwdName.lenstring.data);
+	            log(0, packet, &fwdName);
+
+		        MQTTSNGWEncapsulatedPacket  encap;
+		        encap.desirialize(packet->getPacketData(), packet->getPacketLength());
+		        nodeId.setId( encap.getWirelessNodeId() );
+		        client = fwd->getClient(&nodeId);
+		        delete packet;
+		        packet = encap.getMQTTSNPacket();
+		    }
+		}
+		else
+		{
+            /* get client from the ClientList of Gateway by sensorNetAddress. */
+            client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());
+		}
+
 
 		if ( client )
 		{
@@ -117,27 +156,40 @@ void ClientRecvTask::run()
 
 				client = _gateway->getClientList()->getClient(&data.clientID);
 
-				if ( client )
+				if ( fwd )
 				{
-				    /* set SensorNet Address */
-				    client->setClientAddress(_sensorNetwork->getSenderAddress());
+				    if ( client == 0 )
+				    {
+				        /* create a new client */
+				        client = _gateway->getClientList()->createClient(0, &data.clientID, false, false);
+				    }
+				    /* Add to af forwarded client list of forwarder. */
+                    fwd->addClient(client, &nodeId);
 				}
 				else
 				{
-				    /* create a client */
-				    client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+                    if ( client )
+                    {
+                        /* Client exists. Set SensorNet Address of it. */
+                        client->setClientAddress(_sensorNetwork->getSenderAddress());
+                    }
+                    else
+                    {
+                        /* create a new client */
+                        client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+                    }
 				}
 
 				log(client, packet, &data.clientID);
 
 				if (!client)
 				{
-					WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+	                WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
 
-				/* set sensorNetAddress & post Event */
+				/* post Client RecvEvent */
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
 				_gateway->getPacketEventQue()->post(ev);
@@ -145,16 +197,18 @@ void ClientRecvTask::run()
 			else
 			{
 				log(client, packet);
-				delete packet;
-				/* Send DISCONNECT */
-				SensorNetAddress* addr = new SensorNetAddress();
-				*addr = (*_sensorNetwork->getSenderAddress());
-				packet = new MQTTSNPacket();
-				packet->setDISCONNECT(0);
-				ev = new Event();
-				ev->setClientSendEvent(addr, packet);
-				_gateway->getClientSendQue()->post(ev);
-				continue;
+                WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+                delete packet;
+
+                /* Send DISCONNECT */
+                if ( fwd == 0 )
+                {
+                    packet = new MQTTSNPacket();
+                    packet->setDISCONNECT(0);
+                    ev = new Event();
+                    ev->setClientSendEvent(_sensorNetwork->getSenderAddress(), packet);
+                    _gateway->getClientSendQue()->post(ev);
+                }
 			}
 		}
 	}
@@ -211,6 +265,9 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 	case MQTTSN_PUBCOMP:
 		WRITELOG(FORMAT_G_MSGID_G_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
 		break;
+	case MQTTSN_ENCAPSULATED:
+	        WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+	        break;
 	default:
 		WRITELOG(FORMAT_W_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
 		break;

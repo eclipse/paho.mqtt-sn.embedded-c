@@ -17,6 +17,7 @@
 #define MQTTSNGATEWAY_H_
 
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGWForwarder.h"
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
 
@@ -42,6 +43,7 @@ namespace MQTTSNGW
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
 #define UNKNOWNCL   "Unknown Client !"
+
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 #define LEFTARROWB   "<==="
@@ -68,14 +70,6 @@ namespace MQTTSNGW
 
 #define ERRMSG_HEADER            "\033[0m\033[0;31mError:"
 #define ERRMSG_FOOTER            "\033[0m\033[0;37m"
-
-/*=====================================
-      Predefined TopicId for OTA
-  ====================================*/
-//#define OTA_CLIENTS
-//#define PREDEFINEDID_OTA_REQ       (0x0ff0)
-//#define PREDEFINEDID_OTA_READY     (0x0ff1)
-//#define PREDEFINEDID_OTA_NO_CLIENT (0x0ff2)
 
 /*=====================================
          Class Event
@@ -161,6 +155,7 @@ typedef struct
 	char* certKey;
 	char* privateKey;
 	char* predefinedTopicFileName;
+	char* forwarderListName;
 }GatewayParams;
 
 /*=====================================
@@ -177,12 +172,14 @@ public:
 	EventQue* getClientSendQue(void);
 	EventQue* getBrokerSendQue(void);
 	ClientList* getClientList(void);
+	ForwarderList* getForwarderList(void);
 	SensorNetwork* getSensorNetwork(void);
 	LightIndicator* getLightIndicator(void);
 	GatewayParams* getGWParams(void);
 
 private:
 	ClientList _clientList;
+	ForwarderList _forwarderList;
 	EventQue   _packetEventQue;
 	EventQue   _brokerSendQue;
 	EventQue   _clientSendQue;

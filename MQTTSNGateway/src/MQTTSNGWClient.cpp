@@ -19,6 +19,7 @@
 #include "MQTTSNGWClient.h"
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
+#include "MQTTSNGWForwarder.h"
 #include "Network.h"
 #include <string>
 #include <string.h>
@@ -75,7 +76,7 @@ bool ClientList::authorize(const char* fileName)
 {
 	FILE* fp;
 	char buf[MAX_CLIENTID_LENGTH + 256];
-	size_t pos;;
+	size_t pos;
 	bool secure;
 	bool stable;
 	SensorNetAddress netAddr;
@@ -167,6 +168,11 @@ bool ClientList::setPredefinedTopics(const char* fileName)
         fclose(fp);
         rc = true;
     }
+    else
+    {
+        WRITELOG("Can not open the Predefined Topic List.     %s\n", fileName);
+        return false;
+    }
     return rc;
 }
 
@@ -196,6 +202,11 @@ void ClientList::erase(Client*& client)
 			_endClient = prev;
 		}
 		_clientCnt--;
+		Forwarder* fwd = client->getForwarder();
+		if ( fwd )
+		{
+		    fwd->eraseClient(client);
+		}
 		delete client;
 		client = 0;
 		_mutex.unlock();
@@ -204,19 +215,22 @@ void ClientList::erase(Client*& client)
 
 Client* ClientList::getClient(SensorNetAddress* addr)
 {
-	_mutex.lock();
-	Client* client = _firstClient;
+    if ( addr )
+    {
+        _mutex.lock();
+        Client* client = _firstClient;
 
-	while (client != 0)
-	{
-		if (client->getSensorNetAddress()->isMatch(addr) )
-		{
-			_mutex.unlock();
-			return client;
-		}
-		client = client->_nextClient;
-	}
-	_mutex.unlock();
+        while (client != 0)
+        {
+            if (client->getSensorNetAddress()->isMatch(addr) )
+            {
+                _mutex.unlock();
+                return client;
+            }
+            client = client->_nextClient;
+        }
+        _mutex.unlock();
+    }
 	return 0;
 }
 
@@ -400,6 +414,8 @@ Client::Client(bool secure)
 	_nextClient = 0;
 	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
 	_hasPredefTopic = false;
+	_holdPingRequest = false;
+	_forwarder = 0;
 }
 
 Client::~Client()
@@ -516,6 +532,16 @@ void Client::setKeepAlive(MQTTSNPacket* packet)
 		_keepAliveMsec = param.duration * 1000UL;
 		_keepAliveTimer.start(_keepAliveMsec * 1.5);
 	}
+}
+
+void Client::setForwarder(Forwarder* forwarder)
+{
+    _forwarder = forwarder;
+}
+
+Forwarder* Client::getForwarder(void)
+{
+    return _forwarder;
 }
 
 void Client::setSessionStatus(bool status)
@@ -794,6 +820,21 @@ Client* Client::getOTAClient(void)
 void Client::setOTAClient(Client* cl)
 {
 	_otaClient =cl;
+}
+
+void Client::holdPingRequest(void)
+{
+    _holdPingRequest = true;
+}
+
+void Client::resetPingRequest(void)
+{
+    _holdPingRequest = false;
+}
+
+bool Client::isHoldPringReqest(void)
+{
+    return _holdPingRequest;
 }
 
 /*=====================================
@@ -1214,7 +1255,7 @@ TopicIdMapelement* TopicIdMap::getElement(uint16_t msgId)
 
 TopicIdMapelement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
 {
-	if ( _cnt > _maxInflight * 2 || topicId == 0)
+	if ( _cnt > _maxInflight * 2 || ( topicId == 0 && type != MQTTSN_TOPIC_TYPE_SHORT ) )
 	{
 		return 0;
 	}
@@ -1314,6 +1355,7 @@ WaitREGACKPacketList::WaitREGACKPacketList()
 {
 	_first = 0;
 	_end = 0;
+	_cnt = 0;
 }
 
 WaitREGACKPacketList::~WaitREGACKPacketList()
@@ -1346,6 +1388,7 @@ int WaitREGACKPacketList::setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId)
 		elm->_prev = _end;
 		_end = elm;
 	}
+	_cnt++;
 	return 1;
 }
 
@@ -1387,10 +1430,17 @@ void WaitREGACKPacketList::erase(uint16_t REGACKMsgId)
 			{
 				p->_next->_prev = p->_prev;
 			}
-			break;
-			// Do not delete element. Element is deleted after sending to Client.
+			_cnt--;
+            break;
+            // Do not delete element. Element is deleted after sending to Client.
 		}
 		p = p->_next;
 	}
 }
+
+uint8_t WaitREGACKPacketList::getCount(void)
+{
+    return _cnt;
+}
+
 

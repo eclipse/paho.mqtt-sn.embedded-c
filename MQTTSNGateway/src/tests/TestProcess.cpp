@@ -93,10 +93,10 @@ void TestProcess::run(void)
 	delete tque;
 
 	/* Test Tree23 */
-    printf("Test  Tree23         ");
-	TestTree23* tree23 = new TestTree23();
-	tree23->test();
-	delete tree23;
+    //printf("Test  Tree23         ");
+	//TestTree23* tree23 = new TestTree23();
+	//tree23->test();
+	//delete tree23;
 
 	/* Test TopicTable */
     printf("Test  Topic          ");
@@ -111,6 +111,7 @@ void TestProcess::run(void)
 	delete testMap;
 
 	/* Test EventQue */
+	/*
 	printf("Test  EventQue       ");
 	Client* client = new Client();
 	_evQue.setMaxSize(EVENT_CNT);
@@ -122,6 +123,7 @@ void TestProcess::run(void)
 		ev->setClientSendEvent(client, packet);
 		_evQue.post(ev);
 	}
-
+	delete client;
+	*/
 	//MultiTaskProcess::run();
 }

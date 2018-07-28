@@ -76,12 +76,12 @@ uint8_t*  LNetwork::getMessage(int* len){
 			}else{
 				*len = _rxDataBuf[0];
 			}
-			if(recvLen != *len){
-				*len = 0;
-				return 0;
-			}else{
+			//if(recvLen != *len){
+			//	*len = 0;
+			//	return 0;
+			//}else{
 				return _rxDataBuf;
-			}
+			//}
 		}
 	}
 	return 0;

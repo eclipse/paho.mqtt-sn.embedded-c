@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2016-2018, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -105,6 +105,7 @@ typedef enum
 #define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
 #define UDPCONF  LUdpConfig theNetcon
 #define MQTTSNCONF LMqttsnConfig  theMqcon
+#define SetForwarderMode  theClient->getGwProxy()->setForwarderMode
 #ifdef CLIENT_MODE
 #define DISPLAY(...)
 #define PROMPT(...)
@@ -168,6 +169,7 @@ typedef enum
 #define MQTTSN_TYPE_WILLTOPICRESP 0x1B
 #define MQTTSN_TYPE_WILLMSGUPD    0x1C
 #define MQTTSN_TYPE_WILLMSGRESP   0x1D
+#define MQTTSN_TYPE_ENCAPSULATED  0xFE
 
 #define MQTTSN_TOPIC_TYPE           0x03
 

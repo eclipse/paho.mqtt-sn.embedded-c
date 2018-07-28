@@ -77,7 +77,7 @@ MQTTSNCONF = {
 const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
-
+const char* topic57 = "ty4tw/topic5/7";
 
 /*------------------------------------------------------
  *       Callback routines for Subscribed Topics
@@ -112,6 +112,14 @@ void publishTopic2(void)
     PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
 }
 
+void publishTopic57(void)
+{
+    char payload[300];
+    sprintf(payload, "publish \"ty4tw/topic57\" \n");
+    uint8_t qos = 0;
+    PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
+}
+
 
 void disconnect(void)
 {
@@ -127,7 +135,7 @@ void disconnect(void)
 
 TEST_LIST = {// e.g. TEST( Label, Test),
              TEST("Step1:Publish topic1",     publishTopic1),
-             TEST("Step2:Publish topic2",     publishTopic2),
+             TEST("Step2:Publish topic57",     publishTopic57),
              TEST("Step3:Publish topic2",     publishTopic2),
              TEST("Step4:Disconnect",        disconnect),
              END_OF_TEST_LIST

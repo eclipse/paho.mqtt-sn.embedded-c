@@ -26,6 +26,8 @@
 #include "Network.h"
 #include "SensorNetwork.h"
 #include "MQTTSNPacket.h"
+#include "MQTTSNGWEncapsulatedPacket.h"
+#include "MQTTSNGWForwarder.h"
 
 namespace MQTTSNGW
 {
@@ -219,8 +221,10 @@ public:
     int setPacket(MQTTSNPacket* packet, uint16_t REGACKMsgId);
     MQTTSNPacket* getPacket(uint16_t REGACKMsgId);
     void erase(uint16_t REGACKMsgId);
+    uint8_t getCount(void);
 
 private:
+    uint8_t _cnt;
     waitREGACKPacket* _first;
     waitREGACKPacket* _end;
 };
@@ -228,13 +232,13 @@ private:
 /*=====================================
  Class Client
  =====================================*/
-#define MQTTSN_CLIENTID_LENGTH 23
 
 typedef enum
 {
     Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
 } ClientStatus;
 
+class Forwarder;
 
 class Client
 {
@@ -279,6 +283,9 @@ public:
     void setClientAddress(SensorNetAddress* sensorNetAddr);
     void setSensorNetType(bool stable);
 
+    Forwarder* getForwarder(void);
+    void setForwarder(Forwarder* forwader);
+
     void setClientId(MQTTSNString id);
     void setWillTopic(MQTTSNString willTopic);
     void setWillMsg(MQTTSNString willmsg);
@@ -297,6 +304,10 @@ public:
     bool isSecureNetwork(void);
     bool isSensorNetStable(void);
     bool isWaitWillMsg(void);
+
+    void holdPingRequest(void);
+    void resetPingRequest(void);
+    bool isHoldPringReqest(void);
 
     Client* getNextClient(void);
     Client* getOTAClient(void);
@@ -317,6 +328,8 @@ private:
     char* _willTopic;
     char* _willMsg;
 
+    bool _holdPingRequest;
+
     Timer _keepAliveTimer;
     uint32_t _keepAliveMsec;
 
@@ -330,6 +343,9 @@ private:
     bool  _secureNetwork;    // SSL
     bool _sensorNetype;     // false: unstable network like a G3
     SensorNetAddress _sensorNetAddr;
+
+    Forwarder* _forwarder;
+
 
     bool _sessionStatus;
     bool _hasPredefTopic;
@@ -364,6 +380,8 @@ private:
     uint16_t _clientCnt;
     bool _authorize;
 };
+
+
 
 }
 #endif /* MQTTSNGWCLIENT_H_ */

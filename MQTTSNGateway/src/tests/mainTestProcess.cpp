@@ -19,7 +19,7 @@
 using namespace MQTTSNGW;
 
 TestProcess* test = new TestProcess();
-TestTask* task = new TestTask(test);
+//TestTask* task = new TestTask(test);
 
 int main(int argc, char** argv)
 {

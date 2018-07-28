@@ -82,6 +82,8 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 		Event* ev = new Event();
 		ev->setClientSendEvent(client, packet);
 		_gateway->getClientSendQue()->post(ev);
+
+		sendStoredPublish(client);
 		return;
 	}
 
@@ -216,7 +218,6 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* packet)
 {
     uint16_t duration = 0;
-    Event* ev = new Event();
 
     if ( packet->getDISCONNECT(&duration) != 0 )
     {
@@ -224,7 +225,7 @@ void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* pac
         {
             MQTTGWPacket* mqMsg = new MQTTGWPacket();
             mqMsg->setHeader(DISCONNECT);
-            ev = new Event();
+            Event* ev = new Event();
             ev->setBrokerSendEvent(client, mqMsg);
             _gateway->getBrokerSendQue()->post(ev);
         }
@@ -268,25 +269,34 @@ void MQTTSNConnectionHandler::handleWillmsgupd(Client* client, MQTTSNPacket* pac
  */
 void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet)
 {
-	MQTTGWPacket* msg = 0;
-
-	if ( client->isSleep() || client->isAwake() )
+	if ( ( client->isSleep() || client->isAwake() ) &&  client->getClientSleepPacket() )
 	{
-		while  ( ( msg = client->getClientSleepPacket() ) != 0 )
-		{
-			// ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
-			client->deleteFirstClientSleepPacket();  // pop the que to delete element.
-
-			Event* ev = new Event();
-			ev->setBrokerRecvEvent(client, msg);
-			_gateway->getPacketEventQue()->post(ev);
-		}
+	    sendStoredPublish(client);
+		client->holdPingRequest();
 	}
+	else
+	{
+        /* send PINGREQ to the broker */
+	    client->resetPingRequest();
+        MQTTGWPacket* pingreq = new MQTTGWPacket();
+        pingreq->setHeader(PINGREQ);
+        Event* evt = new Event();
+        evt->setBrokerSendEvent(client, pingreq);
+        _gateway->getBrokerSendQue()->post(evt);
+	}
+}
 
-	/* send PINGREQ to the broker */
-	MQTTGWPacket* pingreq = new MQTTGWPacket();
-	pingreq->setHeader(PINGREQ);
-	Event* evt = new Event();
-	evt->setBrokerSendEvent(client, pingreq);
-	_gateway->getBrokerSendQue()->post(evt);
+void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
+{
+    MQTTGWPacket* msg = 0;
+
+    while  ( ( msg = client->getClientSleepPacket() ) != 0 )
+    {
+        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
+        client->deleteFirstClientSleepPacket();  // pop the que to delete element.
+
+        Event* ev = new Event();
+        ev->setBrokerRecvEvent(client, msg);
+        _gateway->getPacketEventQue()->post(ev);
+    }
 }
