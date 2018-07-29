@@ -71,6 +71,11 @@ void ClientSendTask::run()
 			else
 			{
                 log(client, packet);
+               if ( client->isProxy() )
+                {
+                   _gateway->getClientProxy()->send(packet);
+                    continue;
+                }
                 rc = packet->unicast(_sensorNetwork, client->getSensorNetAddress());
 			}
 		}

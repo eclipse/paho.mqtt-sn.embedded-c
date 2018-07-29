@@ -13,8 +13,9 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#include <string.h>
 #include "MQTTSNGWForwarder.h"
+
+#include <string.h>
 
 using namespace MQTTSNGW;
 using namespace std;
@@ -155,10 +156,10 @@ Forwarder::~Forwarder(void)
 {
     if ( _headClient )
     {
-        ForwardedClient* p = _headClient;
+        ForwarderElement* p = _headClient;
         while ( p )
         {
-            ForwardedClient* next = p->_next;
+            ForwarderElement* next = p->_next;
             delete p;
             p = next;
         }
@@ -172,8 +173,8 @@ const char* Forwarder::getId(void)
 
 void Forwarder::addClient(Client* client, WirelessNodeId* id)
 {
-    ForwardedClient* p = _headClient;
-    ForwardedClient* prev = 0;
+    ForwarderElement* p = _headClient;
+    ForwarderElement* prev = 0;
 
     client->setForwarder(this);
 
@@ -191,7 +192,7 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
         }
     }
 
-    ForwardedClient* fclient = new ForwardedClient();
+    ForwarderElement* fclient = new ForwarderElement();
 
     fclient->setClient(client);
     fclient->setWirelessNodeId(id);
@@ -210,7 +211,7 @@ Client* Forwarder::getClient(WirelessNodeId* id)
 {
     Client* cl = 0;
     _mutex.lock();
-    ForwardedClient* p = _headClient;
+    ForwarderElement* p = _headClient;
     while ( p )
     {
         if ( *(p->_wirelessNodeId) == *id )
@@ -236,7 +237,7 @@ WirelessNodeId* Forwarder::getWirelessNodeId(Client* client)
 {
     WirelessNodeId* nodeId = 0;
     _mutex.lock();
-    ForwardedClient* p = _headClient;
+    ForwarderElement* p = _headClient;
     while ( p )
     {
         if ( p->_client == client )
@@ -255,9 +256,9 @@ WirelessNodeId* Forwarder::getWirelessNodeId(Client* client)
 
 void Forwarder::eraseClient(Client* client)
 {
-    ForwardedClient* prev = 0;
+    ForwarderElement* prev = 0;
     _mutex.lock();
-    ForwardedClient* p = _headClient;
+    ForwarderElement* p = _headClient;
 
     while ( p )
     {
@@ -291,14 +292,14 @@ SensorNetAddress* Forwarder::getSensorNetAddr(void)
  *    Class ForwardedClient
  */
 
-ForwardedClient::ForwardedClient()
+ForwarderElement::ForwarderElement()
     : _client{0}
     , _wirelessNodeId{0}
     , _next{0}
 {
 }
 
-ForwardedClient::~ForwardedClient()
+ForwarderElement::~ForwarderElement()
 {
     if (_wirelessNodeId)
     {
@@ -306,12 +307,12 @@ ForwardedClient::~ForwardedClient()
     }
 }
 
-void ForwardedClient::setClient(Client* client)
+void ForwarderElement::setClient(Client* client)
 {
     _client = client;
 }
 
-void ForwardedClient::setWirelessNodeId(WirelessNodeId* id)
+void ForwarderElement::setWirelessNodeId(WirelessNodeId* id)
 {
     if ( _wirelessNodeId == 0 )
     {

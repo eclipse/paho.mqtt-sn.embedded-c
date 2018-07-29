@@ -17,9 +17,11 @@
 #define MQTTSNGATEWAY_H_
 
 #include "MQTTSNGWClient.h"
-#include "MQTTSNGWForwarder.h"
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
+
+#include "MQTTSNGWForwarder.h"
+#include "MQTTSNGWClientProxy.h"
 
 namespace MQTTSNGW
 {
@@ -43,6 +45,7 @@ namespace MQTTSNGW
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
 #define UNKNOWNCL   "Unknown Client !"
+#define CLIENTPROXY  "ClientProxy"
 
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
@@ -156,11 +159,14 @@ typedef struct
 	char* privateKey;
 	char* predefinedTopicFileName;
 	char* forwarderListName;
+	char* qosMinusClientListName;
 }GatewayParams;
 
 /*=====================================
      Class Gateway
  =====================================*/
+class ClientProxy;
+
 class Gateway: public MultiTaskProcess{
 public:
 	Gateway();
@@ -176,9 +182,11 @@ public:
 	SensorNetwork* getSensorNetwork(void);
 	LightIndicator* getLightIndicator(void);
 	GatewayParams* getGWParams(void);
+	ClientProxy*  getClientProxy(void);
 
 private:
 	ClientList _clientList;
+	ClientProxy*  _clientProxy;
 	ForwarderList _forwarderList;
 	EventQue   _packetEventQue;
 	EventQue   _brokerSendQue;

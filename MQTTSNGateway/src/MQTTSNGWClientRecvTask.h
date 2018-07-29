@@ -35,8 +35,8 @@ public:
 	void run();
 
 private:
-	void log(Client*, MQTTSNPacket*, MQTTSNString* id = 0);
-
+	void log(Client*, MQTTSNPacket*, MQTTSNString* id);
+	void log(const char* clientId, MQTTSNPacket* packet);
 	Gateway*       _gateway;
 	SensorNetwork* _sensorNetwork;
 };

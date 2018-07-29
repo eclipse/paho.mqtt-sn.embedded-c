@@ -27,6 +27,7 @@ namespace MQTTSNGW
 #define CLIENT_LIST      "clients.conf"
 #define PREDEFINEDTOPIC_FILE      "predefinedTopic.conf"
 #define FORWARDER_LIST     "forwarders.conf"
+#define QOS_1CLIENT_LIST     "qos-1clients.conf"
 
 /*==========================================================
  *    Gateway default parameters

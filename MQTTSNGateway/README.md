@@ -38,6 +38,9 @@ PredefinedTopicList=/path/to/your_predefinedTopic.conf
 
 Forwarder=NO
 ForwardersList=/home/tomoaki/tmp/forwarders.conf
+
+QoS-1=NO
+QoS-1ClientsList=/path/to/your_qos-1clients.conf
     
 #RootCAfile=/path/to/your_Root_CA.crt    
 #RootCApath=/path/to/your_certs_directory/   
@@ -69,6 +72,7 @@ Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW messag
 when **ClientAuthentication** is YES, see MQTTSNGWClient.cpp line53, clients file specified by ClientsList is required. This file defines connect allowed clients by ClientId and SensorNetwork Address. e.g. IP address and Port No.   
 When **PredefinedTopic** is YES, Pre-definedTopicID file specified by PredefinedTopicList is effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
 When **Forwarder** is YES, Forwarder Encapsulation Message is available. Connectable Forwarders are specifed by ForwardersList file. In this file, ForwarderIds and those sensorNet addresses are declared in CSV format.    
+When **QoS-1** is YES, QoS-1 PUBLISH Message is available. Clients which allow to send it, are specifed by QoS-1ClientsList file. In this file, ClientsId and those sensorNet addresses are declared in CSV format.     
  
 
 

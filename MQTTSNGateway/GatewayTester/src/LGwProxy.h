@@ -65,7 +65,8 @@ public:
     void     setCleanSession(bool);
     void     setKeepAliveDuration(uint16_t duration);
     void     setAdvertiseDuration(uint16_t duration);
-    void     setForwarderMode(void);
+    void     setForwarderMode(bool valid);
+    void     setQoSMinus1Mode(bool valid);
     void     reconnect(void);
     int      writeMsg(const uint8_t* msg);
     void     setPingReqTimer(void);
@@ -109,6 +110,7 @@ private:
     uint16_t    _tSleep;
     uint16_t    _tWake;
     bool _isForwarderMode;
+    bool _isQoSMinus1Mode;
     char        _msg[MQTTSN_MAX_MSG_LENGTH + 1];
 };
 

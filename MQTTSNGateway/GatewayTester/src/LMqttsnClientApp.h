@@ -27,7 +27,6 @@
  ======================================*/
 //#define DEBUG_NW
 //#define DEBUG_MQTTSN
-//#define DEBUG_OTA
 
 /****************************************
       MQTT-SN Parameters
@@ -105,7 +104,9 @@ typedef enum
 #define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
 #define UDPCONF  LUdpConfig theNetcon
 #define MQTTSNCONF LMqttsnConfig  theMqcon
-#define SetForwarderMode  theClient->getGwProxy()->setForwarderMode
+#define SetForwarderMode(...)  theClient->getGwProxy()->setForwarderMode(__VA_ARGS__)
+#define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)
+
 #ifdef CLIENT_MODE
 #define DISPLAY(...)
 #define PROMPT(...)
@@ -142,6 +143,7 @@ typedef enum
 #define QoS0  0
 #define QoS1  1
 #define QoS2  2
+#define Q0Sm1 3
 #define MQTTSN_TYPE_ADVERTISE     0x00
 #define MQTTSN_TYPE_SEARCHGW      0x01
 #define MQTTSN_TYPE_GWINFO        0x02
@@ -177,7 +179,7 @@ typedef enum
 #define MQTTSN_FLAG_QOS_0   0x0
 #define MQTTSN_FLAG_QOS_1   0x20
 #define MQTTSN_FLAG_QOS_2   0x40
-#define MQTTSN_FLAG_QOS_N1  0xc0
+#define MQTTSN_FLAG_QOS_M1  0x60
 #define MQTTSN_FLAG_RETAIN  0x10
 #define MQTTSN_FLAG_WILL    0x08
 #define MQTTSN_FLAG_CLEAN   0x04

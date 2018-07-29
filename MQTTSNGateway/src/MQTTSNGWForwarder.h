@@ -28,18 +28,18 @@ namespace MQTTSNGW
 class Client;
 class WirelessNodeId;
 
-class ForwardedClient
+class ForwarderElement
 {
     friend class Forwarder;
 public:
-    ForwardedClient();
-    ~ForwardedClient();
+    ForwarderElement();
+    ~ForwarderElement();
     void setClient(Client* client);
     void setWirelessNodeId(WirelessNodeId* id);
 private:
     Client* _client;
     WirelessNodeId* _wirelessNodeId;
-    ForwardedClient* _next;
+    ForwarderElement* _next;
 };
 
 
@@ -62,7 +62,7 @@ public:
 private:
     string _forwarderName;
     SensorNetAddress _sensorNetAddr;
-    ForwardedClient* _headClient;
+    ForwarderElement* _headClient;
     Forwarder* _next;
     Mutex _mutex;
 };

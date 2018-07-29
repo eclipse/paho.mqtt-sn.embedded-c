@@ -75,7 +75,7 @@ void LPublishManager::publish(const char* topicName, uint8_t* payload, uint16_t 
         topicType = MQTTSN_TOPIC_TYPE_NORMAL;
     }
 
-	if ( qos > 0 )
+	if ( qos > 0  && qos < 3 )
 	{
 		msgId = theClient->getGwProxy()->getNextMsgId();
 	}
@@ -428,6 +428,10 @@ PubElement* LPublishManager::add(const char* topicName, uint16_t topicId, uint8_
 	{
 		elm->flag |= MQTTSN_FLAG_QOS_2;
 	}
+	else if (qos == 3)
+    {
+        elm->flag |= MQTTSN_FLAG_QOS_M1;
+    }
 	if (retain)
 	{
 		elm->flag |= MQTTSN_FLAG_RETAIN;

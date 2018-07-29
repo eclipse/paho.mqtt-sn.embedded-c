@@ -90,7 +90,10 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 	//* clear ConnectData of Client */
 	Connect* connectData = client->getConnectData();
 	memset(connectData, 0, sizeof(Connect));
-	client->disconnected();
+	if ( !client->isProxy() )
+	{
+	    client->disconnected();
+	}
 
 	Topics* topics = client->getTopics();
 
@@ -153,7 +156,7 @@ void MQTTSNConnectionHandler::handleWilltopic(Client* client, MQTTSNPacket* pack
 {
 	int willQos;
 	uint8_t willRetain;
-	MQTTSNString willTopic;
+	MQTTSNString willTopic = MQTTSNString_initializer;
 
 	if ( packet->getWILLTOPIC(&willQos, &willRetain, &willTopic) == 0 )
 	{
@@ -187,7 +190,7 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 		return;
 	}
 
-	MQTTSNString willmsg;
+	MQTTSNString willmsg  = MQTTSNString_initializer;
 	Connect* connectData = client->getConnectData();
 
 	if( client->isConnectSendable() )

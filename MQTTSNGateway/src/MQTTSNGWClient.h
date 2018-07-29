@@ -253,6 +253,9 @@ public:
     TopicIdMapelement* getWaitedSubTopicId(uint16_t msgId);
     MQTTGWPacket* getClientSleepPacket(void);
     void deleteFirstClientSleepPacket(void);
+
+    MQTTSNPacket* getProxyPacket(void);
+    void deleteFirstProxyPacket(void);
     WaitREGACKPacketList* getWaitREGACKPacketList(void);
 
     void eraseWaitedPubTopicId(uint16_t msgId);
@@ -261,6 +264,7 @@ public:
     void clearWaitedSubTopicId(void);
 
     int  setClientSleepPacket(MQTTGWPacket*);
+    int setProxyPacket(MQTTSNPacket* packet);
     void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
     void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
 
@@ -271,6 +275,8 @@ public:
     void connackSended(int rc);
     void disconnected(void);
     bool isConnectSendable(void);
+    void tryConnect(void);
+    ClientStatus getClientStatus(void);
 
     uint16_t getNextPacketId(void);
     uint8_t getNextSnMsgId(void);
@@ -286,6 +292,9 @@ public:
     Forwarder* getForwarder(void);
     void setForwarder(Forwarder* forwader);
 
+    void setPorxy(bool isProxy);
+    bool isProxy(void);
+
     void setClientId(MQTTSNString id);
     void setWillTopic(MQTTSNString willTopic);
     void setWillMsg(MQTTSNString willmsg);
@@ -298,6 +307,7 @@ public:
     bool erasable(void);
 
     bool isDisconnect(void);
+    bool isConnecting(void);
     bool isActive(void);
     bool isSleep(void);
     bool isAwake(void);
@@ -310,11 +320,11 @@ public:
     bool isHoldPringReqest(void);
 
     Client* getNextClient(void);
-    Client* getOTAClient(void);
-    void    setOTAClient(Client* cl);
 
 private:
     PacketQue<MQTTGWPacket> _clientSleepPacketQue;
+    PacketQue<MQTTSNPacket> _proxyPacketQue;
+
     WaitREGACKPacketList    _waitREGACKList;
 
     Topics* _topics;
@@ -345,6 +355,7 @@ private:
     SensorNetAddress _sensorNetAddr;
 
     Forwarder* _forwarder;
+    bool _isProxy;
 
 
     bool _sessionStatus;

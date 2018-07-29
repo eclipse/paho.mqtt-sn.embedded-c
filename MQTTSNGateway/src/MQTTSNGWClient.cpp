@@ -19,11 +19,12 @@
 #include "MQTTSNGWClient.h"
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
-#include "MQTTSNGWForwarder.h"
 #include "Network.h"
 #include <string>
 #include <string.h>
 #include <stdio.h>
+
+#include "MQTTSNGWForwarder.h"
 
 using namespace MQTTSNGW;
 char* currentDateTime(void);
@@ -80,11 +81,7 @@ bool ClientList::authorize(const char* fileName)
 	bool secure;
 	bool stable;
 	SensorNetAddress netAddr;
-	MQTTSNString clientId;
-
-	clientId.cstring = 0;
-	clientId.lenstring.data = 0;
-	clientId.lenstring.len = 0;
+	MQTTSNString clientId = MQTTSNString_initializer;
 
 	if ((fp = fopen(fileName, "r")) != 0)
 	{
@@ -131,12 +128,8 @@ bool ClientList::setPredefinedTopics(const char* fileName)
     FILE* fp;
     char buf[MAX_CLIENTID_LENGTH + 256];
     size_t pos0, pos1;
-    MQTTSNString clientId;
+    MQTTSNString clientId = MQTTSNString_initializer;;
     bool rc = false;
-
-    clientId.cstring = 0;
-    clientId.lenstring.data = 0;
-    clientId.lenstring.len = 0;
 
     if ((fp = fopen(fileName, "r")) != 0)
     {
@@ -300,9 +293,8 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 	}
 	else
 	{
-		MQTTSNString  dummyId;
+		MQTTSNString  dummyId MQTTSNString_initializer;;
 		dummyId.cstring = strdup("");
-		dummyId.lenstring.len = 0;
 		client->setClientId(dummyId);
 		 free(dummyId.cstring);
 	}
@@ -367,6 +359,7 @@ Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicN
 
     // create Topic & Add it
     client->getTopics()->add((const char*)topicName.c_str(), topicId);
+    client->_hasPredefTopic = true;
     return client;
 }
 
@@ -413,9 +406,11 @@ Client::Client(bool secure)
 	_prevClient = 0;
 	_nextClient = 0;
 	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
+	_proxyPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
 	_hasPredefTopic = false;
 	_holdPingRequest = false;
 	_forwarder = 0;
+	_isProxy = false;
 }
 
 Client::~Client()
@@ -483,6 +478,30 @@ int Client::setClientSleepPacket(MQTTGWPacket* packet)
 		WRITELOG("%s    %s is sleeping　but discard the packet.\n", currentDateTime(), _clientId);
 	}
 	return rc;
+}
+
+MQTTSNPacket* Client::getProxyPacket(void)
+{
+    return _proxyPacketQue.getPacket();
+}
+
+void Client::deleteFirstProxyPacket()
+{
+    _proxyPacketQue.pop();
+}
+
+int Client::setProxyPacket(MQTTSNPacket* packet)
+{
+    int rc = _proxyPacketQue.post(packet);
+    if ( rc )
+    {
+        WRITELOG("%s    %s is Disconnected. the packet was saved.\n", currentDateTime(), _clientId);
+    }
+    else
+    {
+        WRITELOG("%s    %s is Disconnected and discard the packet.\n", currentDateTime(), _clientId);
+    }
+    return rc;
 }
 
 Connect* Client::getConnectData(void)
@@ -572,7 +591,10 @@ void Client::updateStatus(MQTTSNPacket* packet)
 		case MQTTSN_PUBCOMP:
 		case MQTTSN_PUBREL:
 		case MQTTSN_PUBREC:
-			_keepAliveTimer.start(_keepAliveMsec * 1.5);
+			if ( !_isProxy )
+			{
+			    _keepAliveTimer.start(_keepAliveMsec * 1.5);
+			}
 			break;
 		case MQTTSN_DISCONNECT:
 			uint16_t duration;
@@ -641,9 +663,14 @@ void Client::disconnected(void)
 	_waitWillMsgFlg = false;
 }
 
+void Client::tryConnect(void)
+{
+    _status = Cstat_TryConnecting;
+}
+
 bool Client::isConnectSendable(void)
 {
-	if (_status == Cstat_Lost || _status == Cstat_TryConnecting)
+	if ( _status == Cstat_Lost || _status == Cstat_TryConnecting )
 	{
 		return false;
 	}
@@ -703,6 +730,11 @@ void Client::setTopics(Topics* topics)
   _topics = topics;
 }
 
+ClientStatus Client::getClientStatus(void)
+{
+    return _status;
+}
+
 void Client::setWaitWillMsgFlg(bool flg)
 {
 	_waitWillMsgFlg = flg;
@@ -733,6 +765,11 @@ bool Client::isAwake(void)
 	return (_status == Cstat_Awake);
 }
 
+bool Client::isConnecting(void)
+{
+    return (_status == Cstat_Connecting);
+}
+
 bool Client::isSecureNetwork(void)
 {
 	return _secureNetwork;
@@ -760,10 +797,18 @@ void Client::setClientId(MQTTSNString id)
 		free(_clientId);
 	}
 
-	/* save clientId into (char*)_clientId NULL terminated */
-	_clientId = (char*)calloc(MQTTSNstrlen(id) + 1, 1);
-	unsigned char* ptr = (unsigned char*)_clientId;
-	writeMQTTSNString((unsigned char**)&ptr, id);
+	if ( id.cstring )
+	{
+	    _clientId = (char*)calloc(strlen(id.cstring) + 1, 1);
+	    memcpy(_clientId, id.cstring, strlen(id.cstring));
+	}
+	else
+	{
+        /* save clientId into (char*)_clientId NULL terminated */
+        _clientId = (char*)calloc(MQTTSNstrlen(id) + 1, 1);
+        unsigned char* ptr = (unsigned char*)_clientId;
+        writeMQTTSNString((unsigned char**)&ptr, id);
+	}
 }
 
 void Client::setWillTopic(MQTTSNString willTopic)
@@ -812,14 +857,14 @@ const char* Client::getStatus(void)
 	return theClientStatus[_status];
 }
 
-Client* Client::getOTAClient(void)
+bool Client::isProxy(void)
 {
-	return _otaClient;
+	return _isProxy;
 }
 
-void Client::setOTAClient(Client* cl)
+void Client::setPorxy(bool isProxy)
 {
-	_otaClient =cl;
+     _isProxy = isProxy;;
 }
 
 void Client::holdPingRequest(void)

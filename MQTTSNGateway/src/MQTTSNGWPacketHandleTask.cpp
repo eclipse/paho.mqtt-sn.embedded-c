@@ -113,6 +113,9 @@ void PacketHandleTask::run()
 				_mqttsnConnection->sendADVERTISE();
 				_advertiseTimer.start(_gateway->getGWParams()->keepAlive * 1000UL);
 			}
+
+			/*------ Check ClientProxy to Connect or send PINGREQ ------*/
+			_gateway->getClientProxy()->checkConnection();
 		}
 
 		/*------    Handle SEARCHGW Message     ---------*/

@@ -30,6 +30,7 @@ Gateway::Gateway()
 {
 	theMultiTaskProcess = this;
 	theProcess = this;
+	_clientProxy = new ClientProxy(this);
 	_params.loginId = 0;
 	_params.password = 0;
 	_params.keepAlive = 0;
@@ -48,6 +49,7 @@ Gateway::Gateway()
 	_params.configName = 0;
 	_params.predefinedTopicFileName = 0;
 	_params.forwarderListName = 0;
+	_params.qosMinusClientListName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
@@ -109,12 +111,21 @@ Gateway::~Gateway()
     {
         free(_params.forwarderListName);
     }
+    if ( _params.qosMinusClientListName )
+    {
+        free(_params.qosMinusClientListName);
+    }
+    if ( _clientProxy )
+    {
+        delete _clientProxy;
+    }
 }
 
 void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	string fileName;
+	bool secure = false;
 	MultiTaskProcess::initialize(argc, argv);
 	resetRingBuffer();
 
@@ -201,6 +212,7 @@ void Gateway::initialize(int argc, char** argv)
 	{
 		if (!strcasecmp(param, "YES"))
 		{
+		    secure = true;
 			if (getParam("ClientsList", param) == 0)
 			{
 				fileName = string(param);
@@ -218,7 +230,33 @@ void Gateway::initialize(int argc, char** argv)
 		}
 	}
 
+	/*  Set ClientProxy's Client */
+    MQTTSNString id = MQTTSNString_initializer;
+    id.cstring = const_cast<char*>(CLIENTPROXY);
+    Client*  client = _clientList.createClient(0, &id, true, secure);
+    _clientProxy->setClient(client);
+    client->setPorxy(true);
+    _clientProxy->setGateway(this);
 
+    if (getParam("QoS-1", param) == 0 )
+    {
+        if (!strcasecmp(param, "YES") )
+        {
+            if (getParam("QoS-1ClientsList", param) == 0)
+            {
+                fileName = string(param);
+            }
+            else
+            {
+                fileName = *getConfigDirName() + string(QOS_1CLIENT_LIST);
+            }
+           if ( !_clientProxy->setClientProxy(fileName.c_str()) )
+           {
+               throw Exception("Gateway::initialize: No QoS-1ClientsList file defined by the configuration..");
+           }
+            _params.qosMinusClientListName = strdup(fileName.c_str());
+        }
+    }
 
 	if (getParam("PredefinedTopic", param) == 0 )
 	{
@@ -238,38 +276,31 @@ void Gateway::initialize(int argc, char** argv)
            }
             _params.predefinedTopicFileName = strdup(fileName.c_str());
 	    }
-	    else
-	    {
-	        _params.predefinedTopicFileName = 0;
-	    }
 	}
 
 	if (getParam("Forwarder", param) == 0 )
-	    {
-	        if (!strcasecmp(param, "YES") )
-	        {
-	            if (getParam("ForwardersList", param) == 0)
-	            {
-	                fileName = string(param);
-	            }
-	            else
-	            {
-	                fileName = *getConfigDirName() + string(FORWARDER_LIST);
-	            }
-	           if ( !_forwarderList.setFowerder(fileName.c_str()) )
-	           {
-	               throw Exception("Gateway::initialize: No ForwardersList file defined by the configuration..");
-	           }
-	            _params.forwarderListName = strdup(fileName.c_str());
-	        }
-	        else
-	        {
-	            _params.forwarderListName = 0;
-	        }
-	    }
+    {
+        if (!strcasecmp(param, "YES") )
+        {
+            if (getParam("ForwardersList", param) == 0)
+            {
+                fileName = string(param);
+            }
+            else
+            {
+                fileName = *getConfigDirName() + string(FORWARDER_LIST);
+            }
+           if ( !_forwarderList.setFowerder(fileName.c_str()) )
+           {
+               throw Exception("Gateway::initialize: No ForwardersList file defined by the configuration..");
+           }
+            _params.forwarderListName = strdup(fileName.c_str());
+        }
+    }
 
     fileName = *getConfigDirName() + *getConfigFileName();
     _params.configName = strdup(fileName.c_str());
+
 }
 
 void Gateway::run(void)
@@ -296,13 +327,17 @@ void Gateway::run(void)
     {
         WRITELOG(" Forwarders: %s\n", _params.forwarderListName);
     }
+    if (  _params.qosMinusClientListName )
+    {
+        WRITELOG(" QoS-1:      %s\n", _params.qosMinusClientListName);
+    }
 	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
 	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
 
 	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
 	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
 	WRITELOG(" CertKey:    %s\n", _params.certKey);
-	WRITELOG(" PrivateKey: %s\n", _params.privateKey);
+	WRITELOG(" PrivateKey: %s\n\n\n", _params.privateKey);
 
 	MultiTaskProcess::run();
 
@@ -362,6 +397,11 @@ LightIndicator* Gateway::getLightIndicator()
 GatewayParams* Gateway::getGWParams(void)
 {
 	return &_params;
+}
+
+ClientProxy*  Gateway::getClientProxy(void)
+{
+    return _clientProxy;
 }
 
 /*=====================================

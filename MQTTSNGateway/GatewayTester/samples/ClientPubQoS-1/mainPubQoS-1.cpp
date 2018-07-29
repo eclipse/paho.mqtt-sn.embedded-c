@@ -52,21 +52,21 @@ extern LScreen* theScreen;
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-	"GatewayTestClient", // ClientId
-	{225,1,1,1},         // Multicast group IP
-	1883,                // Multicast group Port
-	20001,               // Local PortNo
+    "GatewayTestPubClient", // ClientId
+    {225,1,1,1},         // Multicast group IP
+    1883,                // Multicast group Port
+    20001,               // Local PortNo
 };
 
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {
-	60,            //KeepAlive [seconds]
-	true,          //Clean session
-	300,           //Sleep duration [seconds]
-	"",            //WillTopic
-	"",            //WillMessage
+    300,            //KeepAlive [seconds]
+    true,          //Clean session
+    300,           //Sleep duration [seconds]
+    "",            //WillTopic
+    "",            //WillMessage
     0,             //WillQos
     false          //WillRetain
 };
@@ -74,111 +74,54 @@ MQTTSNCONF = {
 /*------------------------------------------------------
  *     Define Topics
  *------------------------------------------------------*/
-const char* topic1 = "ty4tw/topic1";
-const char* topic2 = "ty4tw/topic2";
-const char* topic3 = "ty4tw/topic3";
-const char* topic4 = "ty4tw/topic4";
-const char* topic51 = "ty4tw/topic5/1";
-const char* topic52 = "ty4tw/topic5/2";
-const char* topic53 = "ty4tw/topic5/3";
-const char* topic50 = "ty4tw/topic5/+";
 
 
 /*------------------------------------------------------
  *       Callback routines for Subscribed Topics
  *------------------------------------------------------*/
-int on_Topic01(uint8_t* pload, uint16_t ploadlen)
-{
-	DISPLAY("\n\nTopic1 recv.\n");
-	char c = pload[ploadlen-1];
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s%c<--\n\n",pload, c);
-	return 0;
-}
-
-int on_Topic02(uint8_t* pload, uint16_t ploadlen)
-{
-	DISPLAY("\n\nTopic2 recv.\n");
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s　<--\n\n",pload);
-	return 0;
-}
-
-int on_Topic03(uint8_t* pload, uint16_t ploadlen)
-{
-	DISPLAY("\n\nNew callback recv Topic3\n");
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s　<--\n\n",pload);
-	return 0;
-}
 
 /*------------------------------------------------------
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
-
 SUBSCRIBE_LIST = {// e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
-				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
-				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
-				  END_OF_SUBSCRIBE_LIST
-				 };
 
+                  END_OF_SUBSCRIBE_LIST
+                 };
 
 /*------------------------------------------------------
  *    Test functions
  *------------------------------------------------------*/
-void subscribePredefTopic1(void)
-{
-    SUBSCRIBE(1, on_Topic03, QoS1);
-}
 
 void publishTopic1(void)
 {
-	char payload[300];
-	sprintf(payload, "publish \"ty4tw/Topic1\" \n");
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), QoS0);
-}
-
-void subscribeTopic2(void)
-{
-	SUBSCRIBE(10, on_Topic02, QoS1);
+    char payload[300];
+    sprintf(payload, "publish \"ty4tw/Topic1\" \n");
+    uint8_t qos = 3;
+    PUBLISH(1,(uint8_t*)payload, strlen(payload), qos);
 }
 
 void publishTopic2(void)
 {
-	char payload[300];
-	sprintf(payload, "publish \"ty4tw/topic2\" \n");
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), QoS1);
+    char payload[300];
+    sprintf(payload, "publish \"ty4tw/topic2\" \n");
+    uint8_t qos = 3;
+    PUBLISH(2,(uint8_t*)payload, strlen(payload), qos);
 }
 
-
-
-void unsubscribe(void)
+void publishTopic57(void)
 {
-	UNSUBSCRIBE(topic2);
+    char payload[300];
+    sprintf(payload, "publish \"ty4tw/topic57\" \n");
+    uint8_t qos = 3;
+    PUBLISH(5,(uint8_t*)payload, strlen(payload), qos);
 }
 
-void subscribechangeCallback(void)
-{
-	SUBSCRIBE(topic2, on_Topic02, QoS1);
-}
-
-void test3(void)
-{
-	char payload[300];
-	sprintf(payload, "TEST3 ");
-	uint8_t qos = 0;
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
-}
 
 void disconnect(void)
 {
-	DISCONNECT(0);
+    DISCONNECT(0);
 }
 
-void asleep(void)
-{
-	DISCONNECT(theMqcon.sleepDuration);
-}
 
 /*------------------------------------------------------
  *    A List of Test functions is valid in case of
@@ -187,30 +130,21 @@ void asleep(void)
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-            TEST("Step0:Subscribe predef topic1",     subscribePredefTopic1),
-			 TEST("Step1:Publish topic1",     publishTopic1),
-			 TEST("Step2:Publish topic2",     publishTopic2),
-			 TEST("Step3:Subscribe topic2",   subscribeTopic2),
-			 TEST("Step4:Publish topic2",     publishTopic2),
-			 TEST("Step5:Unsubscribe topic2", unsubscribe),
-			 TEST("Step6:Publish topic2",     publishTopic2),
-			 TEST("Step7:subscribe again",    subscribechangeCallback),
-			 TEST("Step8:Publish topic2",     publishTopic2),
-			 TEST("Step9:Sleep     ",         asleep),
-			 TEST("Step10:Publish topic1",    publishTopic1),
-			 TEST("Step11:Disconnect",        disconnect),
-			 END_OF_TEST_LIST
-			};
+             TEST("Step1:Publish topic1",     publishTopic1),
+             TEST("Step2:Publish topic57",     publishTopic57),
+             TEST("Step3:Publish topic2",     publishTopic2),
+             END_OF_TEST_LIST
+            };
 
 
 /*------------------------------------------------------
- *    List of tasks is valid in case of line23 of
- *    LMqttsnClientApp.h is uncommented.
+ *    List of tasks is invalid in case of line23 of
+ *    LMqttsnClientApp.h is commented out.
  *    #define CLIENT_MODE
  *------------------------------------------------------*/
 TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
-			TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
+            TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
+            TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
              END_OF_TASK_LIST
             };
 
@@ -220,7 +154,7 @@ TASK_LIST = {// e.g. TASK( task, executing duration in second),
  *------------------------------------------------------*/
 void setup(void)
 {
-    SetForwarderMode(false);
+    SetQoSMinus1Mode(true);
 }
 
 

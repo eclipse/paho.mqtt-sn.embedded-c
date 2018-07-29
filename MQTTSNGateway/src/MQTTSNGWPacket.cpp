@@ -101,6 +101,17 @@ int MQTTSNPacket::getType(void)
 	return _buf[p];
 }
 
+bool MQTTSNPacket::isQoSMinusPUBLISH(void)
+{
+    if ( _bufLen == 0 )
+    {
+        return false;;
+    }
+    int value = 0;
+    int p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+    return (  (_buf[p] == MQTTSN_PUBLISH) && ((_buf[p + 1] & 0x60 ) == 0x60 ));
+}
+
 unsigned char* MQTTSNPacket::getPacketData(void)
 {
 	return _buf;
@@ -119,7 +130,8 @@ const char* MQTTSNPacket::getName()
 int MQTTSNPacket::setADVERTISE(uint8_t gatewayid, uint16_t duration)
 {
 	unsigned char buf[5];
-	int len = MQTTSNSerialize_advertise(buf, 5, (unsigned char) gatewayid,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_advertise(buf, buflen, (unsigned char) gatewayid,
 			(unsigned short) duration);
 	return desirialize(buf, len);
 }
@@ -127,44 +139,50 @@ int MQTTSNPacket::setADVERTISE(uint8_t gatewayid, uint16_t duration)
 int MQTTSNPacket::setGWINFO(uint8_t gatewayId)
 {
 	unsigned char buf[3];
-	int len = MQTTSNSerialize_gwinfo(buf, 3, (unsigned char) gatewayId, 0, 0);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_gwinfo(buf, buflen, (unsigned char) gatewayId, 0, 0);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setConnect(void)
 {
 	unsigned char buf[40];
+	int buflen = sizeof(buf);
 	MQTTSNPacket_connectData data;
 	data.clientID.cstring = (char*)"client01";
-	int len = MQTTSNSerialize_connect(buf, 40, &data);
+	int len = MQTTSNSerialize_connect(buf, buflen, &data);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setCONNACK(uint8_t returnCode)
 {
 	unsigned char buf[3];
-	int len = MQTTSNSerialize_connack(buf, 3, (int) returnCode);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_connack(buf, buflen, (int) returnCode);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setWILLTOPICREQ(void)
 {
 	unsigned char buf[2];
-	int len = MQTTSNSerialize_willtopicreq(buf, 2);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_willtopicreq(buf, buflen);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setWILLMSGREQ(void)
 {
 	unsigned char buf[2];
-	int len = MQTTSNSerialize_willmsgreq(buf, 2);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_willmsgreq(buf, buflen);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setREGISTER(uint16_t topicId, uint16_t msgId, MQTTSNString* topicName)
 {
 	unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
-	int len = MQTTSNSerialize_register(buf, MQTTSNGW_MAX_PACKET_SIZE, (unsigned short) topicId, (unsigned short) msgId,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_register(buf, buflen, (unsigned short) topicId, (unsigned short) msgId,
 			topicName);
 	return desirialize(buf, len);
 }
@@ -172,7 +190,8 @@ int MQTTSNPacket::setREGISTER(uint16_t topicId, uint16_t msgId, MQTTSNString* to
 int MQTTSNPacket::setREGACK(uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
 	unsigned char buf[7];
-	int len = MQTTSNSerialize_regack(buf, 7, (unsigned short) topicId, (unsigned short) msgId,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_regack(buf, buflen, (unsigned short) topicId, (unsigned short) msgId,
 			(unsigned char) returnCode);
 	return desirialize(buf, len);
 }
@@ -181,7 +200,8 @@ int MQTTSNPacket::setPUBLISH(uint8_t dup, int qos, uint8_t retained, uint16_t ms
 		uint8_t* payload, uint16_t payloadlen)
 {
 	unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
-	int len = MQTTSNSerialize_publish(buf, MQTTSNGW_MAX_PACKET_SIZE, (unsigned char) dup, qos, (unsigned char) retained,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_publish(buf, buflen, (unsigned char) dup, qos, (unsigned char) retained,
 			(unsigned short) msgId, topic, (unsigned char*) payload, (int) payloadlen);
 	return desirialize(buf, len);
 }
@@ -189,7 +209,8 @@ int MQTTSNPacket::setPUBLISH(uint8_t dup, int qos, uint8_t retained, uint16_t ms
 int MQTTSNPacket::setPUBACK(uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
 	unsigned char buf[7];
-	int len = MQTTSNSerialize_puback(buf, 7, (unsigned short) topicId, (unsigned short) msgId,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_puback(buf, buflen, (unsigned short) topicId, (unsigned short) msgId,
 			(unsigned char) returnCode);
 	return desirialize(buf, len);
 }
@@ -197,28 +218,32 @@ int MQTTSNPacket::setPUBACK(uint16_t topicId, uint16_t msgId, uint8_t returnCode
 int MQTTSNPacket::setPUBREC(uint16_t msgId)
 {
 	unsigned char buf[4];
-	int len = MQTTSNSerialize_pubrec(buf, 4, (unsigned short) msgId);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_pubrec(buf, buflen, (unsigned short) msgId);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setPUBREL(uint16_t msgId)
 {
 	unsigned char buf[4];
-	int len = MQTTSNSerialize_pubrel(buf, 4, (unsigned short) msgId);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_pubrel(buf, buflen, (unsigned short) msgId);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setPUBCOMP(uint16_t msgId)
 {
 	unsigned char buf[4];
-	int len = MQTTSNSerialize_pubcomp(buf, 4, (unsigned short) msgId);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_pubcomp(buf, buflen, (unsigned short) msgId);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setSUBACK(int qos, uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
 	unsigned char buf[8];
-	int len = MQTTSNSerialize_suback(buf, 8, qos, (unsigned short) topicId,
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_suback(buf, buflen, qos, (unsigned short) topicId,
 			(unsigned short) msgId, (unsigned char) returnCode);
 	return desirialize(buf, len);
 }
@@ -226,36 +251,57 @@ int MQTTSNPacket::setSUBACK(int qos, uint16_t topicId, uint16_t msgId, uint8_t r
 int MQTTSNPacket::setUNSUBACK(uint16_t msgId)
 {
 	unsigned char buf[4];
-	int len = MQTTSNSerialize_unsuback(buf, 4, (unsigned short) msgId);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_unsuback(buf, buflen, (unsigned short) msgId);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setPINGRESP(void)
 {
 	unsigned char buf[32];
-	int len = MQTTSNSerialize_pingresp(buf, 32);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_pingresp(buf, buflen);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setDISCONNECT(uint16_t duration)
 {
 	unsigned char buf[4];
-	int len = MQTTSNSerialize_disconnect(buf, 4, (int) duration);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_disconnect(buf, buflen, (int) duration);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setWILLTOPICRESP(uint8_t returnCode)
 {
 	unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
-	int len = MQTTSNSerialize_willtopicresp(buf, MQTTSNGW_MAX_PACKET_SIZE, (int) returnCode);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_willtopicresp(buf, buflen, (int) returnCode);
 	return desirialize(buf, len);
 }
 
 int MQTTSNPacket::setWILLMSGRESP(uint8_t returnCode)
 {
 	unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
-	int len = MQTTSNSerialize_willmsgresp(buf, MQTTSNGW_MAX_PACKET_SIZE, (int) returnCode);
+	int buflen = sizeof(buf);
+	int len = MQTTSNSerialize_willmsgresp(buf, buflen, (int) returnCode);
 	return desirialize(buf, len);
+}
+
+int MQTTSNPacket::setCONNECT(MQTTSNPacket_connectData* options)
+{
+    unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
+    int buflen = sizeof(buf);
+    int len = MQTTSNSerialize_connect(buf, buflen, options);
+    return desirialize(buf, len);
+}
+
+int MQTTSNPacket::setPINGREQ(MQTTSNString* clientId)
+{
+    unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
+    int buflen = sizeof(buf);
+    int len = MQTTSNSerialize_pingreq( buf, buflen, *clientId);
+    return desirialize(buf, len);
 }
 
 int MQTTSNPacket::getSERCHGW(uint8_t* radius)

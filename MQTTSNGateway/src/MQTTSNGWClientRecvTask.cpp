@@ -17,9 +17,10 @@
 #include "MQTTSNGWClientRecvTask.h"
 #include "MQTTSNGateway.h"
 #include "MQTTSNPacket.h"
-#include "MQTTSNGWForwarder.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include <cstring>
+
+#include "MQTTSNGWForwarder.h"
 
 using namespace MQTTSNGW;
 char* currentDateTime(void);
@@ -91,12 +92,13 @@ void ClientRecvTask::run()
 		if ( packet->getType() == MQTTSN_SEARCHGW )
 		{
 			/* write log and post Event */
-			log(0, packet);
+			log(0, packet, 0);
 			ev = new Event();
 			ev->setBrodcastEvent(packet);
 			_gateway->getPacketEventQue()->post(ev);
 			continue;
 		}
+
 
 		if ( packet->getType() == MQTTSN_ENCAPSULATED )
 		{
@@ -104,18 +106,18 @@ void ClientRecvTask::run()
 
 		    if ( fwd  == 0 )
 		    {
-		        log(0, packet);
-		        WRITELOG("%s Forwarder  %s is not authorized.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+		        log(0, packet, 0);
+		        WRITELOG("%s Forwarder  %s is not authenticated.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 		        delete packet;
 		        continue;
 		    }
 		    else
 		    {
-		        MQTTSNString fwdName;
-		        fwdName.lenstring.data = const_cast<char *>( fwd->getName() );
-		        fwdName.lenstring.len = strlen(fwdName.lenstring.data);
+		        MQTTSNString fwdName = MQTTSNString_initializer;
+		        fwdName.cstring = const_cast<char *>( fwd->getName() );
 	            log(0, packet, &fwdName);
 
+	            /* get the packet from the encapsulation message */
 		        MQTTSNGWEncapsulatedPacket  encap;
 		        encap.desirialize(packet->getPacketData(), packet->getPacketLength());
 		        nodeId.setId( encap.getWirelessNodeId() );
@@ -126,15 +128,35 @@ void ClientRecvTask::run()
 		}
 		else
 		{
-            /* get client from the ClientList of Gateway by sensorNetAddress. */
-            client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());
+		     const char* clientName = _gateway->getClientProxy()->getClientId(_sensorNetwork->getSenderAddress());
+
+            if ( clientName )     // This client is for QoS-1 PUBLISH.
+            {
+                if ( packet->isQoSMinusPUBLISH() )
+                {
+                    client = _gateway->getClientProxy()->getClient();     // point to the ClientProxy
+                }
+                else
+                {
+                    client = _gateway->getClientProxy()->getClient();
+                    log(clientName, packet);
+                    WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+                    delete packet;
+                    continue;
+                }
+	        }
+	        else
+	        {
+                /* get client from the ClientList of Gateway by sensorNetAddress. */
+                client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());
+	        }
 		}
 
 
 		if ( client )
 		{
 			/* write log and post Event */
-			log(client, packet);
+			log(client, packet, 0);
 			ev = new Event();
 			ev->setClientRecvEvent(client,packet);
 			_gateway->getPacketEventQue()->post(ev);
@@ -196,7 +218,7 @@ void ClientRecvTask::run()
 			}
 			else
 			{
-				log(client, packet);
+				log(client, packet, 0);
                 WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
                 delete packet;
 
@@ -216,16 +238,22 @@ void ClientRecvTask::run()
 
 void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 {
-	char pbuf[SIZE_OF_LOG_PACKET * 3];
 	const char* clientId;
 	char cstr[MAX_CLIENTID_LENGTH + 1];
-	char msgId[6];
 
 	if ( id )
 	{
-		memset((void*)cstr, 0, id->lenstring.len + 1);
-		strncpy(cstr, id->lenstring.data, id->lenstring.len) ;
-		clientId = cstr;
+	    if ( id->cstring )
+	    {
+	        strncpy(cstr, id->cstring, strlen(id->cstring) );
+	        clientId = cstr;
+	    }
+	    else
+	    {
+            memset((void*)cstr, 0, id->lenstring.len + 1);
+            strncpy(cstr, id->lenstring.data, id->lenstring.len );
+            clientId = cstr;
+	    }
 	}
 	else if ( client )
 	{
@@ -236,40 +264,48 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 		clientId = UNKNOWNCL;
 	}
 
-	switch (packet->getType())
-	{
-	case MQTTSN_SEARCHGW:
-		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, CLIENT, packet->print(pbuf));
-		break;
-	case MQTTSN_CONNECT:
-	case MQTTSN_PINGREQ:
-		WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	case MQTTSN_DISCONNECT:
-	case MQTTSN_WILLTOPICUPD:
-	case MQTTSN_WILLMSGUPD:
-	case MQTTSN_WILLTOPIC:
-	case MQTTSN_WILLMSG:
-		WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	case MQTTSN_PUBLISH:
-	case MQTTSN_REGISTER:
-	case MQTTSN_SUBSCRIBE:
-	case MQTTSN_UNSUBSCRIBE:
-		WRITELOG(FORMAT_G_MSGID_G_G_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	case MQTTSN_REGACK:
-	case MQTTSN_PUBACK:
-	case MQTTSN_PUBREC:
-	case MQTTSN_PUBREL:
-	case MQTTSN_PUBCOMP:
-		WRITELOG(FORMAT_G_MSGID_G_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	case MQTTSN_ENCAPSULATED:
-	        WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
-	        break;
-	default:
-		WRITELOG(FORMAT_W_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
-		break;
-	}
+	log(clientId,  packet);
+}
+
+void ClientRecvTask::log(const char* clientId, MQTTSNPacket* packet)
+{
+    char pbuf[SIZE_OF_LOG_PACKET * 3];
+    char msgId[6];
+
+    switch (packet->getType())
+    {
+    case MQTTSN_SEARCHGW:
+        WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, CLIENT, packet->print(pbuf));
+        break;
+    case MQTTSN_CONNECT:
+    case MQTTSN_PINGREQ:
+        WRITELOG(FORMAT_Y_G_G_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+        break;
+    case MQTTSN_DISCONNECT:
+    case MQTTSN_WILLTOPICUPD:
+    case MQTTSN_WILLMSGUPD:
+    case MQTTSN_WILLTOPIC:
+    case MQTTSN_WILLMSG:
+        WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+        break;
+    case MQTTSN_PUBLISH:
+    case MQTTSN_REGISTER:
+    case MQTTSN_SUBSCRIBE:
+    case MQTTSN_UNSUBSCRIBE:
+        WRITELOG(FORMAT_G_MSGID_G_G_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
+        break;
+    case MQTTSN_REGACK:
+    case MQTTSN_PUBACK:
+    case MQTTSN_PUBREC:
+    case MQTTSN_PUBREL:
+    case MQTTSN_PUBCOMP:
+        WRITELOG(FORMAT_G_MSGID_G_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROW, clientId, packet->print(pbuf));
+        break;
+    case MQTTSN_ENCAPSULATED:
+            WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+            break;
+    default:
+        WRITELOG(FORMAT_W_NL, currentDateTime(), packet->getName(), LEFTARROW, clientId, packet->print(pbuf));
+        break;
+    }
 }

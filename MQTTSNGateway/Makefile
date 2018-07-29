@@ -11,6 +11,7 @@ CONFIG := gateway.conf
 CLIENTS := clients.conf
 PREDEFTOPIC := predefinedTopic.conf
 FORWARDERS := forwarders.conf
+QOSM1CLIENT := qos-1clients.conf
 
 SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
@@ -39,6 +40,7 @@ $(SRCDIR)/MQTTSNGWPublishHandler.cpp \
 $(SRCDIR)/MQTTSNGWSubscribeHandler.cpp \
 $(SRCDIR)/MQTTSNGWEncapsulatedPacket.cpp \
 $(SRCDIR)/MQTTSNGWForwarder.cpp \
+$(SRCDIR)/MQTTSNGWClientProxy.cpp \
 $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
 $(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \
@@ -141,6 +143,7 @@ install:
 	cp -pf $(CLIENTS) ../../
 	cp -pf $(PREDEFTOPIC) ../../
 	cp -pf $(FORWARDERS) ../../
+	cp -pf $(QOSM1CLIENT) ../../
 	
 
 exectest:

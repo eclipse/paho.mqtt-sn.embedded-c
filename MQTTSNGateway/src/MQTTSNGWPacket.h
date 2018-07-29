@@ -59,6 +59,9 @@ public:
 	int setWILLTOPICRESP(uint8_t returnCode);
 	int setWILLMSGRESP(uint8_t returnCode);
 
+	int setCONNECT(MQTTSNPacket_connectData* options);
+	int setPINGREQ(MQTTSNString* clientId);
+
 	int getSERCHGW(uint8_t* radius);
 	int getCONNECT(MQTTSNPacket_connectData* option);
 	int getCONNACK(uint8_t* returnCode);
@@ -76,6 +79,8 @@ public:
 	int getDISCONNECT(uint16_t* duration);
 	int getWILLTOPICUPD(uint8_t* willQoS, uint8_t* willRetain, MQTTSNString* willTopic);
 	int getWILLMSGUPD(MQTTSNString* willMsg);
+
+	bool isQoSMinusPUBLISH(void);
 	char* getMsgId(char* buf);
 	char* print(char* buf);
 

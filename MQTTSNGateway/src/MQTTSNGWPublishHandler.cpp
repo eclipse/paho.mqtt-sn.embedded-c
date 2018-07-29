@@ -43,18 +43,26 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	uint8_t* payload;
     MQTTSN_topicid topicid;
 	int payloadlen;
-	Publish pub;
+	Publish pub = {0, 0, 0, 0, 0, 0};
+
 	char  shortTopic[2];
 
 	if ( !client->isActive() )
 	{
-		/* Reply DISCONNECT to the client */
-		Event* ev = new Event();
-		MQTTSNPacket* disconnect = new MQTTSNPacket();
-		disconnect->setDISCONNECT(0);
-		ev->setClientSendEvent(client, disconnect);
-		_gateway->getClientSendQue()->post(ev);
-		return;
+	    if ( client->isProxy() )
+	    {
+	        client->setProxyPacket(packet);
+	    }
+	    else
+	    {
+            /* Reply DISCONNECT to the client */
+            Event* ev = new Event();
+            MQTTSNPacket* disconnect = new MQTTSNPacket();
+            disconnect->setDISCONNECT(0);
+            ev->setClientSendEvent(client, disconnect);
+            _gateway->getClientSendQue()->post(ev);
+	    }
+        return;
 	}
 
 	if ( packet->getPUBLISH(&dup, &qos, &retained, &msgId, &topicid, &payload, &payloadlen) ==0 )
@@ -63,7 +71,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	}
 	pub.msgId = msgId;
 	pub.header.bits.dup = dup;
-	pub.header.bits.qos = qos;
+	pub.header.bits.qos = ( qos == 3 ? 0 : qos );
 	pub.header.bits.retain = retained;
 
 	Topic* topic = 0;
@@ -79,7 +87,13 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	{
 	    topic = client->getTopics()->getTopicById(&topicid);
 
-		if( !topic && msgId && qos > 0 )
+	    if( !topic && qos == 3 )
+	    {
+	        WRITELOG("%s Invali TopicId.%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+	        return;
+	    }
+
+		if( !topic && msgId && qos > 0 && qos < 3 )
 		{
 			/* Reply PubAck with INVALID_TOPIC_ID to the client */
 			MQTTSNPacket* pubAck = new MQTTSNPacket();
@@ -96,7 +110,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 		}
 	}
 	/* Save a msgId & a TopicId pare for PUBACK */
-	if( msgId && qos > 0 )
+	if( msgId && qos > 0 && qos < 3)
 	{
 		client->setWaitedPubTopicId(msgId, topicid.data.id, topicid.type);
 	}
@@ -161,7 +175,7 @@ void MQTTSNPublishHandler::handleRegister(Client* client, MQTTSNPacket* packet)
 {
 	uint16_t id;
 	uint16_t msgId;
-	MQTTSNString topicName;
+	MQTTSNString topicName  = MQTTSNString_initializer;;
 	MQTTSN_topicid topicid;
 
 	if ( client->isActive() || client->isAwake())
