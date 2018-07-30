@@ -89,7 +89,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 
 	    if( !topic && qos == 3 )
 	    {
-	        WRITELOG("%s Invali TopicId.%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+	        WRITELOG("%s Invali TopicId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 	        return;
 	    }
 
@@ -123,6 +123,12 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	Event* ev1 = new Event();
 	ev1->setBrokerSendEvent(client, publish);
 	_gateway->getBrokerSendQue()->post(ev1);
+
+	/*  reset PINGREQ of ClientProxy */
+	if ( qos == 3 )
+	{
+	    _gateway->getClientProxy()->resetPingTimer();
+	}
 }
 
 void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)

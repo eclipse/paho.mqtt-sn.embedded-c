@@ -329,7 +329,7 @@ void Gateway::run(void)
     }
     if (  _params.qosMinusClientListName )
     {
-        WRITELOG(" QoS-1:      %s\n", _params.qosMinusClientListName);
+        WRITELOG(" QoS-1File:  %s\n", _params.qosMinusClientListName);
     }
 	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
 	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);

@@ -586,6 +586,11 @@ uint16_t LGwProxy::getNextMsgId(void)
 
 void LGwProxy::checkPingReq(void)
 {
+    if ( _isQoSMinus1Mode )
+    {
+        return;
+    }
+
     uint8_t msg[2];
     msg[0] = 0x02;
     msg[1] = MQTTSN_TYPE_PINGREQ;

@@ -25,7 +25,8 @@
 
 using namespace MQTTSNGW;
 
-#define RESPONSE_DURATION    900       // Secs
+#define KEEPALIVE_DURATION    900       // Secs
+#define RESPONSE_DURATION     10       // Secs
 
 /*
  *     Class ClientProxyElement
@@ -198,7 +199,7 @@ void ClientProxy::checkConnection(void)
         _responseTimer.start(RESPONSE_DURATION * 1000UL);
         MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
         options.clientID.cstring = _client->getClientId();
-        options.duration = RESPONSE_DURATION;
+        options.duration = KEEPALIVE_DURATION;
 
         MQTTSNPacket* packet = new MQTTSNPacket();
         packet->setCONNECT(&options);
@@ -221,7 +222,7 @@ void ClientProxy::checkConnection(void)
 
 void ClientProxy::resetPingTimer(void)
 {
-    _keepAliveTimer.start(RESPONSE_DURATION * 1000UL);
+    _keepAliveTimer.start(KEEPALIVE_DURATION * 1000UL);
 }
 
 void ClientProxy::send(MQTTSNPacket* packet)
