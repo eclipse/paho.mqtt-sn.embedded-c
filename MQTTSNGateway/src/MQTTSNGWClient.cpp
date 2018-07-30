@@ -402,7 +402,6 @@ Client::Client(bool secure)
 	_connAck = 0;
 	_waitWillMsgFlg = false;
 	_sessionStatus = false;
-	_otaClient = 0;
 	_prevClient = 0;
 	_nextClient = 0;
 	_clientSleepPacketQue.setMaxSize(MAX_SAVED_PUBLISH);
@@ -570,7 +569,7 @@ void Client::setSessionStatus(bool status)
 
 bool Client::erasable(void)
 {
-	return _sessionStatus || !_hasPredefTopic;
+	return _sessionStatus && !_hasPredefTopic  && _forwarder == 0;
 }
 
 void Client::updateStatus(MQTTSNPacket* packet)

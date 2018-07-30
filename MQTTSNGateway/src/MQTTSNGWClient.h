@@ -363,7 +363,6 @@ private:
 
     Client* _nextClient;
     Client* _prevClient;
-    Client* _otaClient;
 };
 
 /*=====================================

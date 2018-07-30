@@ -52,7 +52,7 @@ extern LScreen* theScreen;
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-    "GatewayTestPubClient", // ClientId
+    "QoS-1_Client01", // ClientId
     {225,1,1,1},         // Multicast group IP
     1883,                // Multicast group Port
     20001,               // Local PortNo

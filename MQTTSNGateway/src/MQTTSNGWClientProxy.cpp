@@ -227,7 +227,7 @@ void ClientProxy::resetPingTimer(void)
 
 void ClientProxy::send(MQTTSNPacket* packet)
 {
-    if ( packet->getType() == MQTTSN_CONNACK || packet->getType() == MQTTSN_PINGRESP )
+    if ( packet->getType() == MQTTSN_CONNACK )
     {
         resetPingTimer();
         sendStoredPublish();
@@ -235,6 +235,10 @@ void ClientProxy::send(MQTTSNPacket* packet)
     else if ( packet->getType() == MQTTSN_PINGRESP )
     {
         resetPingTimer();
+    }
+    else if ( packet->getType() == MQTTSN_DISCONNECT )
+    {
+        // blank
     }
 }
 
