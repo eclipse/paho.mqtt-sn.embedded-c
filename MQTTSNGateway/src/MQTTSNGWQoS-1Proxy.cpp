@@ -24,10 +24,11 @@
 #include <string.h>
 #include <stdio.h>
 
-using namespace MQTTSNGW;
+#define QOSM1_PROXY_KEEPALIVE_DURATION   900       // Secs
+#define QOSM1_PROXY_RESPONSE_DURATION     10       // Secs
+#define QOSM1_PROXY_MAX_RETRY_CNT        3
 
-#define KEEPALIVE_DURATION    900       // Secs
-#define RESPONSE_DURATION     10       // Secs
+using namespace MQTTSNGW;
 
 /*
  *     Class ClientProxyElement
@@ -58,6 +59,8 @@ QoSm1ProxyElement::~QoSm1ProxyElement(void)
 
 QoSm1Proxy:: QoSm1Proxy(void)
     : _head{0}
+    , _isWaitingResp{false}
+    , _retryCnt{0}
 {
     _gateway = 0;
     _client = 0;
@@ -65,6 +68,8 @@ QoSm1Proxy:: QoSm1Proxy(void)
 
 QoSm1Proxy:: QoSm1Proxy(Gateway* gw)
     : _head{0}
+, _isWaitingResp{false}
+, _retryCnt{0}
 {
     _gateway = gw;
     _client = 0;
@@ -197,19 +202,18 @@ void QoSm1Proxy::checkConnection(void)
     if ( _client->isDisconnect()  || ( _client->isConnecting() && _responseTimer.isTimeup()) )
     {
         _client->connectSended();
-        _responseTimer.start(RESPONSE_DURATION * 1000UL);
+        _responseTimer.start(QOSM1_PROXY_RESPONSE_DURATION * 1000UL);
         MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
         options.clientID.cstring = _client->getClientId();
-        options.duration = KEEPALIVE_DURATION;
+        options.duration = QOSM1_PROXY_KEEPALIVE_DURATION;
 
         MQTTSNPacket* packet = new MQTTSNPacket();
         packet->setCONNECT(&options);
         Event* ev = new Event();
         ev->setClientRecvEvent(_client, packet);
         _gateway->getPacketEventQue()->post(ev);
-
     }
-    else if ( _client->isActive() && _keepAliveTimer.isTimeup() )
+    else if (  (_client->isActive() && _keepAliveTimer.isTimeup() ) || (_isWaitingResp  && _responseTimer.isTimeup() ) )
     {
             MQTTSNPacket* packet = new MQTTSNPacket();
             MQTTSNString clientId = MQTTSNString_initializer;
@@ -217,13 +221,20 @@ void QoSm1Proxy::checkConnection(void)
             Event* ev = new Event();
             ev->setClientRecvEvent(_client, packet);
             _gateway->getPacketEventQue()->post(ev);
+            _responseTimer.start(QOSM1_PROXY_RESPONSE_DURATION * 1000UL);
+            _isWaitingResp = true;
+
+            if ( ++_retryCnt > QOSM1_PROXY_MAX_RETRY_CNT )
+            {
+                _client->disconnected();
+            }
             resetPingTimer();
     }
 }
 
 void QoSm1Proxy::resetPingTimer(void)
 {
-    _keepAliveTimer.start(KEEPALIVE_DURATION * 1000UL);
+    _keepAliveTimer.start(QOSM1_PROXY_KEEPALIVE_DURATION * 1000UL);
 }
 
 void QoSm1Proxy::send(MQTTSNPacket* packet)
@@ -231,10 +242,16 @@ void QoSm1Proxy::send(MQTTSNPacket* packet)
     if ( packet->getType() == MQTTSN_CONNACK )
     {
         resetPingTimer();
+        _responseTimer.stop();
+        _retryCnt = 0;
         sendStoredPublish();
     }
     else if ( packet->getType() == MQTTSN_PINGRESP )
     {
+        _responseTimer.stop();
+        _isWaitingResp = false;
+         _retryCnt = 0;
+
         resetPingTimer();
     }
     else if ( packet->getType() == MQTTSN_DISCONNECT )

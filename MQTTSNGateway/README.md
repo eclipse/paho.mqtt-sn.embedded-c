@@ -31,16 +31,17 @@ BrokerPortNo=1883
 BrokerSecurePortNo=8883    
 
 ClientAuthentication=NO
-ClientsList=/path/to/your_clients.conf    
+#ClientsList=/path/to/your_clients.conf    
 
 PredefinedTopic=NO
-PredefinedTopicList=/path/to/your_predefinedTopic.conf
+#PredefinedTopicList=/path/to/your_predefinedTopic.conf
 
 Forwarder=NO
-ForwardersList=/home/tomoaki/tmp/forwarders.conf
+#ForwardersList=/home/tomoaki/tmp/forwarders.conf
 
 QoS-1=NO
-QoS-1ClientsList=/path/to/your_qos-1clients.conf
+QoS-1ProxyName=Proxy007
+#QoS-1ClientsList=/path/to/your_qos-1clients.conf
     
 #RootCAfile=/path/to/your_Root_CA.crt    
 #RootCApath=/path/to/your_certs_directory/   

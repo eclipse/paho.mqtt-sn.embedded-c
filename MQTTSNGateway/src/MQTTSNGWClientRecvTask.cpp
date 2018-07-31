@@ -128,6 +128,8 @@ void ClientRecvTask::run()
 		}
 		else
 		{
+		    client = 0;
+
 		    /* when QoSm1Proxy is available, select QoS-1 PUBLISH message */
 		     QoSm1Proxy* pxy = _gateway->getQoSm1Proxy();
 		     if ( pxy )
@@ -152,7 +154,8 @@ void ClientRecvTask::run()
                     }
                 }
 	        }
-	        else
+
+	        if ( client == 0 )
 	        {
                 /* get client from the ClientList of Gateway by sensorNetAddress. */
                 client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());

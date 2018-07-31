@@ -68,6 +68,8 @@ private:
     QoSm1ProxyElement* _head;
     Timer  _keepAliveTimer;
     Timer  _responseTimer;
+    bool   _isWaitingResp;
+    int _retryCnt;
 };
 
 }

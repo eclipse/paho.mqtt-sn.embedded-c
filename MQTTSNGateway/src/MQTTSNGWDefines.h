@@ -46,6 +46,9 @@ namespace MQTTSNGW
 #define MQTTSNGW_MAX_PACKET_SIZE   (1024)  // Max Packet size  (5+2+TopicLen+PayloadLen + Foward Encapsulation)
 #define SIZE_OF_LOG_PACKET          (500)  // Length of the packet log in bytes
 
+#define QOSM1_PROXY_KEEPALIVE_DURATION   900       // Secs
+#define QOSM1_PROXY_RESPONSE_DURATION     10       // Secs
+#define QOSM1_PROXY_MAX_RETRY_CNT        3
 /*=================================
  *    Data Type
  ==================================*/
