@@ -30,7 +30,7 @@ Gateway::Gateway()
 {
 	theMultiTaskProcess = this;
 	theProcess = this;
-	_clientProxy = new ClientProxy(this);
+	_qosm1Proxy = 0;
 	_params.loginId = 0;
 	_params.password = 0;
 	_params.keepAlive = 0;
@@ -50,6 +50,7 @@ Gateway::Gateway()
 	_params.predefinedTopicFileName = 0;
 	_params.forwarderListName = 0;
 	_params.qosMinusClientListName = 0;
+	_params.qosm1proxyName = 0;
 	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
 }
 
@@ -115,9 +116,14 @@ Gateway::~Gateway()
     {
         free(_params.qosMinusClientListName);
     }
-    if ( _clientProxy )
+    if ( _params.qosm1proxyName )
     {
-        delete _clientProxy;
+        free(_params.qosm1proxyName);
+    }
+
+    if ( _qosm1Proxy )
+    {
+        delete _qosm1Proxy;
     }
 }
 
@@ -230,18 +236,32 @@ void Gateway::initialize(int argc, char** argv)
 		}
 	}
 
-	/*  Set ClientProxy's Client */
-    MQTTSNString id = MQTTSNString_initializer;
-    id.cstring = const_cast<char*>(CLIENTPROXY);
-    Client*  client = _clientList.createClient(0, &id, true, secure);
-    _clientProxy->setClient(client);
-    client->setPorxy(true);
-    _clientProxy->setGateway(this);
+	/*  Set QoSm1Proxy's Client */
 
-    if (getParam("QoS-1", param) == 0 )
+	if (getParam("QoS-1", param) == 0 )
     {
         if (!strcasecmp(param, "YES") )
         {
+            /*  Set QoSm1Proxy's Client */
+
+            _qosm1Proxy = new QoSm1Proxy(this);
+            MQTTSNString id = MQTTSNString_initializer;
+
+            if (getParam("QoS-1ProxyName", param) == 0 )
+            {
+                string name = string(param);
+                id.cstring = const_cast<char*>(name.c_str());
+            }
+            else
+            {
+                id.cstring = const_cast<char*>(CLIENTPROXY);
+            }
+            Client*  client = _clientList.createClient(0, &id, true, secure);
+            _qosm1Proxy->setClient(client);
+            client->setPorxy(true);
+            _qosm1Proxy->setGateway(this);
+
+
             if (getParam("QoS-1ClientsList", param) == 0)
             {
                 fileName = string(param);
@@ -250,7 +270,7 @@ void Gateway::initialize(int argc, char** argv)
             {
                 fileName = *getConfigDirName() + string(QOS_1CLIENT_LIST);
             }
-           if ( !_clientProxy->setClientProxy(fileName.c_str()) )
+           if ( !_qosm1Proxy->setClientProxy(fileName.c_str()) )
            {
                throw Exception("Gateway::initialize: No QoS-1ClientsList file defined by the configuration..");
            }
@@ -399,9 +419,9 @@ GatewayParams* Gateway::getGWParams(void)
 	return &_params;
 }
 
-ClientProxy*  Gateway::getClientProxy(void)
+QoSm1Proxy*  Gateway::getQoSm1Proxy(void)
 {
-    return _clientProxy;
+    return _qosm1Proxy;
 }
 
 /*=====================================

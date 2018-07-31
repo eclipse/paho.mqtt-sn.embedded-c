@@ -127,7 +127,7 @@ void MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 	/*  reset PINGREQ of ClientProxy */
 	if ( qos == 3 )
 	{
-	    _gateway->getClientProxy()->resetPingTimer();
+	    _gateway->getQoSm1Proxy()->resetPingTimer();
 	}
 }
 

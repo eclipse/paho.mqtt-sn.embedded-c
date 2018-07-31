@@ -40,7 +40,7 @@ $(SRCDIR)/MQTTSNGWPublishHandler.cpp \
 $(SRCDIR)/MQTTSNGWSubscribeHandler.cpp \
 $(SRCDIR)/MQTTSNGWEncapsulatedPacket.cpp \
 $(SRCDIR)/MQTTSNGWForwarder.cpp \
-$(SRCDIR)/MQTTSNGWClientProxy.cpp \
+$(SRCDIR)/MQTTSNGWQoS-1Proxy.cpp \
 $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
 $(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \

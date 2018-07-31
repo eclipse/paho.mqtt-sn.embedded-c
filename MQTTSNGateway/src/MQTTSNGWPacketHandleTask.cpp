@@ -114,8 +114,12 @@ void PacketHandleTask::run()
 				_advertiseTimer.start(_gateway->getGWParams()->keepAlive * 1000UL);
 			}
 
-			/*------ Check ClientProxy to Connect or send PINGREQ ------*/
-			_gateway->getClientProxy()->checkConnection();
+			/*------ Check QoS-1 Proxy   Connect or PINGREQ ------*/
+			QoSm1Proxy* pxy = _gateway->getQoSm1Proxy();
+			if ( pxy )
+			{
+			    pxy->checkConnection();
+			}
 		}
 
 		/*------    Handle SEARCHGW Message     ---------*/

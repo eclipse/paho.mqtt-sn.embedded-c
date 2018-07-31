@@ -128,21 +128,28 @@ void ClientRecvTask::run()
 		}
 		else
 		{
-		     const char* clientName = _gateway->getClientProxy()->getClientId(_sensorNetwork->getSenderAddress());
+		    /* when QoSm1Proxy is available, select QoS-1 PUBLISH message */
+		     QoSm1Proxy* pxy = _gateway->getQoSm1Proxy();
+		     if ( pxy )
+		     {
+		         /* get ClientId not Client  which can send QoS-1 PUBLISH */
+		         const char* clientName = pxy->getClientId(_sensorNetwork->getSenderAddress());
 
-            if ( clientName )     // This client is for QoS-1 PUBLISH.
-            {
-                if ( packet->isQoSMinusPUBLISH() )
+                if ( clientName )
                 {
-                    client = _gateway->getClientProxy()->getClient();     // point to the ClientProxy
-                }
-                else
-                {
-                    client = _gateway->getClientProxy()->getClient();
-                    log(clientName, packet);
-                    WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
-                    delete packet;
-                    continue;
+                    if ( packet->isQoSMinusPUBLISH() )
+                    {
+                        /* QoS1Proxy takes responsibility of  the client */
+                        client = _gateway->getQoSm1Proxy()->getClient();
+                    }
+                    else
+                    {
+                        client = _gateway->getQoSm1Proxy()->getClient();
+                        log(clientName, packet);
+                        WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+                        delete packet;
+                        continue;
+                    }
                 }
 	        }
 	        else
@@ -221,16 +228,6 @@ void ClientRecvTask::run()
 				log(client, packet, 0);
                 WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
                 delete packet;
-
-                /* Send DISCONNECT */
-                if ( fwd == 0 )
-                {
-                    packet = new MQTTSNPacket();
-                    packet->setDISCONNECT(0);
-                    ev = new Event();
-                    ev->setClientSendEvent(_sensorNetwork->getSenderAddress(), packet);
-                    _gateway->getClientSendQue()->post(ev);
-                }
 			}
 		}
 	}

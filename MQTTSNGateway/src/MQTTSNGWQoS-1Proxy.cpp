@@ -15,8 +15,9 @@
  **************************************************************************************/
 
 
+#include "MQTTSNGWQoS-1Proxy.h"
+
 #include "MQTTSNGWDefines.h"
-#include "MQTTSNGWClientProxy.h"
 #include "MQTTSNGateway.h"
 #include "SensorNetwork.h"
 #include <string>
@@ -32,21 +33,21 @@ using namespace MQTTSNGW;
  *     Class ClientProxyElement
  */
 
-ClientProxyElement::ClientProxyElement(void)
+QoSm1ProxyElement::QoSm1ProxyElement(void)
     : _clientId{0}
     , _next{0}
 {
 
 }
 
-ClientProxyElement::ClientProxyElement(SensorNetAddress* addr,  string* clientId)
+QoSm1ProxyElement::QoSm1ProxyElement(SensorNetAddress* addr,  string* clientId)
     : _next{0}
 {
     _clientId = *clientId;
     _sensorNetAddr = *addr;
 }
 
-ClientProxyElement::~ClientProxyElement(void)
+QoSm1ProxyElement::~QoSm1ProxyElement(void)
 {
 
 }
@@ -55,14 +56,14 @@ ClientProxyElement::~ClientProxyElement(void)
  *     Class ClientProxy
  */
 
-ClientProxy:: ClientProxy(void)
+QoSm1Proxy:: QoSm1Proxy(void)
     : _head{0}
 {
     _gateway = 0;
     _client = 0;
 }
 
-ClientProxy:: ClientProxy(Gateway* gw)
+QoSm1Proxy:: QoSm1Proxy(Gateway* gw)
     : _head{0}
 {
     _gateway = gw;
@@ -70,35 +71,35 @@ ClientProxy:: ClientProxy(Gateway* gw)
 }
 
 
-ClientProxy::~ClientProxy(void)
+QoSm1Proxy::~QoSm1Proxy(void)
 {
     if ( _head )
     {
-        ClientProxyElement* p = _head;
+        QoSm1ProxyElement* p = _head;
         while ( p )
         {
-            ClientProxyElement* next = p->_next;
+            QoSm1ProxyElement* next = p->_next;
             delete p;
             p = next;
         }
     }
 }
 
-void ClientProxy::setGateway(Gateway* gw)
+void QoSm1Proxy::setGateway(Gateway* gw)
 {
     _gateway = gw;
 }
 
-ClientProxyElement* ClientProxy::add(SensorNetAddress* addr,  string* clientId)
+QoSm1ProxyElement* QoSm1Proxy::add(SensorNetAddress* addr,  string* clientId)
 {
-    ClientProxyElement* elm = new ClientProxyElement(addr, clientId);
+    QoSm1ProxyElement* elm = new QoSm1ProxyElement(addr, clientId);
     if ( _head == 0 )
     {
         _head = elm;
     }
     else
     {
-        ClientProxyElement* p = _head;
+        QoSm1ProxyElement* p = _head;
         while ( p )
         {
             if ( p->_next == 0 )
@@ -115,9 +116,9 @@ ClientProxyElement* ClientProxy::add(SensorNetAddress* addr,  string* clientId)
     return elm;
 }
 
-const char*  ClientProxy::getClientId(SensorNetAddress* addr)
+const char*  QoSm1Proxy::getClientId(SensorNetAddress* addr)
 {
-    ClientProxyElement* p = _head;
+    QoSm1ProxyElement* p = _head;
     while ( p )
     {
         if ( p->_sensorNetAddr.isMatch(addr) )
@@ -130,17 +131,17 @@ const char*  ClientProxy::getClientId(SensorNetAddress* addr)
     return 0;
 }
 
-void ClientProxy::setClient(Client* client)
+void QoSm1Proxy::setClient(Client* client)
 {
     _client = client;
 }
 
-Client* ClientProxy::getClient(void)
+Client* QoSm1Proxy::getClient(void)
 {
     return _client;
 }
 
-bool ClientProxy::setClientProxy(const char* fileName)
+bool QoSm1Proxy::setClientProxy(const char* fileName)
 {
     FILE* fp;
     char buf[MAX_CLIENTID_LENGTH + 256];
@@ -191,7 +192,7 @@ bool ClientProxy::setClientProxy(const char* fileName)
 }
 
 
-void ClientProxy::checkConnection(void)
+void QoSm1Proxy::checkConnection(void)
 {
     if ( _client->isDisconnect()  || ( _client->isConnecting() && _responseTimer.isTimeup()) )
     {
@@ -220,12 +221,12 @@ void ClientProxy::checkConnection(void)
     }
 }
 
-void ClientProxy::resetPingTimer(void)
+void QoSm1Proxy::resetPingTimer(void)
 {
     _keepAliveTimer.start(KEEPALIVE_DURATION * 1000UL);
 }
 
-void ClientProxy::send(MQTTSNPacket* packet)
+void QoSm1Proxy::send(MQTTSNPacket* packet)
 {
     if ( packet->getType() == MQTTSN_CONNACK )
     {
@@ -242,7 +243,7 @@ void ClientProxy::send(MQTTSNPacket* packet)
     }
 }
 
-void ClientProxy::sendStoredPublish(void)
+void QoSm1Proxy::sendStoredPublish(void)
 {
     MQTTSNPacket* msg = 0;
 

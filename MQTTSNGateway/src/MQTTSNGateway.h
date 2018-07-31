@@ -21,7 +21,7 @@
 #include "MQTTSNPacket.h"
 
 #include "MQTTSNGWForwarder.h"
-#include "MQTTSNGWClientProxy.h"
+#include "MQTTSNGWQoS-1Proxy.h"
 
 namespace MQTTSNGW
 {
@@ -159,13 +159,14 @@ typedef struct
 	char* privateKey;
 	char* predefinedTopicFileName;
 	char* forwarderListName;
+	char* qosm1proxyName;
 	char* qosMinusClientListName;
 }GatewayParams;
 
 /*=====================================
      Class Gateway
  =====================================*/
-class ClientProxy;
+class QoSm1Proxy;
 
 class Gateway: public MultiTaskProcess{
 public:
@@ -182,11 +183,11 @@ public:
 	SensorNetwork* getSensorNetwork(void);
 	LightIndicator* getLightIndicator(void);
 	GatewayParams* getGWParams(void);
-	ClientProxy*  getClientProxy(void);
+	QoSm1Proxy*  getQoSm1Proxy(void);
 
 private:
 	ClientList _clientList;
-	ClientProxy*  _clientProxy;
+	QoSm1Proxy*  _qosm1Proxy;
 	ForwarderList _forwarderList;
 	EventQue   _packetEventQue;
 	EventQue   _brokerSendQue;

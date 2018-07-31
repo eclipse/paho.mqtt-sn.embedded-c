@@ -14,8 +14,8 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
-#ifndef MQTTSNGATEWAY_SRC_MQTTSNGWCLIENTPROXY_H_
-#define MQTTSNGATEWAY_SRC_MQTTSNGWCLIENTPROXY_H_
+#ifndef MQTTSNGATEWAY_SRC_MQTTSNGWQOS_1PROXY_H_
+#define MQTTSNGATEWAY_SRC_MQTTSNGWQOS_1PROXY_H_
 
 #include "MQTTSNGateway.h"
 #include "MQTTGWPacket.h"
@@ -29,27 +29,27 @@ namespace MQTTSNGW
 {
 class Gateway;
 
-class ClientProxyElement
+class QoSm1ProxyElement
 {
-    friend class ClientProxy;
+    friend class QoSm1Proxy;
 public:
-    ClientProxyElement(void);
-    ClientProxyElement(SensorNetAddress* addr,  string* clientId);
-    ~ClientProxyElement(void);
+    QoSm1ProxyElement(void);
+    QoSm1ProxyElement(SensorNetAddress* addr,  string* clientId);
+    ~QoSm1ProxyElement(void);
 private:
     SensorNetAddress  _sensorNetAddr;
     string  _clientId;
-    ClientProxyElement* _next;
+    QoSm1ProxyElement* _next;
 };
 
-class ClientProxy
+class QoSm1Proxy
 {
 public:
-    ClientProxy(void);
-    ClientProxy(Gateway* gw);
-    ~ClientProxy(void);
+    QoSm1Proxy(void);
+    QoSm1Proxy(Gateway* gw);
+    ~QoSm1Proxy(void);
     bool setClientProxy(const char* fileName);
-    ClientProxyElement* add(SensorNetAddress* addr,  string* clientId);
+    QoSm1ProxyElement* add(SensorNetAddress* addr,  string* clientId);
     const char* getClientId(SensorNetAddress* addr);
     void setClient(Client*);
     Client* getClient(void);
@@ -65,7 +65,7 @@ private:
 
     Gateway* _gateway;
     Client* _client;
-    ClientProxyElement* _head;
+    QoSm1ProxyElement* _head;
     Timer  _keepAliveTimer;
     Timer  _responseTimer;
 };
@@ -74,4 +74,4 @@ private:
 
 
 
-#endif /* MQTTSNGATEWAY_SRC_MQTTSNGWCLIENTPROXY_H_ */
+#endif /* MQTTSNGATEWAY_SRC_MQTTSNGWQOS_1PROXY_H_ */
