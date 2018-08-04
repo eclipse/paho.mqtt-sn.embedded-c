@@ -20,13 +20,13 @@
 using namespace MQTTSNGW;
 using namespace std;
 
-/*
- *    Class ForwarderList
- */
+/*=====================================
+     Class ForwarderList
+ =====================================*/
 
 ForwarderList::ForwarderList()
 {
-    _head = 0;
+    _head = nullptr;
 }
 
 ForwarderList::~ForwarderList()
@@ -42,6 +42,35 @@ ForwarderList::~ForwarderList()
         }
     }
 }
+
+
+void ForwarderList::initialize(Gateway* gw)
+{
+    char param[MQTTSNGW_PARAM_MAX];
+    string fileName;
+    GatewayParams* params = gw->getGWParams();
+
+    if (gw->getParam("Forwarder", param) == 0 )
+    {
+        if (!strcasecmp(param, "YES") )
+        {
+            if (gw->getParam("ForwardersList", param) == 0)
+            {
+                fileName = string(param);
+            }
+            else
+            {
+                fileName = params->configDir + string(FORWARDER_LIST);
+            }
+           if ( !setFowerder(fileName.c_str()) )
+           {
+               throw Exception("ForwarderList::initialize: No ForwardersList file defined by the configuration..");
+           }
+           params->forwarderListName = strdup(fileName.c_str());
+        }
+    }
+}
+
 
 Forwarder* ForwarderList::getForwarder(SensorNetAddress* addr)
 {
@@ -111,7 +140,7 @@ bool ForwarderList::setFowerder(const char* fileName)
 Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  string* forwarderId)
 {
     Forwarder* fdr = new Forwarder(addr, forwarderId);
-    if ( _head == 0 )
+    if ( _head == nullptr )
     {
         _head = fdr;
     }
@@ -120,7 +149,7 @@ Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  string* forwarde
         Forwarder* p = _head;
         while ( p )
         {
-            if ( p->_next == 0 )
+            if ( p->_next == nullptr )
             {
                 p->_next = fdr;
                 break;
@@ -136,20 +165,20 @@ Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  string* forwarde
 
 Forwarder::Forwarder()
 {
-    _headClient = 0;
-    _next = 0;
+    _headClient = nullptr;
+    _next = nullptr;
 }
 
-/*
- *    Class Forwarder
- */
+/*=====================================
+     Class ForwarderList
+ =====================================*/
 
 Forwarder::Forwarder(SensorNetAddress* addr,  string* forwarderId)
 {
     _forwarderName = *forwarderId;
     _sensorNetAddr = *addr;
-    _headClient = 0;
-    _next = 0;
+    _headClient = nullptr;
+    _next = nullptr;
 }
 
 Forwarder::~Forwarder(void)
@@ -174,11 +203,11 @@ const char* Forwarder::getId(void)
 void Forwarder::addClient(Client* client, WirelessNodeId* id)
 {
     ForwarderElement* p = _headClient;
-    ForwarderElement* prev = 0;
+    ForwarderElement* prev = nullptr;
 
     client->setForwarder(this);
 
-    if ( p != 0 )
+    if ( p != nullptr )
     {
         while ( p )
         {
@@ -209,7 +238,7 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
 
 Client* Forwarder::getClient(WirelessNodeId* id)
 {
-    Client* cl = 0;
+    Client* cl = nullptr;
     _mutex.lock();
     ForwarderElement* p = _headClient;
     while ( p )
@@ -235,7 +264,7 @@ const char* Forwarder::getName(void)
 
 WirelessNodeId* Forwarder::getWirelessNodeId(Client* client)
 {
-    WirelessNodeId* nodeId = 0;
+    WirelessNodeId* nodeId = nullptr;
     _mutex.lock();
     ForwarderElement* p = _headClient;
     while ( p )
@@ -256,7 +285,7 @@ WirelessNodeId* Forwarder::getWirelessNodeId(Client* client)
 
 void Forwarder::eraseClient(Client* client)
 {
-    ForwarderElement* prev = 0;
+    ForwarderElement* prev = nullptr;
     _mutex.lock();
     ForwarderElement* p = _headClient;
 
@@ -314,7 +343,7 @@ void ForwarderElement::setClient(Client* client)
 
 void ForwarderElement::setWirelessNodeId(WirelessNodeId* id)
 {
-    if ( _wirelessNodeId == 0 )
+    if ( _wirelessNodeId == nullptr )
     {
         _wirelessNodeId = new WirelessNodeId();
     }

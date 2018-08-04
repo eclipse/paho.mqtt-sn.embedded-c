@@ -38,7 +38,7 @@ void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
 	int qos = 0;
 
 	packet->getSUBACK(&msgId, &rc);
-	TopicIdMapelement* topicId = client->getWaitedSubTopicId(msgId);
+	TopicIdMapElement* topicId = client->getWaitedSubTopicId(msgId);
 
 	if (topicId)
 	{
@@ -71,4 +71,29 @@ void MQTTGWSubscribeHandler::handleUnsuback(Client* client, MQTTGWPacket* packet
 	evt->setClientSendEvent(client, snPacket);
 	_gateway->getClientSendQue()->post(evt);
 }
+
+void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client, MQTTGWPacket* packet)
+{
+	uint16_t msgId = packet->getMsgId();
+	uint16_t clientMsgId = 0;
+	Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
+	if (  newClient != nullptr )
+	{
+		packet->setMsgId((int)clientMsgId);
+		handleSuback(newClient, packet);
+	}
+}
+
+void MQTTGWSubscribeHandler::handleAggregateUnsuback(Client* client, MQTTGWPacket* packet)
+{
+	uint16_t msgId = packet->getMsgId();
+	uint16_t clientMsgId = 0;
+	Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
+	if (  newClient != nullptr )
+	{
+		packet->setMsgId((int)clientMsgId);
+		handleUnsuback(newClient, packet);
+	}
+}
+
 

@@ -15,12 +15,12 @@
  **************************************************************************************/
 
 #include "MQTTSNGWClientRecvTask.h"
-#include "MQTTSNGateway.h"
 #include "MQTTSNPacket.h"
+#include "MQTTSNGWQoSm1Proxy.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include <cstring>
 
-#include "MQTTSNGWForwarder.h"
+//#include "MQTTSNGWForwarder.h"
 
 using namespace MQTTSNGW;
 char* currentDateTime(void);
@@ -57,14 +57,18 @@ void ClientRecvTask::initialize(int argc, char** argv)
  */
 void ClientRecvTask::run()
 {
-	Event* ev = 0;
-	Client* client = 0;
-	char buf[128];
+	Event* ev = nullptr;
+	Client* client = nullptr;
+	AdapterManager* adpMgr = _gateway->getAdapterManager();
+	bool isAggrActive = adpMgr->isAggregaterActive();
+	ClientList* clientList = _gateway->getClientList();
+	EventQue* packetEventQue = _gateway->getPacketEventQue();
 
+	char buf[128];
 
 	while (true)
 	{
-	    Forwarder* fwd = 0;
+	    Forwarder* fwd = nullptr;
 	    WirelessNodeId nodeId;
 
 		MQTTSNPacket* packet = new MQTTSNPacket();
@@ -95,73 +99,11 @@ void ClientRecvTask::run()
 			log(0, packet, 0);
 			ev = new Event();
 			ev->setBrodcastEvent(packet);
-			_gateway->getPacketEventQue()->post(ev);
+			packetEventQue->post(ev);
 			continue;
 		}
 
-
-		if ( packet->getType() == MQTTSN_ENCAPSULATED )
-		{
-		    fwd = _gateway->getForwarderList()->getForwarder(_sensorNetwork->getSenderAddress());
-
-		    if ( fwd  == 0 )
-		    {
-		        log(0, packet, 0);
-		        WRITELOG("%s Forwarder  %s is not authenticated.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
-		        delete packet;
-		        continue;
-		    }
-		    else
-		    {
-		        MQTTSNString fwdName = MQTTSNString_initializer;
-		        fwdName.cstring = const_cast<char *>( fwd->getName() );
-	            log(0, packet, &fwdName);
-
-	            /* get the packet from the encapsulation message */
-		        MQTTSNGWEncapsulatedPacket  encap;
-		        encap.desirialize(packet->getPacketData(), packet->getPacketLength());
-		        nodeId.setId( encap.getWirelessNodeId() );
-		        client = fwd->getClient(&nodeId);
-		        delete packet;
-		        packet = encap.getMQTTSNPacket();
-		    }
-		}
-		else
-		{
-		    client = 0;
-
-		    /* when QoSm1Proxy is available, select QoS-1 PUBLISH message */
-		     QoSm1Proxy* pxy = _gateway->getQoSm1Proxy();
-		     if ( pxy )
-		     {
-		         /* get ClientId not Client  which can send QoS-1 PUBLISH */
-		         const char* clientName = pxy->getClientId(_sensorNetwork->getSenderAddress());
-
-                if ( clientName )
-                {
-                    if ( packet->isQoSMinusPUBLISH() )
-                    {
-                        /* QoS1Proxy takes responsibility of  the client */
-                        client = _gateway->getQoSm1Proxy()->getClient();
-                    }
-                    else
-                    {
-                        client = _gateway->getQoSm1Proxy()->getClient();
-                        log(clientName, packet);
-                        WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
-                        delete packet;
-                        continue;
-                    }
-                }
-	        }
-
-	        if ( client == 0 )
-	        {
-                /* get client from the ClientList of Gateway by sensorNetAddress. */
-                client = _gateway->getClientList()->getClient(_sensorNetwork->getSenderAddress());
-	        }
-		}
-
+		client = adpMgr->getClient(packet, this);
 
 		if ( client )
 		{
@@ -169,7 +111,7 @@ void ClientRecvTask::run()
 			log(client, packet, 0);
 			ev = new Event();
 			ev->setClientRecvEvent(client,packet);
-			_gateway->getPacketEventQue()->post(ev);
+			packetEventQue->post(ev);
 		}
 		else
 		{
@@ -186,14 +128,14 @@ void ClientRecvTask::run()
 					continue;
 				}
 
-				client = _gateway->getClientList()->getClient(&data.clientID);
+				client = clientList->getClient(&data.clientID);
 
 				if ( fwd )
 				{
-				    if ( client == 0 )
+				    if ( client == nullptr )
 				    {
 				        /* create a new client */
-				        client = _gateway->getClientList()->createClient(0, &data.clientID, false, false);
+				        client = clientList->createClient(0, &data.clientID, isAggrActive);
 				    }
 				    /* Add to af forwarded client list of forwarder. */
                     fwd->addClient(client, &nodeId);
@@ -208,7 +150,7 @@ void ClientRecvTask::run()
                     else
                     {
                         /* create a new client */
-                        client = _gateway->getClientList()->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, false, false);
+                        client = clientList->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, isAggrActive);
                     }
 				}
 
@@ -224,7 +166,7 @@ void ClientRecvTask::run()
 				/* post Client RecvEvent */
 				ev = new Event();
 				ev->setClientRecvEvent(client, packet);
-				_gateway->getPacketEventQue()->post(ev);
+				packetEventQue->post(ev);
 			}
 			else
 			{

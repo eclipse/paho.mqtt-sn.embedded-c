@@ -24,12 +24,30 @@
 
 using namespace std;
 using namespace MQTTSNGW;
+int readInt(char** pptr);
+void writeInt(unsigned char** pptr, int msgId);
 
-MQTTSNPacket::MQTTSNPacket()
+MQTTSNPacket::MQTTSNPacket(void)
 {
-	_buf = 0;
+	_buf = nullptr;
 	_bufLen = 0;
 }
+
+MQTTSNPacket::MQTTSNPacket(MQTTSNPacket& packet)
+{
+	_buf = (unsigned char*)malloc(packet._bufLen);
+	if (_buf)
+	{
+		_bufLen = packet._bufLen;
+		memcpy(_buf, packet._buf, _bufLen);
+	}
+	else
+	{
+		_buf = nullptr;
+		_bufLen = 0;
+	}
+}
+
 MQTTSNPacket::~MQTTSNPacket()
 {
 	if (_buf)
@@ -152,6 +170,11 @@ int MQTTSNPacket::setConnect(void)
 	data.clientID.cstring = (char*)"client01";
 	int len = MQTTSNSerialize_connect(buf, buflen, &data);
 	return desirialize(buf, len);
+}
+
+bool MQTTSNPacket::isAccepted(void)
+{
+    return  ( getType() == MQTTSN_CONNACK)  && (_buf[2] == MQTTSN_RC_ACCEPTED);
 }
 
 int MQTTSNPacket::setCONNACK(uint8_t returnCode)
@@ -455,5 +478,110 @@ char* MQTTSNPacket::getMsgId(char* pbuf)
 		sprintf(pbuf, "    ");
 		break;
 	}
+	if ( strcmp(pbuf, " 0000") == 0 )
+	{
+		sprintf(pbuf, "    ");
+	}
 	return pbuf;
+}
+
+int MQTTSNPacket::getMsgId(void)
+{
+	int value = 0;
+	int p = 0;
+	int msgId = 0;
+	char* ptr = 0;
+
+	switch ( getType() )
+	{
+	case MQTTSN_PUBLISH:
+		p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+		ptr = (char*)_buf + p + 4;
+		msgId = readInt((char**)&ptr);
+		break;
+	case MQTTSN_PUBACK:
+	case MQTTSN_REGISTER:
+	case MQTTSN_REGACK:
+		ptr = (char*)_buf + 4;
+		msgId = readInt((char**)&ptr);
+		break;
+	case MQTTSN_PUBREC:
+	case MQTTSN_PUBREL:
+	case MQTTSN_PUBCOMP:
+	case MQTTSN_UNSUBACK:
+		ptr = (char*)_buf + 2;
+		msgId = readInt((char**)&ptr);
+		break;
+	case MQTTSN_SUBSCRIBE:
+	case MQTTSN_UNSUBSCRIBE:
+		p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+		ptr = (char*)_buf + p + 2;
+		msgId = readInt((char**)&ptr);
+		break;
+	case MQTTSN_SUBACK:
+		ptr = (char*)_buf + 5;
+		msgId = readInt((char**)&ptr);
+		break;
+	default:
+		break;
+	}
+	return msgId;
+}
+
+void MQTTSNPacket::setMsgId(uint16_t msgId)
+{
+	int value = 0;
+	int p = 0;
+	//unsigned char* ptr = 0;
+
+	switch ( getType() )
+	{
+	case MQTTSN_PUBLISH:
+		p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+		_buf[p + 4] = (unsigned char)(msgId / 256);
+		_buf[p + 5] = (unsigned char)(msgId % 256);
+		//ptr = _buf + p + 4;
+		//writeInt(&ptr, msgId);
+		break;
+	case MQTTSN_PUBACK:
+	case MQTTSN_REGISTER:
+	case MQTTSN_REGACK:
+		_buf[4] = (unsigned char)(msgId / 256);
+		_buf[5] = (unsigned char)(msgId % 256);
+		//ptr = _buf + 4;
+		//writeInt(&ptr, msgId);
+		break;
+	case MQTTSN_PUBREC:
+	case MQTTSN_PUBREL:
+	case MQTTSN_PUBCOMP:
+	case MQTTSN_UNSUBACK:
+		_buf[2] = (unsigned char)(msgId / 256);
+		_buf[3] = (unsigned char)(msgId % 256);
+		//ptr = _buf + 2;
+		//writeInt(&ptr, msgId);
+		break;
+	case MQTTSN_SUBSCRIBE:
+	case MQTTSN_UNSUBSCRIBE:
+		p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+		_buf[p + 2] = (unsigned char)(msgId / 256);
+		_buf[p + 3] = (unsigned char)(msgId % 256);
+		//ptr = _buf + p + 2;
+		//writeInt(&ptr, msgId);
+break;
+	case MQTTSN_SUBACK:
+		_buf[5] = (unsigned char)(msgId / 256);
+		_buf[6] = (unsigned char)(msgId % 256);
+		//ptr = _buf + 5;
+		//writeInt(&ptr, msgId);
+break;
+	default:
+		break;
+	}
+}
+
+bool MQTTSNPacket::isDuplicate(void)
+{
+	int value = 0;
+	int p = MQTTSNPacket_decode(_buf, _bufLen, &value);
+	return ( _buf[p + 1] & 0x80 );
 }

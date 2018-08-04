@@ -16,6 +16,7 @@
 
 #include "MQTTSNGWBrokerRecvTask.h"
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGWClientList.h"
 #include <unistd.h>
 
 using namespace std;
@@ -30,7 +31,7 @@ BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
 {
 	_gateway = gateway;
 	_gateway->attach((Thread*)this);
-	_light = 0;
+	_light = nullptr;
 }
 
 BrokerRecvTask::~BrokerRecvTask()
@@ -52,9 +53,9 @@ void BrokerRecvTask::initialize(int argc, char** argv)
 void BrokerRecvTask::run(void)
 {
 	struct timeval timeout;
-	MQTTGWPacket* packet = 0;
+	MQTTGWPacket* packet = nullptr;
 	int rc;
-	Event* ev = 0;
+	Event* ev = nullptr;
 	fd_set rset;
 	fd_set wset;
 
@@ -74,9 +75,9 @@ void BrokerRecvTask::run(void)
 		int sockfd = 0;
 
 		/* Prepare sockets list to read */
-		Client* client = _gateway->getClientList()->getClient();
+		Client* client = _gateway->getClientList()->getClient(0);
 
-		while (client > 0)
+		while ( client )
 		{
 			if (client->getNetwork()->isValid())
 			{
@@ -101,7 +102,7 @@ void BrokerRecvTask::run(void)
 			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
 			if (activity > 0)
 			{
-				client = _gateway->getClientList()->getClient();
+				client = _gateway->getClientList()->getClient(0);
 
 				while (client > 0)
 				{

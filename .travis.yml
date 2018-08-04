@@ -1,7 +1,6 @@
 language: cpp
 compiler: 
     - g++
-    - clang
 
 install:
     - if ["$CXX" = "g++" ]; then export CXX="g++-4.8"; fi
@@ -14,7 +13,6 @@ addons:
     - g++-4.8
     - cmake
     - cmake-data
-    - clang
     
 script: 
   - ./travis-build.sh

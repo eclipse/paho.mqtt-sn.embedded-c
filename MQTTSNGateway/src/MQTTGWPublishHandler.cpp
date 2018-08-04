@@ -106,7 +106,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 			/* This message might be subscribed with wild card. */
 		    topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 			Topic* topic = client->getTopics()->match(&topicId);
-			if (topic == 0)
+			if (topic == nullptr)
 			{
 				WRITELOG(" Invalid Topic. PUBLISH message is canceled.\n");
 				if (pub.header.bits.qos == 1)
@@ -181,7 +181,7 @@ void MQTTGWPublishHandler::handlePuback(Client* client, MQTTGWPacket* packet)
 {
 	Ack ack;
 	packet->getAck(&ack);
-	TopicIdMapelement* topicId = client->getWaitedPubTopicId((uint16_t)ack.msgId);
+	TopicIdMapElement* topicId = client->getWaitedPubTopicId((uint16_t)ack.msgId);
 	if (topicId)
 	{
 		MQTTSNPacket* mqttsnPacket = new MQTTSNPacket();
@@ -231,6 +231,92 @@ void MQTTGWPublishHandler::handleAck(Client* client, MQTTGWPacket* packet, int t
 			ev1->setBrokerSendEvent(client, pubComp);
 			_gateway->getBrokerSendQue()->post(ev1);
 		}
+	}
+}
+
+
+
+void MQTTGWPublishHandler::handleAggregatePuback(Client* client, MQTTGWPacket* packet)
+{
+	uint16_t msgId = packet->getMsgId();
+	uint16_t clientMsgId = 0;
+	Client* newClient = _gateway->getAdapterManager()->convertClient(msgId, &clientMsgId);
+	if ( newClient != nullptr )
+	{
+		packet->setMsgId((int)clientMsgId);
+		handlePuback(newClient, packet);
+	}
+}
+
+void MQTTGWPublishHandler::handleAggregateAck(Client* client, MQTTGWPacket* packet, int type)
+{
+	uint16_t msgId = packet->getMsgId();
+	uint16_t clientMsgId = 0;
+	Client* newClient = _gateway->getAdapterManager()->convertClient(msgId, &clientMsgId);
+	if ( newClient != nullptr )
+	{
+		packet->setMsgId((int)clientMsgId);
+		handleAck(newClient, packet,type);
+	}
+}
+
+void MQTTGWPublishHandler::handleAggregatePubrel(Client* client, MQTTGWPacket* packet)
+{
+	Publish pub;
+	packet->getPUBLISH(&pub);
+	replyACK(client, &pub, PUBCOMP);
+}
+
+void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* packet)
+{
+	Publish pub;
+	packet->getPUBLISH(&pub);
+
+	WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
+	RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
+
+	if (pub.header.bits.qos == 1)
+	{
+		replyACK(client, &pub, PUBACK);
+	}
+	else if ( pub.header.bits.qos == 2)
+	{
+		replyACK(client, &pub, PUBREC);
+	}
+
+	MQTTGWPacket* msg = new MQTTGWPacket();
+	*msg = *packet;
+	if ( msg->getType() == 0 )
+	{
+		WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
+		delete msg;
+		return;
+	}
+
+	string* topicName = new string(pub.topic);
+	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+	AggregateTopicElement* list = _gateway->getAdapterManager()->createClientList(&topic);
+	if ( list != nullptr )
+	{
+		ClientTopicElement* p = list->getFirstElement();
+
+		while ( p )
+		{
+			Client* devClient = p->getClient();
+			if ( devClient != nullptr )
+			{
+				Event* ev = new Event();
+				ev->setBrokerRecvEvent(devClient, packet);
+				_gateway->getPacketEventQue()->post(ev);
+			}
+			else
+			{
+				break;
+			}
+
+			p = list->getNextElement(p);
+		}
+		delete list;
 	}
 }
 

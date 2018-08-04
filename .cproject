@@ -66,7 +66,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="MQTTSNGateway/src/linux/udp6|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|MQTTSNGateway/GatewayTester|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="MQTTSNGateway/src/MQTTSNGWProxy.cpp|MQTTSNGateway/src/linux/udp6|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|MQTTSNGateway/GatewayTester|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -137,7 +137,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="MQTTSNGateway/src/linux/udp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/linux|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/GatewayTester/samples/mainTest.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/src|MQTTSNPacket/src|MQTTSNGateway/GatewayTester|ClientPubQoS-1" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry excluding="mainLogmonitor.cpp|tests|tests/mainTestProcessFramework.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
+						<entry excluding="MQTTSNGWProxy.cpp|mainLogmonitor.cpp|tests|tests/mainTestProcessFramework.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
 						<entry excluding="xbee|udp6" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNPacket/src"/>
 					</sourceEntries>

@@ -15,9 +15,9 @@
  **************************************************************************************/
 #include "MQTTSNGWClientSendTask.h"
 #include "MQTTSNGWPacket.h"
-#include "MQTTSNGWPacket.h"
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
+#include "MQTTSNGWQoSm1Proxy.h"
 
 using namespace MQTTSNGW;
 using namespace std;
@@ -39,8 +39,9 @@ ClientSendTask::~ClientSendTask()
 
 void ClientSendTask::run()
 {
-	Client* client = 0;
-	MQTTSNPacket* packet = 0;
+	Client* client = nullptr;
+	MQTTSNPacket* packet = nullptr;
+	AdapterManager* adpMgr = _gateway->getAdapterManager();
 	int rc = 0;
 
 	while (true)
@@ -57,27 +58,7 @@ void ClientSendTask::run()
 		{
 			client = ev->getClient();
 			packet = ev->getMQTTSNPacket();
-			Forwarder* fwd = client->getForwarder();
-
-			if ( fwd )
-			{
-			    MQTTSNGWEncapsulatedPacket encap(packet);
-			    WirelessNodeId* wnId = fwd->getWirelessNodeId(client);
-			    encap.setWirelessNodeId(wnId);
-			    log(fwd, &encap);
-			    log(client, packet);
-			    rc = encap.unicast(_sensorNetwork,fwd->getSensorNetAddr());
-			}
-			else
-			{
-                log(client, packet);
-               if ( client->isProxy() )
-                {
-                   _gateway->getQoSm1Proxy()->send(packet);
-                    continue;
-                }
-                rc = packet->unicast(_sensorNetwork, client->getSensorNetAddress());
-			}
+			rc = adpMgr->unicastToClient(client, packet, this);
 		}
 		else if (ev->getEventType() == EtBroadcast)
 		{
@@ -140,9 +121,3 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 	}
 }
 
-void ClientSendTask::log(Forwarder* forwarder, MQTTSNGWEncapsulatedPacket* packet)
-{
-    char pbuf[SIZE_OF_LOG_PACKET * 3];
-    const char* forwarderId = forwarder->getId();
-    WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, forwarderId, packet->print(pbuf));
-}

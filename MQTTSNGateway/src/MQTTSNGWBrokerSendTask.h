@@ -22,12 +22,15 @@
 
 namespace MQTTSNGW
 {
+class Adapter;
+
 /*=====================================
      Class BrokerSendTask
  =====================================*/
 class BrokerSendTask : public Thread
 {
 	MAGIC_WORD_FOR_THREAD;
+	friend AdapterManager;
 public:
 	BrokerSendTask(Gateway* gateway);
 	~BrokerSendTask();

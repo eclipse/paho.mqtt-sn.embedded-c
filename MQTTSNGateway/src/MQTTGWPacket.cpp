@@ -21,6 +21,9 @@
 
 using namespace MQTTSNGW;
 
+int readInt(char** ptr);
+void writeInt(unsigned char** pptr, int msgId);
+
 #define MAX_NO_OF_REMAINING_LENGTH_BYTES    3
 /**
  * List of the predefined MQTT v3 packet names.
@@ -511,12 +514,12 @@ char* MQTTGWPacket::getMsgId(char* pbuf)
 			sprintf(pbuf, " %04X", pub.msgId);
 		}
 		break;
+	case SUBSCRIBE:
+	case UNSUBSCRIBE:
 	case PUBACK:
 	case PUBREC:
 	case PUBREL:
 	case PUBCOMP:
-	case SUBSCRIBE:
-	case UNSUBSCRIBE:
 	case SUBACK:
 	case UNSUBACK:
 		sprintf(pbuf, " %02X%02X", _data[0], _data[1]);
@@ -525,7 +528,75 @@ char* MQTTGWPacket::getMsgId(char* pbuf)
 		sprintf(pbuf, "    ");
 		break;
 	}
+	if ( strcmp(pbuf, " 0000") == 0 )
+	{
+		sprintf(pbuf, "    ");
+	}
 	return pbuf;
+}
+
+int MQTTGWPacket::getMsgId(void)
+{
+	int type = getType();
+	int msgId = 0;
+
+	switch ( type )
+	{
+	case PUBLISH:
+		Publish pub;
+		pub.msgId = 0;
+		getPUBLISH(&pub);
+		msgId = pub.msgId;
+		break;
+	case PUBACK:
+	case PUBREC:
+	case PUBREL:
+	case PUBCOMP:
+	case SUBSCRIBE:
+	case UNSUBSCRIBE:
+	case SUBACK:
+	case UNSUBACK:
+		msgId = 256 * (unsigned char)_data[0] + (unsigned char)_data[1];
+		break;
+	default:
+		break;
+	}
+	return msgId;
+}
+
+void MQTTGWPacket::setMsgId(int msgId)
+{
+	int type = getType();
+	unsigned char* ptr = 0;
+	int len = 0;
+
+	switch ( type )
+	{
+	case PUBLISH:
+		Publish pub;
+		pub.msgId = 0;
+		getPUBLISH(&pub);
+		pub.msgId = msgId;
+		ptr = _data + pub.topiclen;
+		writeInt(&ptr, pub.msgId);
+		*ptr++ = (unsigned char)(msgId / 256);
+		*ptr = (unsigned char)(msgId % 256);
+		break;
+	case SUBSCRIBE:
+	case UNSUBSCRIBE:
+	case PUBACK:
+	case PUBREC:
+	case PUBREL:
+	case PUBCOMP:
+	case SUBACK:
+	case UNSUBACK:
+		ptr = _data;
+		*ptr++ = (unsigned char)(msgId / 256);
+		*ptr = (unsigned char)(msgId % 256);
+		break;
+	default:
+		break;
+	}
 }
 
 char* MQTTGWPacket::print(char* pbuf)
@@ -561,3 +632,14 @@ MQTTGWPacket& MQTTGWPacket::operator =(MQTTGWPacket& packet)
 	return *this;
 }
 
+UTF8String MQTTGWPacket::getTopic(void)
+{
+	UTF8String str = {0, nullptr};
+	if ( _header.bits.type == SUBSCRIBE || _header.bits.type == UNSUBSCRIBE )
+	{
+		char* ptr = (char*)(_data + 2);
+		str.len = readInt(&ptr);
+		str.data = (char*)(_data + 4);
+	}
+	return str;
+}

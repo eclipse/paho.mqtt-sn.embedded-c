@@ -52,7 +52,7 @@ void WirelessNodeId::setId(uint8_t* id, uint8_t len)
     }
     else
     {
-        _nodeId = 0;
+        _nodeId = nullptr;
         _len = 0;
     }
 }
@@ -123,7 +123,7 @@ int MQTTSNGWEncapsulatedPacket::desirialize(unsigned char* buf, unsigned short l
     if ( _mqttsn )
     {
         delete _mqttsn;
-        _mqttsn = 0;
+        _mqttsn = nullptr;
     }
 
     _ctrl = buf[2];

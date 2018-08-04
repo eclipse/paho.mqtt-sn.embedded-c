@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2018, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -13,35 +13,36 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#ifndef MQTTSNGWCLIENTSENDTASK_H_
-#define MQTTSNGWCLIENTSENDTASK_H_
 
-#include "MQTTSNGateway.h"
-#include "SensorNetwork.h"
+#ifndef MQTTSNGATEWAY_SRC_MQTTSNAGGREGATECONNECTIONHANDLER_H_
+#define MQTTSNGATEWAY_SRC_MQTTSNAGGREGATECONNECTIONHANDLER_H_
+
+#include "MQTTSNGWDefines.h"
 
 namespace MQTTSNGW
 {
-class AdapterManager;
+class Gateway;
+class Client;
+class MQTTSNPacket;
 
-/*=====================================
- Class ClientSendTask
- =====================================*/
-class ClientSendTask: public Thread
+class MQTTSNAggregateConnectionHandler
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend AdapterManager;
 public:
-	ClientSendTask(Gateway* gateway);
-	~ClientSendTask(void);
-	void run(void);
+	MQTTSNAggregateConnectionHandler(Gateway* gateway);
+	~MQTTSNAggregateConnectionHandler(void);
+
+	void handleConnect(Client* client, MQTTSNPacket* packet);
+	void handleWillmsg(Client* client, MQTTSNPacket* packet);
+	void handleDisconnect(Client* client, MQTTSNPacket* packet);
+	void handlePingreq(Client* client, MQTTSNPacket* packet);
 
 private:
-	void log(Client* client, MQTTSNPacket* packet);
+	void sendStoredPublish(Client* client);
 
+	char _pbuf[MQTTSNGW_MAX_PACKET_SIZE * 3];
 	Gateway* _gateway;
-	SensorNetwork* _sensorNetwork;
 };
 
 }
 
-#endif /* MQTTSNGWCLIENTSENDTASK_H_ */
+#endif /* MQTTSNGATEWAY_SRC_MQTTSNAGGREGATECONNECTIONHANDLER_H_ */

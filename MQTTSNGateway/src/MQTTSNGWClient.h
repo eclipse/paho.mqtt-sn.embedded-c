@@ -28,6 +28,9 @@
 #include "MQTTSNPacket.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include "MQTTSNGWForwarder.h"
+#include "MQTTSNGWTopic.h"
+#include "MQTTSNGWClientList.h"
+#include "MQTTSNGWAdapter.h"
 
 namespace MQTTSNGW
 {
@@ -111,87 +114,6 @@ private:
 };
 
 
-/*=====================================
- Class Topic
- ======================================*/
-class Topic
-{
-    friend class Topics;
-public:
-    Topic();
-    Topic(string* topic, MQTTSN_topicTypes type);
-    ~Topic();
-    string* getTopicName(void);
-    uint16_t getTopicId(void);
-    MQTTSN_topicTypes getType(void);
-    bool isMatch(string* topicName);
-    void print(void);
-private:
-    MQTTSN_topicTypes _type;
-    uint16_t _topicId;
-    string*  _topicName;
-    Topic* _next;
-};
-
-/*=====================================
- Class Topics
- ======================================*/
-class Topics
-{
-public:
-    Topics();
-    ~Topics();
-    Topic* add(const MQTTSN_topicid* topicid);
-    Topic* add(const char* topicName, uint16_t id = 0);
-    Topic* getTopicByName(const MQTTSN_topicid* topic);
-    Topic* getTopicById(const MQTTSN_topicid* topicid);
-    Topic* match(const MQTTSN_topicid* topicid);
-    void eraseNormal(void);
-    uint16_t getNextTopicId();
-    void print(void);
-    uint8_t getCount(void);
-private:
-    uint16_t _nextTopicId;
-    Topic* _first;
-    uint8_t  _cnt;
-};
-
-/*=====================================
- Class TopicIdMap
- =====================================*/
-class TopicIdMapelement
-{
-    friend class TopicIdMap;
-public:
-    TopicIdMapelement(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-    ~TopicIdMapelement();
-    MQTTSN_topicTypes getTopicType(void);
-    uint16_t getTopicId(void);
-
-private:
-    uint16_t _msgId;
-    uint16_t _topicId;
-    MQTTSN_topicTypes _type;
-    TopicIdMapelement* _next;
-    TopicIdMapelement* _prev;
-};
-
-class TopicIdMap
-{
-public:
-    TopicIdMap();
-    ~TopicIdMap();
-    TopicIdMapelement* getElement(uint16_t msgId);
-    TopicIdMapelement* add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-    void erase(uint16_t msgId);
-    void clear(void);
-private:
-    uint16_t* _msgIds;
-    TopicIdMapelement* _first;
-    TopicIdMapelement* _end;
-    int _cnt;
-    int _maxInflight;
-};
 
 /*=====================================
  Class WaitREGACKPacket
@@ -229,14 +151,20 @@ private:
     waitREGACKPacket* _end;
 };
 
+
+
 /*=====================================
  Class Client
  =====================================*/
-
 typedef enum
 {
     Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
 } ClientStatus;
+
+typedef enum
+{
+    Ctype_Regular = 0, Ctype_Forwarded, Ctype_QoS_1, Ctype_Aggregated, Ctype_Proxy, Ctype_Aggregater
+}ClientType;
 
 class Forwarder;
 
@@ -249,8 +177,8 @@ public:
     ~Client();
 
     Connect* getConnectData(void);
-    TopicIdMapelement* getWaitedPubTopicId(uint16_t msgId);
-    TopicIdMapelement* getWaitedSubTopicId(uint16_t msgId);
+    TopicIdMapElement* getWaitedPubTopicId(uint16_t msgId);
+    TopicIdMapElement* getWaitedSubTopicId(uint16_t msgId);
     MQTTGWPacket* getClientSleepPacket(void);
     void deleteFirstClientSleepPacket(void);
 
@@ -292,8 +220,15 @@ public:
     Forwarder* getForwarder(void);
     void setForwarder(Forwarder* forwader);
 
-    void setPorxy(bool isProxy);
-    bool isProxy(void);
+    void setAdapterType(AdapterType type);
+    void setQoSm1(void);
+    void setAggregated(void);
+    bool isQoSm1Proxy(void);
+    bool isForwarded(void);
+    bool isAggregated(void);
+    bool isAggregater(void);
+    bool isQoSm1(void);
+    bool isAdapter(void);
 
     void setClientId(MQTTSNString id);
     void setWillTopic(MQTTSNString willTopic);
@@ -355,40 +290,13 @@ private:
     SensorNetAddress _sensorNetAddr;
 
     Forwarder* _forwarder;
-    bool _isProxy;
-
+    ClientType _clientType;
 
     bool _sessionStatus;
     bool _hasPredefTopic;
 
     Client* _nextClient;
     Client* _prevClient;
-};
-
-/*=====================================
- Class ClientList
- =====================================*/
-class ClientList
-{
-public:
-    ClientList();
-    ~ClientList();
-    bool authorize(const char* fileName);
-    bool setPredefinedTopics(const char* fileName);
-    void erase(Client*&);
-    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine, bool secure);
-    Client* getClient(SensorNetAddress* addr);
-    Client* getClient(MQTTSNString* clientId);
-    uint16_t getClientCount(void);
-    Client* getClient(void);
-    bool isAuthorized();
-private:
-    Client* createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t toipcId);
-    Client* _firstClient;
-    Client* _endClient;
-    Mutex _mutex;
-    uint16_t _clientCnt;
-    bool _authorize;
 };
 
 

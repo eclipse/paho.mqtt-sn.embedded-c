@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2018, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -13,37 +13,41 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#ifndef MQTTSNGWCLIENTRECVTASK_H_
-#define MQTTSNGWCLIENTRECVTASK_H_
 
-#include "SensorNetwork.h"
-#include "MQTTSNGateway.h"
+#ifndef MQTTSNGATEWAY_SRC_MQTTSNGWQOSM1PROXY_H_
+#define MQTTSNGATEWAY_SRC_MQTTSNGWQOSM1PROXY_H_
 
+#include "MQTTSNGWAdapter.h"
 namespace MQTTSNGW
 {
-class AdapterManager;
+class Gateway;
+class Adapter;
+class Client;
+class SensorNetAddress;
+class MQTTSNPacket;
 
 /*=====================================
-     Class ClientRecvTask
+     Class QoSm1Proxy
  =====================================*/
-class ClientRecvTask:public Thread
+class QoSm1Proxy : public Adapter
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend AdapterManager;
 public:
-	ClientRecvTask(Gateway*);
-	~ClientRecvTask(void);
-	virtual void initialize(int argc, char** argv);
-	void run(void);
+	QoSm1Proxy(Gateway* gw);
+    ~QoSm1Proxy(void);
+
+    void initialize(void);
+    bool isActive(void);
 
 private:
-	void log(Client*, MQTTSNPacket*, MQTTSNString* id);
-	void log(const char* clientId, MQTTSNPacket* packet);
+    Gateway* _gateway;
 
-	Gateway*       _gateway;
-	SensorNetwork* _sensorNetwork;
+    bool _isActive {false};
+    bool _isSecure {false};
 };
+
 
 }
 
-#endif /* MQTTSNGWCLIENTRECVTASK_H_ */
+
+
+#endif /* MQTTSNGATEWAY_SRC_MQTTSNGWQOSM1PROXY_H_ */

@@ -26,8 +26,9 @@ namespace MQTTSNGW
 class MQTTSNPacket
 {
 public:
-	MQTTSNPacket();
-	~MQTTSNPacket();
+	MQTTSNPacket(void);
+	MQTTSNPacket(MQTTSNPacket &packet);
+	~MQTTSNPacket(void);
 	int unicast(SensorNetwork* network, SensorNetAddress* sendTo);
 	int broadcast(SensorNetwork* network);
 	int recv(SensorNetwork* network);
@@ -80,8 +81,12 @@ public:
 	int getWILLTOPICUPD(uint8_t* willQoS, uint8_t* willRetain, MQTTSNString* willTopic);
 	int getWILLMSGUPD(MQTTSNString* willMsg);
 
+	bool isAccepted(void);
+	bool isDuplicate(void);
 	bool isQoSMinusPUBLISH(void);
 	char* getMsgId(char* buf);
+	int getMsgId(void);
+	void setMsgId(uint16_t msgId);
 	char* print(char* buf);
 
 private:

@@ -34,8 +34,8 @@ char* currentDateTime(void);
 /*=====================================
  Global Variables & Functions
  ======================================*/
-Process* MQTTSNGW::theProcess = 0;
-MultiTaskProcess* MQTTSNGW::theMultiTaskProcess = 0;
+Process* MQTTSNGW::theProcess = nullptr;
+MultiTaskProcess* MQTTSNGW::theMultiTaskProcess = nullptr;
 
 /*
  *  Save the type of signal
@@ -359,8 +359,8 @@ Exception::Exception(const int exNo, const string& message)
 {
 	_message = message;
 	_exNo = exNo;
-	_fileName = 0;
-	_functionName = 0;
+	_fileName = nullptr;
+	_functionName = nullptr;
 	_line = 0;
 }
 
