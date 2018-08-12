@@ -568,12 +568,12 @@ void MQTTGWPacket::setMsgId(int msgId)
 {
 	int type = getType();
 	unsigned char* ptr = 0;
-	int len = 0;
 
 	switch ( type )
 	{
 	case PUBLISH:
 		Publish pub;
+		pub.topiclen = 0;
 		pub.msgId = 0;
 		getPUBLISH(&pub);
 		pub.msgId = msgId;
