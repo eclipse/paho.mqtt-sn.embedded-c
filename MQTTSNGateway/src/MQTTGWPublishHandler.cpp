@@ -284,16 +284,9 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 		replyACK(client, &pub, PUBREC);
 	}
 
-	MQTTGWPacket* msg = new MQTTGWPacket();
-	*msg = *packet;
-	if ( msg->getType() == 0 )
-	{
-		WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
-		delete msg;
-		return;
-	}
 
-	string* topicName = new string(pub.topic);
+
+	string* topicName = new string(pub.topic, pub.topiclen);
 	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
 	AggregateTopicElement* list = _gateway->getAdapterManager()->createClientList(&topic);
 	if ( list != nullptr )
@@ -305,8 +298,16 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 			Client* devClient = p->getClient();
 			if ( devClient != nullptr )
 			{
+				MQTTGWPacket* msg = new MQTTGWPacket();
+				*msg = *packet;
+				if ( msg->getType() == 0 )
+				{
+					WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
+					delete msg;
+					break;
+				}
 				Event* ev = new Event();
-				ev->setBrokerRecvEvent(devClient, packet);
+				ev->setBrokerRecvEvent(devClient, msg);
 				_gateway->getPacketEventQue()->post(ev);
 			}
 			else

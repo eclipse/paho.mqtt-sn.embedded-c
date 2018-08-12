@@ -282,5 +282,4 @@ void MQTTSNPublishHandler::handleAggregateAck(Client* client, MQTTSNPacket* pack
 		ev->setClientSendEvent(client, ackPacket);
 		_gateway->getClientSendQue()->post(ev);
 	}
-	return;
 }
