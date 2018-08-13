@@ -116,6 +116,12 @@ typedef struct
 	unsigned char version;	/**< MQTT version number */
 } Connect;
 
+#define MQTTPacket_willOptions_initializer { {'M', 'Q', 'T', 'W'}, 0, {NULL, {0, NULL}}, {NULL, {0, NULL}}, 0, 0 }
+#define MQTTPacket_connectData_initializer { {'M', 'Q', 'T', 'C'}, 0, 4, {NULL, {0, NULL}}, 60, 1, 0, \
+        MQTTPacket_willOptions_initializer, {NULL, {0, NULL}}, {NULL, {0, NULL}} }
+
+
+
 /**
  * Data for a willMessage.
  */
@@ -178,6 +184,15 @@ typedef struct
 } Ack;
 
 /**
+ * UTF8String.
+ */
+typedef struct
+{
+	unsigned char len;
+	char*  data;
+} UTF8String;
+
+/**
  * Class MQTT Packet
  */
 class MQTTGWPacket
@@ -203,7 +218,11 @@ public:
 	int setHeader(unsigned char msgType);
 	int setSUBSCRIBE(const char* topic, unsigned char qos, unsigned short msgId);
 	int setUNSUBSCRIBE(const char* topics, unsigned short msgid);
+
+	UTF8String getTopic(void);
 	char* getMsgId(char* buf);
+	int getMsgId(void);
+	void setMsgId(int msgId);
 	char* print(char* buf);
 	MQTTGWPacket& operator =(MQTTGWPacket& packet);
 

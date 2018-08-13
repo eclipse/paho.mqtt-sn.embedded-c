@@ -18,39 +18,47 @@
 #define MQTTSNGATEWAY_SRC_MQTTSNGWFORWARDER_H_
 
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGateway.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include "SensorNetwork.h"
 
 
 namespace MQTTSNGW
 {
-
+class Gateway;
 class Client;
 class WirelessNodeId;
 
-class ForwardedClient
+/*=====================================
+     Class ForwarderElement
+ =====================================*/
+class ForwarderElement
 {
     friend class Forwarder;
 public:
-    ForwardedClient();
-    ~ForwardedClient();
+    ForwarderElement();
+    ~ForwarderElement();
+
     void setClient(Client* client);
     void setWirelessNodeId(WirelessNodeId* id);
 private:
     Client* _client;
     WirelessNodeId* _wirelessNodeId;
-    ForwardedClient* _next;
+    ForwarderElement* _next;
 };
 
-
+/*=====================================
+     Class Forwarder
+ =====================================*/
 class Forwarder
 {
     friend class ForwarderList;
 public:
-    Forwarder();
-    Forwarder(SensorNetAddress* addr,  string* forwarderId);
+    Forwarder(void);
+    Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
     ~Forwarder();
 
+    void initialize(void);
     const char* getId(void);
     void addClient(Client* client, WirelessNodeId* id);
     Client* getClient(WirelessNodeId* id);
@@ -62,20 +70,23 @@ public:
 private:
     string _forwarderName;
     SensorNetAddress _sensorNetAddr;
-    ForwardedClient* _headClient;
-    Forwarder* _next;
+    ForwarderElement* _headClient{nullptr};
+    Forwarder* _next {nullptr};
     Mutex _mutex;
 };
 
+/*=====================================
+     Class ForwarderList
+ =====================================*/
 class ForwarderList
 {
 public:
     ForwarderList();
     ~ForwarderList();
 
+    void initialize(Gateway* gw);
     Forwarder* getForwarder(SensorNetAddress* addr);
-    bool setFowerder(const char* fileName);
-    Forwarder* addForwarder(SensorNetAddress* addr,  string* forwarderId);
+    Forwarder* addForwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
 
 private:
     Forwarder* _head;

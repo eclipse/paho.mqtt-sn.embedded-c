@@ -14,6 +14,7 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
+#include <MQTTSNGWAdapterManager.h>
 #include "MQTTSNGWBrokerSendTask.h"
 #include "MQTTSNGWDefines.h"
 #include "MQTTSNGateway.h"
@@ -34,8 +35,8 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 {
 	_gateway = gateway;
 	_gateway->attach((Thread*)this);
-	_gwparams = 0;
-	_light = 0;
+	_gwparams = nullptr;
+	_light = nullptr;
 }
 
 BrokerSendTask::~BrokerSendTask()
@@ -57,9 +58,10 @@ void BrokerSendTask::initialize(int argc, char** argv)
  */
 void BrokerSendTask::run()
 {
-	Event* ev = 0;
-	MQTTGWPacket* packet = 0;
-	Client* client = 0;
+	Event* ev = nullptr;
+	MQTTGWPacket* packet = nullptr;
+	Client* client = nullptr;
+	AdapterManager* adpMgr = _gateway->getAdapterManager();
 	int rc = 0;
 
 	while (true)
@@ -78,6 +80,9 @@ void BrokerSendTask::run()
 			client = ev->getClient();
 			packet = ev->getMQTTGWPacket();
 
+			/* Check Client is managed by Adapters */
+			client = adpMgr->getClient(*client);
+
 			if ( packet->getType() == CONNECT && client->getNetwork()->isValid() )
 			{
 				client->getNetwork()->close();
@@ -89,12 +94,12 @@ void BrokerSendTask::run()
 
 				if (client->isSecureNetwork())
 				{
-					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->portSecure, _gwparams->rootCApath,
-							  _gwparams->rootCAfile, _gwparams->certKey, _gwparams->privateKey);
+					rc = client->getNetwork()->connect((const char*)_gwparams->brokerName, (const char*)_gwparams->portSecure, (const char*)_gwparams->rootCApath,
+							(const char*)_gwparams->rootCAfile, (const char*)_gwparams->certKey, (const char*)_gwparams->privateKey);
 				}
 				else
 				{
-					rc = client->getNetwork()->connect(_gwparams->brokerName, _gwparams->port);
+					rc = client->getNetwork()->connect((const char*)_gwparams->brokerName, (const char*)_gwparams->port);
 				}
 
 				if ( !rc )

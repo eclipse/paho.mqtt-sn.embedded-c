@@ -21,6 +21,7 @@
 
 namespace MQTTSNGW
 {
+class AdapterManager;
 
 /*=====================================
  Class ClientSendTask
@@ -28,14 +29,14 @@ namespace MQTTSNGW
 class ClientSendTask: public Thread
 {
 	MAGIC_WORD_FOR_THREAD;
+	friend AdapterManager;
 public:
 	ClientSendTask(Gateway* gateway);
-	~ClientSendTask();
-	void run();
+	~ClientSendTask(void);
+	void run(void);
 
 private:
-	void log(Client*, MQTTSNPacket*);
-    void log(Forwarder*, MQTTSNGWEncapsulatedPacket*);
+	void log(Client* client, MQTTSNPacket* packet);
 
 	Gateway* _gateway;
 	SensorNetwork* _sensorNetwork;

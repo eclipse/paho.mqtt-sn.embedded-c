@@ -10,7 +10,6 @@ TESTAPPL := mainTestProcess
 CONFIG := gateway.conf
 CLIENTS := clients.conf
 PREDEFTOPIC := predefinedTopic.conf
-FORWARDERS := forwarders.conf
 
 SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
@@ -39,6 +38,15 @@ $(SRCDIR)/MQTTSNGWPublishHandler.cpp \
 $(SRCDIR)/MQTTSNGWSubscribeHandler.cpp \
 $(SRCDIR)/MQTTSNGWEncapsulatedPacket.cpp \
 $(SRCDIR)/MQTTSNGWForwarder.cpp \
+$(SRCDIR)/MQTTSNGWQoSm1Proxy.cpp \
+$(SRCDIR)/MQTTSNGWAdapter.cpp \
+$(SRCDIR)/MQTTSNGWAggregater.cpp \
+$(SRCDIR)/MQTTSNGWClientList.cpp \
+$(SRCDIR)/MQTTSNGWTopic.cpp \
+$(SRCDIR)/MQTTSNGWAdapterManager.cpp \
+$(SRCDIR)/MQTTSNAggregateConnectionHandler.cpp \
+$(SRCDIR)/MQTTSNGWMessageIdTable.cpp \
+$(SRCDIR)/MQTTSNGWAggregateTopicTable.cpp \
 $(SRCDIR)/$(OS)/$(SENSORNET)/SensorNetwork.cpp \
 $(SRCDIR)/$(OS)/Timer.cpp  \
 $(SRCDIR)/$(OS)/Network.cpp \
@@ -140,7 +148,6 @@ install:
 	cp -pf $(CONFIG) ../../
 	cp -pf $(CLIENTS) ../../
 	cp -pf $(PREDEFTOPIC) ../../
-	cp -pf $(FORWARDERS) ../../
 	
 
 exectest:

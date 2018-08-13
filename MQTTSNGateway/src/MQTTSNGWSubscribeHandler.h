@@ -31,8 +31,10 @@ class MQTTSNSubscribeHandler
 public:
 	MQTTSNSubscribeHandler(Gateway* gateway);
 	~MQTTSNSubscribeHandler();
-	void handleSubscribe(Client* client, MQTTSNPacket* packet);
-	void handleUnsubscribe(Client* client, MQTTSNPacket* packet);
+	MQTTGWPacket* handleSubscribe(Client* client, MQTTSNPacket* packet);
+	MQTTGWPacket* handleUnsubscribe(Client* client, MQTTSNPacket* packet);
+	void handleAggregateSubscribe(Client* client, MQTTSNPacket* packet);
+	void handleAggregateUnsubscribe(Client* client, MQTTSNPacket* packet);
 
 private:
 	Gateway* _gateway;

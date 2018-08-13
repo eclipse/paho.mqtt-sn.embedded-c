@@ -52,10 +52,10 @@ extern LScreen* theScreen;
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF  = {
-	"ty4twGatewaySubClient", // ClientId
+	"ClientSUB", // ClientId
 	{225,1,1,1},         // Multicast group IP
 	1883,                // Multicast group Port
-	20002,               // Local PortNo
+	20011,               // Local PortNo
 };
 
 /*------------------------------------------------------
@@ -199,7 +199,7 @@ TASK_LIST = {// e.g. TASK( task, executing duration in second),
  *------------------------------------------------------*/
 void setup(void)
 {
-
+    SetForwarderMode(false);
 }
 
 

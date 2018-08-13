@@ -23,19 +23,18 @@
 using namespace MQTTSNGW;
 
 /*
- *  Gateway Process
+ *  Gateway Application
  */
-Gateway* gw = new Gateway();
-PacketHandleTask  task1(gw);
-ClientRecvTask    task2(gw);
-ClientSendTask    task3(gw);
-BrokerRecvTask    task4(gw);
-BrokerSendTask    task5(gw);
+Gateway gateway;
+PacketHandleTask  task1(&gateway);
+ClientRecvTask    task2(&gateway);
+ClientSendTask    task3(&gateway);
+BrokerRecvTask    task4(&gateway);
+BrokerSendTask    task5(&gateway);
 
 int main(int argc, char** argv)
 {
-	gw->initialize(argc, argv);
-	gw->run();
-	delete gw;
+    gateway.initialize(argc, argv);
+    gateway.run();
 	return 0;
 }

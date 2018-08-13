@@ -16,10 +16,10 @@
 #ifndef MQTTSNGATEWAY_H_
 #define MQTTSNGATEWAY_H_
 
-#include "MQTTSNGWClient.h"
-#include "MQTTSNGWForwarder.h"
+#include <MQTTSNGWAdapterManager.h>
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
+#include "MQTTSNGWClient.h"
 
 namespace MQTTSNGW
 {
@@ -74,6 +74,8 @@ namespace MQTTSNGW
 /*=====================================
          Class Event
   ====================================*/
+class Client;
+
 enum EventType{
 	Et_NA = 0,
 	EtStop,
@@ -106,12 +108,13 @@ public:
 	MQTTGWPacket* getMQTTGWPacket(void);
 
 private:
-	EventType   _eventType;
-	Client*     _client;
-	SensorNetAddress* _sensorNetAddr;
-	MQTTSNPacket* _mqttSNPacket;
-	MQTTGWPacket* _mqttGWPacket;
+	EventType   _eventType {Et_NA};
+	Client*     _client {nullptr};
+	SensorNetAddress* _sensorNetAddr {nullptr};
+	MQTTSNPacket* _mqttSNPacket {nullptr};
+	MQTTGWPacket* _mqttGWPacket {nullptr};
 };
+
 
 /*=====================================
  Class EventQue
@@ -133,37 +136,47 @@ private:
 	Semaphore  _sem;
 };
 
-/*
- *  GatewayParams
- */
-typedef struct
+
+
+/*=====================================
+ Class GatewayParams
+ ====================================*/
+class GatewayParams
 {
-	char* configName;
-	char* clientListName;
-	char* loginId;
-	char* password;
-	uint16_t keepAlive;
-	uint8_t  gatewayId;
-	uint8_t  mqttVersion;
-	uint16_t maxInflightMsgs;
-	char* gatewayName;
-	char* brokerName;
-	char* port;
-	char* portSecure;
-	char* rootCApath;
-	char* rootCAfile;
-	char* certKey;
-	char* privateKey;
-	char* predefinedTopicFileName;
-	char* forwarderListName;
-}GatewayParams;
+public:
+     string configDir;
+	char* configName {nullptr};
+	char* clientListName {nullptr};
+	char* loginId {nullptr};
+	char* password {nullptr};
+	uint16_t keepAlive {0};
+	uint8_t  gatewayId {0};
+	uint8_t  mqttVersion {0};
+	uint16_t maxInflightMsgs {0};
+	char* gatewayName {nullptr};
+	char* brokerName {nullptr};
+	char* port {nullptr};
+	char* portSecure {nullptr};
+	char* rootCApath {nullptr};
+	char* rootCAfile {nullptr};
+	char* certKey {nullptr};
+	char* privateKey {nullptr};
+	char* predefinedTopicFileName {nullptr};
+	char* qosMinusClientListName {nullptr};
+	bool  clientAuthentication {false};
+};
+
+
 
 /*=====================================
      Class Gateway
  =====================================*/
+class AdapterManager;
+class ClientList;
+
 class Gateway: public MultiTaskProcess{
 public:
-	Gateway();
+    Gateway(void);
 	~Gateway();
 	virtual void initialize(int argc, char** argv);
 	void run(void);
@@ -172,20 +185,22 @@ public:
 	EventQue* getClientSendQue(void);
 	EventQue* getBrokerSendQue(void);
 	ClientList* getClientList(void);
-	ForwarderList* getForwarderList(void);
 	SensorNetwork* getSensorNetwork(void);
 	LightIndicator* getLightIndicator(void);
 	GatewayParams* getGWParams(void);
+	AdapterManager* getAdapterManager(void);
+	int getParam(const char* parameter, char* value);
+	bool hasSecureConnection(void);
 
 private:
-	ClientList _clientList;
-	ForwarderList _forwarderList;
+	GatewayParams  _params;
+	ClientList* _clientList {nullptr};
 	EventQue   _packetEventQue;
 	EventQue   _brokerSendQue;
 	EventQue   _clientSendQue;
 	LightIndicator _lightIndicator;
-	GatewayParams  _params;
 	SensorNetwork  _sensorNetwork;
+	AdapterManager* _adapterManager {nullptr};
 };
 
 }

@@ -30,6 +30,20 @@
 using namespace std;
 using namespace MQTTSNGW;
 
+#if defined(OSX)
+int sem_timedwait(sem_type sem, const struct timespec *timeout)
+{
+	int rc = -1;
+	int64_t tout = timeout->tv_sec * 1000L + tv_nsec * 1000000L
+	rc = (int)dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, tout));
+	if (rc != 0)
+	{
+		rc = ETIMEDOUT;
+	}
+ 	return rc;
+}
+#endif
+
 /*=====================================
  Class Mutex
  =====================================*/

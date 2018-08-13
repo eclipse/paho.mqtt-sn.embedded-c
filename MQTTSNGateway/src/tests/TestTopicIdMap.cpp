@@ -34,7 +34,7 @@ TestTopicIdMap::~TestTopicIdMap()
 
 bool TestTopicIdMap::testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicTypes type)
 {
-    TopicIdMapelement* elm = _map->getElement((uint16_t)msgid );
+    TopicIdMapElement* elm = _map->getElement((uint16_t)msgid );
     if ( elm )
     {
        //printf("msgid=%d id=%d type=%d\n", msgid, elm->getTopicId(), elm->getTopicType());

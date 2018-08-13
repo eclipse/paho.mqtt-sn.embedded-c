@@ -21,6 +21,7 @@
 
 namespace MQTTSNGW
 {
+class AdapterManager;
 
 /*=====================================
      Class ClientRecvTask
@@ -28,14 +29,16 @@ namespace MQTTSNGW
 class ClientRecvTask:public Thread
 {
 	MAGIC_WORD_FOR_THREAD;
+	friend AdapterManager;
 public:
 	ClientRecvTask(Gateway*);
-	~ClientRecvTask();
+	~ClientRecvTask(void);
 	virtual void initialize(int argc, char** argv);
-	void run();
+	void run(void);
 
 private:
-	void log(Client*, MQTTSNPacket*, MQTTSNString* id = 0);
+	void log(Client*, MQTTSNPacket*, MQTTSNString* id);
+	void log(const char* clientId, MQTTSNPacket* packet);
 
 	Gateway*       _gateway;
 	SensorNetwork* _sensorNetwork;

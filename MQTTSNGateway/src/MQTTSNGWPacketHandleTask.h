@@ -17,46 +17,60 @@
 #ifndef MQTTSNGWPACKETHANDLETASK_H_
 #define MQTTSNGWPACKETHANDLETASK_H_
 
-#include <Timer.h>
-#include "MQTTSNGWDefines.h"
-#include "MQTTSNGateway.h"
-#include "MQTTSNGWClient.h"
-#include "MQTTSNGWPacket.h"
-#include "MQTTGWPacket.h"
-#include "MQTTGWConnectionHandler.h"
-#include "MQTTGWPublishHandler.h"
-#include "MQTTGWSubscribeHandler.h"
-#include "MQTTSNGWConnectionHandler.h"
-#include "MQTTSNGWPublishHandler.h"
-#include "MQTTSNGWSubscribeHandler.h"
-#include "SensorNetwork.h"
-
-
+#include "Timer.h"
+#include "MQTTSNGWProcess.h"
 namespace MQTTSNGW
 {
+class Gateway;
+class Client;
+class MQTTSNPacket;
+class MQTTGWPacket;
+class Timer;
+class MQTTGWConnectionHandler;
+class MQTTGWPublishHandler;
+class MQTTGWSubscribeHandler;
+class MQTTSNConnectionHandler;
+class MQTTSNPublishHandler;
+class MQTTSNSubscribeHandler;
+
+class MQTTSNAggregateConnectionHandler;
 
 #define ERRNO_APL_01  11    // Task Initialize Error
 
+class Thread;
+class Timer;
 /*=====================================
         Class PacketHandleTask
  =====================================*/
 class PacketHandleTask : public Thread
 {
 	MAGIC_WORD_FOR_THREAD;
+	friend class MQTTGWAggregatePublishHandler;
+	friend class MQTTGWAggregateSubscribeHandler;
+	friend class MQTTSNAggregateConnectionHandler;
+	friend class MQTTSNAggregatePublishHandler;
+	friend class MQTTSNAggregateSubscribeHandler;
 public:
 	PacketHandleTask(Gateway* gateway);
 	~PacketHandleTask();
 	void run();
 private:
-	Gateway* _gateway;
+	void aggregatePacketHandler(Client*client, MQTTSNPacket* packet);
+	void aggregatePacketHandler(Client*client, MQTTGWPacket* packet);
+	void transparentPacketHandler(Client*client, MQTTSNPacket* packet);
+	void transparentPacketHandler(Client*client, MQTTGWPacket* packet);
+
+	Gateway* _gateway {nullptr};
 	Timer _advertiseTimer;
 	Timer _sendUnixTimer;
-	MQTTGWConnectionHandler* _mqttConnection;
-	MQTTGWPublishHandler*    _mqttPublish;
-	MQTTGWSubscribeHandler*  _mqttSubscribe;
-	MQTTSNConnectionHandler* _mqttsnConnection;
-	MQTTSNPublishHandler*    _mqttsnPublish;
-	MQTTSNSubscribeHandler*  _mqttsnSubscribe;
+	MQTTGWConnectionHandler* _mqttConnection {nullptr};
+	MQTTGWPublishHandler*    _mqttPublish {nullptr};
+	MQTTGWSubscribeHandler*  _mqttSubscribe {nullptr};
+	MQTTSNConnectionHandler* _mqttsnConnection {nullptr};
+	MQTTSNPublishHandler*    _mqttsnPublish {nullptr};
+	MQTTSNSubscribeHandler*  _mqttsnSubscribe {nullptr};
+
+	MQTTSNAggregateConnectionHandler* _mqttsnAggrConnection {nullptr};
 };
 
 

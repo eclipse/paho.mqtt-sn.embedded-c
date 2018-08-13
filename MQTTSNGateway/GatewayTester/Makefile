@@ -7,9 +7,13 @@ PUBAPPL := mainPub
 PRGSUB := MQTT-SNSub
 SUBAPPL := mainSub
 
+PRGQOS := MQTT-SNPubQoS-1
+QOSAPPL := mainPubQoS-1
+
 SRCDIR := samples
 SRCPUB := ClientPub
 SRCSUB := ClientSub
+SRCQOS := ClientPubQoS-1
 SUBDIR := src
 
 CPPSRCS :=  \
@@ -46,10 +50,11 @@ DEPS := $(CPPSRCS:%.cpp=$(OUTDIR)/%.d)
 
 PROGPUB := $(OUTDIR)/$(PRGPUB)
 PROGSUB := $(OUTDIR)/$(PRGSUB)
+PROGQOS := $(OUTDIR)/$(PRGQOS)
 
 .PHONY: install clean 
 
-all: $(PROG) $(PROGPUB) $(PROGSUB)
+all: $(PROG) $(PROGPUB) $(PROGSUB) $(PROGQOS)
 
 
 
@@ -63,6 +68,9 @@ $(PROGPUB): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCPUB)/$(PUBAPPL).o
 
 $(PROGSUB): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/$(SUBAPPL).o
 	$(CXX) $(LDFLAGS) -o $(PROGSUB) $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/$(SUBAPPL).o $(OBJS) $(LIBS) $(LDADD)
+
+$(PROGQOS): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCQOS)/$(QOSAPPL).o
+	$(CXX) $(LDFLAGS) -o $(PROGQOS) $(OUTDIR)/$(SRCDIR)/$(SRCQOS)/$(QOSAPPL).o $(OBJS) $(LIBS) $(LDADD)
 
 
 $(OUTDIR)/$(SUBDIR)/%.o:$(SUBDIR)/%.cpp
@@ -80,6 +88,10 @@ $(OUTDIR)/$(SRCDIR)/$(SRCPUB)/%.o:$(SRCDIR)/$(SRCPUB)%.cpp
 $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/%.o:$(SRCDIR)/$(SRCSUB)%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	
+$(OUTDIR)/$(SRCDIR)/$(SRCQOS)/%.o:$(SRCDIR)/$(SRCQOS)%.cpp
+	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 clean:
 	rm -rf $(OUTDIR)
@@ -88,4 +100,5 @@ install:
 	cp -pf $(PROG) ../../../
 	cp -pf $(PROGPUB) ../../../
 	cp -pf $(PROGSUB) ../../../	
+	cp -pf $(PROGQOS) ../../../	
 	

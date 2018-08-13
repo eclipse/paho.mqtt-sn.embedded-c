@@ -18,6 +18,8 @@
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNGWVersion.h"
+#include "MQTTSNGWQoSm1Proxy.h"
+#include "MQTTSNGWClient.h"
 #include <string.h>
 using namespace MQTTSNGW;
 
@@ -26,29 +28,15 @@ char* currentDateTime(void);
 /*=====================================
  Class Gateway
  =====================================*/
-Gateway::Gateway()
+MQTTSNGW::Gateway* theGateway = nullptr;
+
+Gateway::Gateway(void)
 {
-	theMultiTaskProcess = this;
-	theProcess = this;
-	_params.loginId = 0;
-	_params.password = 0;
-	_params.keepAlive = 0;
-	_params.gatewayId = 0;
-	_params.mqttVersion = 0;
-	_params.maxInflightMsgs = 0;
-	_params.gatewayName = 0;
-	_params.brokerName = 0;
-	_params.port = 0;
-	_params.portSecure = 0;
-	_params.rootCApath = 0;
-	_params.rootCAfile = 0;
-	_params.certKey = 0;
-	_params.privateKey = 0;
-	_params.clientListName = 0;
-	_params.configName = 0;
-	_params.predefinedTopicFileName = 0;
-	_params.forwarderListName = 0;
-	_packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
+    theMultiTaskProcess = this;
+    theProcess = this;
+    _packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
+    _clientList = new ClientList();
+    _adapterManager = new AdapterManager(this);
 }
 
 Gateway::~Gateway()
@@ -101,22 +89,39 @@ Gateway::~Gateway()
 	{
 		free(_params.configName);
 	}
-    if ( _params.predefinedTopicFileName )
+
+    if ( _params.qosMinusClientListName )
     {
-        free(_params.predefinedTopicFileName);
+        free(_params.qosMinusClientListName);
     }
-    if ( _params.forwarderListName )
+
+    if ( _adapterManager )
     {
-        free(_params.forwarderListName);
+        delete _adapterManager;
     }
+    if ( _clientList )
+    {
+        delete _clientList;
+    }
+}
+
+int Gateway::getParam(const char* parameter, char* value)
+{
+    return MultiTaskProcess::getParam(parameter, value);
 }
 
 void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	string fileName;
+    theGateway = this;
+
 	MultiTaskProcess::initialize(argc, argv);
 	resetRingBuffer();
+
+	_params.configDir = *getConfigDirName();
+    fileName = _params.configDir + *getConfigFileName();
+    _params.configName = strdup(fileName.c_str());
 
 	if (getParam("BrokerName", param) == 0)
 	{
@@ -163,6 +168,11 @@ void Gateway::initialize(int argc, char** argv)
 		_params.gatewayName = strdup(param);
 	}
 
+	if (_params.gatewayName == 0 )
+	{
+		throw Exception( "Gateway::initialize: Gateway Name is missing.");
+	}
+
 	_params.mqttVersion = DEFAULT_MQTT_VERSION;
 	if (getParam("MQTTVersion", param) == 0)
 	{
@@ -176,7 +186,6 @@ void Gateway::initialize(int argc, char** argv)
 	}
 
 	_params.keepAlive = DEFAULT_KEEP_ALIVE_TIME;
-
 	if (getParam("KeepAlive", param) == 0)
 	{
 		_params.keepAlive = atoi(param);
@@ -201,79 +210,23 @@ void Gateway::initialize(int argc, char** argv)
 	{
 		if (!strcasecmp(param, "YES"))
 		{
-			if (getParam("ClientsList", param) == 0)
-			{
-				fileName = string(param);
-			}
-			else
-			{
-				fileName = *getConfigDirName() + string(CLIENT_LIST);
-			}
-
-			if (!_clientList.authorize(fileName.c_str()))
-			{
-				throw Exception("Gateway::initialize: No client list defined by the configuration.");
-			}
-			_params.clientListName = strdup(fileName.c_str());
+			_params.clientAuthentication = true;
 		}
 	}
 
+	/*  ClientList and Adapters  Initialize  */
+	_adapterManager->initialize();
 
+	bool aggregate = _adapterManager->isAggregaterActive();
+	_clientList->initialize(aggregate);
 
-	if (getParam("PredefinedTopic", param) == 0 )
-	{
-	    if (!strcasecmp(param, "YES") )
-	    {
-            if (getParam("PredefinedTopicList", param) == 0)
-            {
-                fileName = string(param);
-            }
-            else
-            {
-                fileName = *getConfigDirName() + string(PREDEFINEDTOPIC_FILE);
-            }
-           if (!_clientList.setPredefinedTopics(fileName.c_str()))
-           {
-               throw Exception("Gateway::initialize: No PredefinedTopic file defined by the configuration..");
-           }
-            _params.predefinedTopicFileName = strdup(fileName.c_str());
-	    }
-	    else
-	    {
-	        _params.predefinedTopicFileName = 0;
-	    }
-	}
-
-	if (getParam("Forwarder", param) == 0 )
-	    {
-	        if (!strcasecmp(param, "YES") )
-	        {
-	            if (getParam("ForwardersList", param) == 0)
-	            {
-	                fileName = string(param);
-	            }
-	            else
-	            {
-	                fileName = *getConfigDirName() + string(FORWARDER_LIST);
-	            }
-	           if ( !_forwarderList.setFowerder(fileName.c_str()) )
-	           {
-	               throw Exception("Gateway::initialize: No ForwardersList file defined by the configuration..");
-	           }
-	            _params.forwarderListName = strdup(fileName.c_str());
-	        }
-	        else
-	        {
-	            _params.forwarderListName = 0;
-	        }
-	    }
-
-    fileName = *getConfigDirName() + *getConfigFileName();
-    _params.configName = strdup(fileName.c_str());
+	/*  Setup predefined topics  */
+	_clientList->setPredefinedTopics(aggregate);
 }
 
 void Gateway::run(void)
 {
+    /* write prompts */
 	_lightIndicator.redLight(true);
 	WRITELOG("\n%s", PAHO_COPYRIGHT4);
 	WRITELOG("\n%s\n", PAHO_COPYRIGHT0);
@@ -284,26 +237,26 @@ void Gateway::run(void)
 	WRITELOG("%s\n", PAHO_COPYRIGHT4);
 	WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
 	WRITELOG(" ConfigFile: %s\n", _params.configName);
-	if ( getClientList()->isAuthorized() )
+
+	if ( _params.clientListName )
 	{
-		WRITELOG(" ClientList:  %s\n", _params.clientListName);
+		WRITELOG(" ClientList: %s\n", _params.clientListName);
 	}
+
     if (  _params.predefinedTopicFileName )
     {
         WRITELOG(" PreDefFile: %s\n", _params.predefinedTopicFileName);
     }
-    if (  _params.forwarderListName )
-    {
-        WRITELOG(" Forwarders: %s\n", _params.forwarderListName);
-    }
+
 	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
 	WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
-
 	WRITELOG(" RootCApath: %s\n", _params.rootCApath);
 	WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
 	WRITELOG(" CertKey:    %s\n", _params.certKey);
-	WRITELOG(" PrivateKey: %s\n", _params.privateKey);
+	WRITELOG(" PrivateKey: %s\n\n\n", _params.privateKey);
 
+
+	/* Run Tasks until CTRL+C entred */
 	MultiTaskProcess::run();
 
 	/* stop Tasks */
@@ -341,12 +294,7 @@ EventQue* Gateway::getBrokerSendQue()
 
 ClientList* Gateway::getClientList()
 {
-	return &_clientList;
-}
-
-ForwarderList* Gateway::getForwarderList(void)
-{
-    return &_forwarderList;
+	return _clientList;
 }
 
 SensorNetwork* Gateway::getSensorNetwork()
@@ -364,6 +312,18 @@ GatewayParams* Gateway::getGWParams(void)
 	return &_params;
 }
 
+AdapterManager* Gateway::getAdapterManager(void)
+{
+    return _adapterManager;
+}
+
+bool Gateway::hasSecureConnection(void)
+{
+	return (  _params.certKey
+			&& _params.privateKey
+			&& _params.rootCApath
+			&& _params.rootCAfile );
+}
 /*=====================================
  Class EventQue
  =====================================*/
@@ -390,9 +350,9 @@ void  EventQue::setMaxSize(uint16_t maxSize)
 
 Event* EventQue::wait(void)
 {
-	Event* ev = 0;
+	Event* ev = nullptr;
 
-	while(ev == 0)
+	while(ev == nullptr)
 	{
 		if ( _que.size() == 0 )
 		{
@@ -460,11 +420,7 @@ int EventQue::size()
  =====================================*/
 Event::Event()
 {
-	_eventType = Et_NA;
-	_client = 0;
-	_sensorNetAddr = 0;
-	_mqttSNPacket = 0;
-	_mqttGWPacket = 0;
+
 }
 
 Event::~Event()
@@ -560,3 +516,5 @@ MQTTGWPacket* Event::getMQTTGWPacket(void)
 {
 	return _mqttGWPacket;
 }
+
+

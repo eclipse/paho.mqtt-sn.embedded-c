@@ -27,11 +27,15 @@ class MQTTSNPublishHandler
 public:
 	MQTTSNPublishHandler(Gateway* gateway);
 	~MQTTSNPublishHandler();
-	void handlePublish(Client* client, MQTTSNPacket* packet);
+	MQTTGWPacket* handlePublish(Client* client, MQTTSNPacket* packet);
 	void handlePuback(Client* client, MQTTSNPacket* packet);
 	void handleAck(Client* client, MQTTSNPacket* packet, uint8_t packetType);
 	void handleRegister(Client* client, MQTTSNPacket* packet);
 	void handleRegAck( Client* client, MQTTSNPacket* packet);
+
+	void handleAggregatePublish(Client* client, MQTTSNPacket* packet);
+	void handleAggregateAck(Client* client, MQTTSNPacket* packet, int type);
+
 private:
 	Gateway* _gateway;
 };

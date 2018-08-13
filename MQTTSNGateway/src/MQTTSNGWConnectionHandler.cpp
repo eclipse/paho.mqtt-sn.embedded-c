@@ -90,7 +90,10 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 	//* clear ConnectData of Client */
 	Connect* connectData = client->getConnectData();
 	memset(connectData, 0, sizeof(Connect));
-	client->disconnected();
+	if ( !client->isAdapter() )
+	{
+	    client->disconnected();
+	}
 
 	Topics* topics = client->getTopics();
 
@@ -101,7 +104,7 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 	connectData->keepAliveTimer = data.duration;
 	connectData->flags.bits.will = data.willFlag;
 
-	if ((const char*) _gateway->getGWParams()->loginId != 0 && (const char*) _gateway->getGWParams()->password != 0)
+	if ((const char*) _gateway->getGWParams()->loginId != nullptr && (const char*) _gateway->getGWParams()->password != 0)
 	{
 		connectData->flags.bits.password = 1;
 		connectData->flags.bits.username = 1;
@@ -153,7 +156,7 @@ void MQTTSNConnectionHandler::handleWilltopic(Client* client, MQTTSNPacket* pack
 {
 	int willQos;
 	uint8_t willRetain;
-	MQTTSNString willTopic;
+	MQTTSNString willTopic = MQTTSNString_initializer;
 
 	if ( packet->getWILLTOPIC(&willQos, &willRetain, &willTopic) == 0 )
 	{
@@ -187,7 +190,7 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet
 		return;
 	}
 
-	MQTTSNString willmsg;
+	MQTTSNString willmsg  = MQTTSNString_initializer;
 	Connect* connectData = client->getConnectData();
 
 	if( client->isConnectSendable() )
@@ -288,9 +291,9 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 
 void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
 {
-    MQTTGWPacket* msg = 0;
+    MQTTGWPacket* msg = nullptr;
 
-    while  ( ( msg = client->getClientSleepPacket() ) != 0 )
+    while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
     {
         // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
         client->deleteFirstClientSleepPacket();  // pop the que to delete element.

@@ -132,8 +132,8 @@ public:
 	QueElement(T* t)
 	{
 		_element = t;
-		_next = 0;
-		_prev = 0;
+		_next = nullptr;
+		_prev = nullptr;
 	}
 
 	~QueElement()
@@ -155,8 +155,8 @@ class Que
 public:
 	Que()
 	{
-		_head = 0;
-		_tail = 0;
+		_head = nullptr;
+		_tail = nullptr;
 		_cnt = 0;
 		_maxSize = 0;
 	}
@@ -180,12 +180,12 @@ public:
 			QueElement<T>* head = _head;
 			if ( _head == _tail )
 			{
-				_head = _tail = 0;
+				_head = _tail = nullptr;
 			}
 			else
 			{
 				_head = head->_next;
-				head->_prev = 0;
+				head->_prev = nullptr;
 			}
 			delete head;
 			_cnt--;
@@ -861,13 +861,13 @@ class ListElm
 public:
 	ListElm()
 	{
-		_elm = 0;
-		_prev = _next = 0;
+		_elm = nullptr;
+		_prev = _next = nullptr;
 	}
 	ListElm(T* elm)
 	{
 		_elm = elm;
-		_prev = _next = 0;
+		_prev = _next = nullptr;
 	}
 	T* getContent(void)
 	{
@@ -888,7 +888,7 @@ class List{
 public:
 	List()
 	{
-		_head = _tail = 0;
+		_head = _tail = nullptr;
 		_size = 0;
 	}
 	~List()
@@ -899,11 +899,11 @@ public:
 	int add(T* t)
 	{
 		ListElm<T>* elm = new ListElm<T>(t);
-		if ( elm == 0 )
+		if ( elm == nullptr )
 		{
 			return 0;
 		}
-		if ( _head == 0 )
+		if ( _head == nullptr )
 		{
 			_head = elm;
 			_tail = elm;
@@ -929,7 +929,7 @@ public:
 		else if ( _tail == elm )
 		{
 			_tail = elm->_prev;
-			elm->_prev->_next = 0;
+			elm->_prev->_next = nullptr;
 			_size--;
 			delete elm;
 		}
@@ -950,8 +950,8 @@ public:
 			delete p;
 			p = q;
 		}
-		_head = 0;
-		_tail = 0;
+		_head = nullptr;
+		_tail = nullptr;
 		_size = 0;
 	}
 
