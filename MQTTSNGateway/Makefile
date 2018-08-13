@@ -10,7 +10,6 @@ TESTAPPL := mainTestProcess
 CONFIG := gateway.conf
 CLIENTS := clients.conf
 PREDEFTOPIC := predefinedTopic.conf
-FORWARDERS := forwarders.conf
 
 SRCDIR := src
 SUBDIR := ../MQTTSNPacket/src
@@ -149,7 +148,6 @@ install:
 	cp -pf $(CONFIG) ../../
 	cp -pf $(CLIENTS) ../../
 	cp -pf $(PREDEFTOPIC) ../../
-	cp -pf $(FORWARDERS) ../../
 	
 
 exectest:

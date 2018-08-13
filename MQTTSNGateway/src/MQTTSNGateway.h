@@ -164,7 +164,6 @@ public:
 	char* certKey {nullptr};
 	char* privateKey {nullptr};
 	char* predefinedTopicFileName {nullptr};
-	char* forwarderListName {nullptr};
 	char* qosMinusClientListName {nullptr};
 	bool  clientAuthentication {false};
 };

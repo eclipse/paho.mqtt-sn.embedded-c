@@ -26,6 +26,7 @@ class Client;
 class QoSm1Proxy;
 class Aggregater;
 class ForwarderList;
+class Forwarder;
 class MQTTSNPacket;
 class MQTTSNGWPacket;
 class ClientRecvTask;
@@ -46,7 +47,6 @@ public:
     void checkConnection(void);
 
     bool isAggregatedClient(Client* client);
-    Client* getClient(MQTTSNPacket* packet, ClientRecvTask* task);
     Client* getClient(Client& client);
     Client* convertClient(uint16_t msgId, uint16_t* clientMsgId);
     int unicastToClient(Client* client, MQTTSNPacket* packet, ClientSendTask* task);

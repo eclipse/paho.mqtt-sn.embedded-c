@@ -45,7 +45,7 @@ void Aggregater::initialize(void)
         if (!strcasecmp(param, "YES") )
         {
            /* Create Aggregated Clients */
-        	_gateway->getClientList()->setClientList(_gateway, AGGREGATER_TYPE);
+        	_gateway->getClientList()->setClientList(AGGREGATER_TYPE);
         	setup((const char*)(_gateway->getGWParams()->gatewayName), Atype_Aggregater);
         	_isActive = true;
         }

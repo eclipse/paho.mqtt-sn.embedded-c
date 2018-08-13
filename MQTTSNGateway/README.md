@@ -36,18 +36,16 @@ BrokerSecurePortNo=8883
 # All clients must be specified by the ClientList File  
 #
 
-AggregateGateway=NO
-ClientAuthentication=NO
-
 #ClientsList=/path/to/your_clients.conf
 
+ClientAuthentication=NO
+AggregateGateway=NO
+Forwarder=NO
 QoS-1=NO
 OoS-1ProxyName=Proxy007
 
 #PredefinedTopicList=/path/to/your_predefinedTopic.conf
 
-Forwarder=NO
-#ForwardersList=/path/to/your_forwarers.conf
 
 #RootCAfile=/etc/ssl/certs/ca-certificates.crt
 #RootCApath=/etc/ssl/certs/
@@ -84,10 +82,8 @@ Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW messag
 when **AggregateGateway** or **ClientAuthentication** is **YES**, All clients which connect to the gateway must be declared by a **ClientsList** file.     
 Format of the file is ClientId and SensorNetwork Address. e.g. IP address and Port No etc, in CSV. more detail see clients.conf   
 When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
-When **Forwarder** is **YE**S, Forwarder Encapsulation Message is available. Connectable Forwarders are specifed by **ForwardersList** file. In this file, ForwarderIds and those sensorNet addresses are declared in CSV format.    
+When **Forwarder** is **YE**S, Forwarder Encapsulation Message is available. Connectable Forwarders must be declared by a **ClientsList** file.     
  
-
-
 
 ### ** How to monitor the gateway from remote. **
 

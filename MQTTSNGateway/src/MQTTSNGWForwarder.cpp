@@ -14,6 +14,7 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 #include "MQTTSNGWForwarder.h"
+#include "SensorNetwork.h"
 
 #include <string.h>
 
@@ -48,25 +49,12 @@ void ForwarderList::initialize(Gateway* gw)
 {
     char param[MQTTSNGW_PARAM_MAX];
     string fileName;
-    GatewayParams* params = gw->getGWParams();
 
     if (gw->getParam("Forwarder", param) == 0 )
     {
         if (!strcasecmp(param, "YES") )
         {
-            if (gw->getParam("ForwardersList", param) == 0)
-            {
-                fileName = string(param);
-            }
-            else
-            {
-                fileName = params->configDir + string(FORWARDER_LIST);
-            }
-           if ( !setFowerder(fileName.c_str()) )
-           {
-               throw Exception("ForwarderList::initialize: No ForwardersList file defined by the configuration..");
-           }
-           params->forwarderListName = strdup(fileName.c_str());
+        	gw->getClientList()->setClientList(FORWARDER_TYPE);
         }
     }
 }
@@ -86,58 +74,7 @@ Forwarder* ForwarderList::getForwarder(SensorNetAddress* addr)
     return p;
 }
 
-bool ForwarderList::setFowerder(const char* fileName)
-{
-    FILE* fp;
-    char buf[MAX_CLIENTID_LENGTH + 256];
-    size_t pos;
-
-    SensorNetAddress netAddr;
-
-    if ((fp = fopen(fileName, "r")) != 0)
-    {
-        while (fgets(buf, MAX_CLIENTID_LENGTH + 254, fp) != 0)
-        {
-            if (*buf == '#')
-            {
-                continue;
-            }
-            string data = string(buf);
-            while ((pos = data.find_first_of(" 　\t\n")) != string::npos)
-            {
-                data.erase(pos, 1);
-            }
-            if (data.empty())
-            {
-                continue;
-            }
-
-            pos = data.find_first_of(",");
-            string id = data.substr(0, pos);
-            string addr = data.substr(pos + 1);
-
-            if (netAddr.setAddress(&addr) == 0)
-            {
-                addForwarder(&netAddr, &id);
-            }
-            else
-            {
-                WRITELOG("Invalid address     %s\n", data.c_str());
-                return false;
-            }
-        }
-        fclose(fp);
-    }
-    else
-    {
-        WRITELOG("Can not open the forwarders List.     %s\n", fileName);
-        return false;
-    }
-    return true;
-}
-
-
-Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  string* forwarderId)
+Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId)
 {
     Forwarder* fdr = new Forwarder(addr, forwarderId);
     if ( _head == nullptr )
@@ -173,9 +110,9 @@ Forwarder::Forwarder()
      Class ForwarderList
  =====================================*/
 
-Forwarder::Forwarder(SensorNetAddress* addr,  string* forwarderId)
+Forwarder::Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId)
 {
-    _forwarderName = *forwarderId;
+    _forwarderName = string(forwarderId->cstring);
     _sensorNetAddr = *addr;
     _headClient = nullptr;
     _next = nullptr;

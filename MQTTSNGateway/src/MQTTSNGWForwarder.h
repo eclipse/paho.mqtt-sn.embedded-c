@@ -55,7 +55,7 @@ class Forwarder
     friend class ForwarderList;
 public:
     Forwarder(void);
-    Forwarder(SensorNetAddress* addr,  string* forwarderId);
+    Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
     ~Forwarder();
 
     void initialize(void);
@@ -86,8 +86,7 @@ public:
 
     void initialize(Gateway* gw);
     Forwarder* getForwarder(SensorNetAddress* addr);
-    bool setFowerder(const char* fileName);
-    Forwarder* addForwarder(SensorNetAddress* addr,  string* forwarderId);
+    Forwarder* addForwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
 
 private:
     Forwarder* _head;

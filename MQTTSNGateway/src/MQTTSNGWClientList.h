@@ -26,6 +26,7 @@ namespace MQTTSNGW
 #define TRANSPEARENT_TYPE 0
 #define QOSM1PROXY_TYPE 1
 #define AGGREGATER_TYPE 2
+#define FORWARDER_TYPE  3
 
 class Client;
 
@@ -38,9 +39,9 @@ public:
     ClientList();
     ~ClientList();
 
-    void initialize(Gateway* gw, bool aggregate);
-    void setClientList(Gateway* gw, int type);
-    void setPredefinedTopics(Gateway* gw, bool aggregate);
+    void initialize(bool aggregate);
+    void setClientList(int type);
+    void setPredefinedTopics(bool aggregate);
     void erase(Client*&);
     Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId,int type);
     Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine, bool secure, int type);
@@ -54,6 +55,7 @@ public:
 
 private:
     bool readPredefinedList(const char* fileName, bool _aggregate);
+    Gateway* _gateway {nullptr};
     Client* createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t toipcId, bool _aggregate);
     Client* _firstClient;
     Client* _endClient;

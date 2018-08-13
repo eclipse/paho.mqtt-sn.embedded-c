@@ -28,6 +28,8 @@ char* currentDateTime(void);
 /*=====================================
  Class Gateway
  =====================================*/
+MQTTSNGW::Gateway* theGateway = nullptr;
+
 Gateway::Gateway(void)
 {
     theMultiTaskProcess = this;
@@ -87,14 +89,7 @@ Gateway::~Gateway()
 	{
 		free(_params.configName);
 	}
-    if ( _params.predefinedTopicFileName )
-    {
-        free(_params.predefinedTopicFileName);
-    }
-    if ( _params.forwarderListName )
-    {
-        free(_params.forwarderListName);
-    }
+
     if ( _params.qosMinusClientListName )
     {
         free(_params.qosMinusClientListName);
@@ -119,6 +114,7 @@ void Gateway::initialize(int argc, char** argv)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	string fileName;
+    theGateway = this;
 
 	MultiTaskProcess::initialize(argc, argv);
 	resetRingBuffer();
@@ -222,10 +218,10 @@ void Gateway::initialize(int argc, char** argv)
 	_adapterManager->initialize();
 
 	bool aggregate = _adapterManager->isAggregaterActive();
-	_clientList->initialize(this, aggregate);
+	_clientList->initialize(aggregate);
 
 	/*  Setup predefined topics  */
-	_clientList->setPredefinedTopics(this, aggregate);
+	_clientList->setPredefinedTopics(aggregate);
 }
 
 void Gateway::run(void)
@@ -242,24 +238,14 @@ void Gateway::run(void)
 	WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
 	WRITELOG(" ConfigFile: %s\n", _params.configName);
 
-	if ( getClientList()->isAuthorized() )
+	if ( _params.clientListName )
 	{
-		WRITELOG(" ClientList:  %s\n", _params.clientListName);
+		WRITELOG(" ClientList: %s\n", _params.clientListName);
 	}
 
     if (  _params.predefinedTopicFileName )
     {
         WRITELOG(" PreDefFile: %s\n", _params.predefinedTopicFileName);
-    }
-
-    if (  _params.forwarderListName )
-    {
-        WRITELOG(" Forwarders: %s\n", _params.forwarderListName);
-    }
-
-    if (  _params.qosMinusClientListName )
-    {
-        WRITELOG(" QoS-1File:  %s\n", _params.qosMinusClientListName);
     }
 
 	WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());

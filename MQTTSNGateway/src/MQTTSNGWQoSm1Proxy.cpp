@@ -52,7 +52,7 @@ void QoSm1Proxy::initialize(void)
         if (strcasecmp(param, "YES") == 0 )
         {
         	/*  Create QoS-1 Clients */
-        	_gateway->getClientList()->setClientList(_gateway, QOSM1PROXY_TYPE);
+        	_gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
 
         	/* set ClientId of this Proxy */
 			const char* name = CLIENTPROXY;

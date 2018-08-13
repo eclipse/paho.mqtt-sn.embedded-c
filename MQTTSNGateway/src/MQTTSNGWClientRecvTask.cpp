@@ -60,6 +60,7 @@ void ClientRecvTask::run()
 	Event* ev = nullptr;
 	Client* client = nullptr;
 	AdapterManager* adpMgr = _gateway->getAdapterManager();
+	QoSm1Proxy* qosm1Proxy = adpMgr->getQoSm1Proxy();
 	bool isAggrActive = adpMgr->isAggregaterActive();
 	ClientList* clientList = _gateway->getClientList();
 	EventQue* packetEventQue = _gateway->getPacketEventQue();
@@ -103,7 +104,60 @@ void ClientRecvTask::run()
 			continue;
 		}
 
-		client = adpMgr->getClient(packet, this);
+
+		Client* client = nullptr;
+		SensorNetAddress* senderAddr = _gateway->getSensorNetwork()->getSenderAddress();
+
+		if ( packet->getType() == MQTTSN_ENCAPSULATED )
+		{
+			fwd = _gateway->getAdapterManager()->getForwarderList()->getForwarder(senderAddr);
+
+			if ( fwd != nullptr )
+			{
+				MQTTSNString fwdName = MQTTSNString_initializer;
+				fwdName.cstring = const_cast<char *>( fwd->getName() );
+				log(0, packet, &fwdName);
+
+				/* get the packet from the encapsulation message */
+				MQTTSNGWEncapsulatedPacket  encap;
+				encap.desirialize(packet->getPacketData(), packet->getPacketLength());
+				nodeId.setId( encap.getWirelessNodeId() );
+				client = fwd->getClient(&nodeId);
+				packet = encap.getMQTTSNPacket();
+
+				if ( client == nullptr )
+				{
+					/* get client of Forwarder or QoSm1Proxy */
+					client = _gateway->getClientList()->getClient(senderAddr);
+				}
+			}
+		}
+		else
+		{
+			/*   Check the client belonging to QoS-1Proxy  ?    */
+
+			if ( qosm1Proxy->isActive() )
+			{
+			 /* get ClientId not Client  which can send QoS-1 PUBLISH */
+			 const char* clientName = qosm1Proxy->getClientId(senderAddr);
+
+				if ( clientName )
+				{
+					if ( !packet->isQoSMinusPUBLISH() )
+					{
+						client = qosm1Proxy->getClient();
+						log(clientName, packet);
+						WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, senderAddr->sprint(buf), ERRMSG_FOOTER);
+						delete packet;
+						continue;
+					}
+				}
+				else
+				{
+					client = _gateway->getClientList()->getClient(senderAddr);
+				}
+			}
+		}
 
 		if ( client )
 		{
@@ -123,7 +177,7 @@ void ClientRecvTask::run()
 				if ( !packet->getCONNECT(&data) )
 				{
 					log(0, packet, &data.clientID);
-					WRITELOG("%s CONNECT message form %s is incorrect.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s CONNECT message form %s is incorrect.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
@@ -145,12 +199,12 @@ void ClientRecvTask::run()
                     if ( client )
                     {
                         /* Client exists. Set SensorNet Address of it. */
-                        client->setClientAddress(_sensorNetwork->getSenderAddress());
+                        client->setClientAddress(senderAddr);
                     }
                     else
                     {
                         /* create a new client */
-                        client = clientList->createClient(_sensorNetwork->getSenderAddress(), &data.clientID, isAggrActive);
+                        client = clientList->createClient(senderAddr, &data.clientID, isAggrActive);
                     }
 				}
 
@@ -158,7 +212,7 @@ void ClientRecvTask::run()
 
 				if (!client)
 				{
-	                WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+	                WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
 					continue;
 				}
@@ -168,11 +222,18 @@ void ClientRecvTask::run()
 				ev->setClientRecvEvent(client, packet);
 				packetEventQue->post(ev);
 			}
-			else
+ 		    else
 			{
 				log(client, packet, 0);
-                WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
-                delete packet;
+				if ( packet->getType() == MQTTSN_ENCAPSULATED )
+				{
+					WRITELOG("%s Forwarder(%s) is not declared by ClientList file. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+				}
+				else
+				{
+					WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
+				}
+				delete packet;
 			}
 		}
 	}

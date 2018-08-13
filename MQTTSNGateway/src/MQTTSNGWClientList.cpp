@@ -15,9 +15,12 @@
  *    Tieto Poland Sp. z o.o. - Gateway improvements
  **************************************************************************************/
 #include "MQTTSNGWClientList.h"
+#include "MQTTSNGateway.h"
 #include <string.h>
 #include <string>
 
+using namespace MQTTSNGW;
+extern Gateway* theGateway;
 /*=====================================
  Class ClientList
  =====================================*/
@@ -44,26 +47,26 @@ ClientList::~ClientList()
     _mutex.unlock();
 }
 
-void ClientList::initialize(Gateway* gw, bool aggregate)
+void ClientList::initialize(bool aggregate)
 {
-    if (gw->getGWParams()->clientAuthentication )
+    if (theGateway->getGWParams()->clientAuthentication )
     {
 		int type = TRANSPEARENT_TYPE;
 		if ( aggregate )
 		{
 			type = AGGREGATER_TYPE;
 		}
-		setClientList(gw, type);
+		setClientList(type);
         _authorize = true;
     }
 }
 
-void ClientList::setClientList(Gateway* gw, int type)
+void ClientList::setClientList(int type)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	string fileName;
-	GatewayParams* params = gw->getGWParams();
-	if (gw->getParam("ClientsList", param) == 0)
+	GatewayParams* params = theGateway->getGWParams();
+	if (theGateway->getParam("ClientsList", param) == 0)
 	{
 		fileName = string(param);
 	}
@@ -79,14 +82,14 @@ void ClientList::setClientList(Gateway* gw, int type)
 	params->clientListName = strdup(fileName.c_str());
 }
 
-void ClientList::setPredefinedTopics(Gateway* gw, bool aggrecate)
+void ClientList::setPredefinedTopics(bool aggrecate)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 
 	string fileName;
-	GatewayParams* params = gw->getGWParams();
+	GatewayParams* params = theGateway->getGWParams();
 
-	if (gw->getParam("PredefinedTopicList", param) == 0)
+	if (theGateway->getParam("PredefinedTopicList", param) == 0)
 	{
 		fileName = string(param);
 	}
@@ -131,6 +134,7 @@ bool ClientList::createList(const char* fileName, int type)
     bool secure;
     bool stable;
     bool qos_1;
+    bool forwarder;
     bool rc = true;
     SensorNetAddress netAddr;
     MQTTSNString clientId = MQTTSNString_initializer;
@@ -160,15 +164,20 @@ bool ClientList::createList(const char* fileName, int type)
             if (netAddr.setAddress(&addr) == 0)
             {
                 qos_1 = (data.find("QoS-1") != string::npos);
+                forwarder = (data.find("forwarder") != string::npos);
                 secure = (data.find("secureConnection") != string::npos);
                 stable = !(data.find("unstableLine") != string::npos);
                 if ( (qos_1 && type == QOSM1PROXY_TYPE) || (!qos_1 && type == AGGREGATER_TYPE) )
                 {
                 	createClient(&netAddr, &clientId, stable, secure, type);
                 }
-                else
+                else if ( forwarder && type == FORWARDER_TYPE)
                 {
-                	createClient(&netAddr, &clientId, stable, secure, TRANSPEARENT_TYPE);
+                	theGateway->getAdapterManager()->getForwarderList()->addForwarder(&netAddr, &clientId);
+                }
+                else if (type == TRANSPEARENT_TYPE )
+                {
+                	createClient(&netAddr, &clientId, stable, secure, type);
                 }
             }
             else
