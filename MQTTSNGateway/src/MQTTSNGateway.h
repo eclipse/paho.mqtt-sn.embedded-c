@@ -43,8 +43,6 @@ namespace MQTTSNGW
 #define CLIENT      "Client"
 #define CLIENTS     "Clients"
 #define UNKNOWNCL   "Unknown Client !"
-#define CLIENTPROXY  "ClientProxy"
-#define CLIENTPROXY_SECURE  "ClientProxyS"
 
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"

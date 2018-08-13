@@ -114,16 +114,16 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* 
 	MQTTGWPacket* publish = new MQTTGWPacket();
 	publish->setPUBLISH(&pub);
 
-	if ( !_gateway->getAdapterManager()->isAggregaterActive() )
+	if ( _gateway->getAdapterManager()->isAggregaterActive() && client->isAggregated() )
+	{
+		return publish;
+	}
+	else
 	{
 		Event* ev1 = new Event();
 		ev1->setBrokerSendEvent(client, publish);
 		_gateway->getBrokerSendQue()->post(ev1);
 		return nullptr;
-	}
-	else
-	{
-		return publish;
 	}
 }
 

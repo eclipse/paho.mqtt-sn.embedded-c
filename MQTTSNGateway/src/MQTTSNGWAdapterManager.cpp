@@ -150,7 +150,8 @@ void AdapterManager::checkConnection(void)
 	{
 		_aggregater->checkConnection();
 	}
-	else if ( _qosm1Proxy->isActive())
+
+	if ( _qosm1Proxy->isActive())
 	{
 		_qosm1Proxy->checkConnection();
 	}

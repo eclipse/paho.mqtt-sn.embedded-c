@@ -58,7 +58,6 @@ void ClientRecvTask::initialize(int argc, char** argv)
 void ClientRecvTask::run()
 {
 	Event* ev = nullptr;
-	Client* client = nullptr;
 	AdapterManager* adpMgr = _gateway->getAdapterManager();
 	QoSm1Proxy* qosm1Proxy = adpMgr->getQoSm1Proxy();
 	bool isAggrActive = adpMgr->isAggregaterActive();
@@ -69,6 +68,7 @@ void ClientRecvTask::run()
 
 	while (true)
 	{
+		Client* client = nullptr;
 	    Forwarder* fwd = nullptr;
 	    WirelessNodeId nodeId;
 
@@ -105,7 +105,6 @@ void ClientRecvTask::run()
 		}
 
 
-		Client* client = nullptr;
 		SensorNetAddress* senderAddr = _gateway->getSensorNetwork()->getSenderAddress();
 
 		if ( packet->getType() == MQTTSN_ENCAPSULATED )
@@ -124,12 +123,6 @@ void ClientRecvTask::run()
 				nodeId.setId( encap.getWirelessNodeId() );
 				client = fwd->getClient(&nodeId);
 				packet = encap.getMQTTSNPacket();
-
-				if ( client == nullptr )
-				{
-					/* get client of Forwarder or QoSm1Proxy */
-					client = _gateway->getClientList()->getClient(senderAddr);
-				}
 			}
 		}
 		else
@@ -138,8 +131,7 @@ void ClientRecvTask::run()
 
 			if ( qosm1Proxy->isActive() )
 			{
-			 /* get ClientId not Client  which can send QoS-1 PUBLISH */
-			 const char* clientName = qosm1Proxy->getClientId(senderAddr);
+				 const char* clientName = qosm1Proxy->getClientId(senderAddr);
 
 				if ( clientName )
 				{
@@ -152,12 +144,10 @@ void ClientRecvTask::run()
 						continue;
 					}
 				}
-				else
-				{
-					client = _gateway->getClientList()->getClient(senderAddr);
-				}
 			}
 		}
+
+		client = _gateway->getClientList()->getClient(senderAddr);
 
 		if ( client )
 		{

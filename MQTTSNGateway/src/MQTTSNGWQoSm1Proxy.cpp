@@ -54,14 +54,9 @@ void QoSm1Proxy::initialize(void)
         	/*  Create QoS-1 Clients */
         	_gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
 
-        	/* set ClientId of this Proxy */
-			const char* name = CLIENTPROXY;
-			if (_gateway->getParam("QoS-1ProxyName", param) == 0 )
-			{
-				name = param;
-			}
             /* initialize Adapter */
-            setup(name, Atype_QoSm1Proxy);
+			string name = string(_gateway->getGWParams()->gatewayName) + "QoS-1";
+            setup(name.c_str(), Atype_QoSm1Proxy);
            _isActive = true;
         }
     }

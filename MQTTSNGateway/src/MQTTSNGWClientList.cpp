@@ -79,7 +79,11 @@ void ClientList::setClientList(int type)
 	{
 		throw Exception("ClientList::initialize(): No client list defined by the configuration.");
 	}
-	params->clientListName = strdup(fileName.c_str());
+
+	if ( params->clientListName == nullptr )
+	{
+		params->clientListName = strdup(fileName.c_str());
+	}
 }
 
 void ClientList::setPredefinedTopics(bool aggrecate)

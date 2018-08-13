@@ -46,7 +46,9 @@ void Aggregater::initialize(void)
         {
            /* Create Aggregated Clients */
         	_gateway->getClientList()->setClientList(AGGREGATER_TYPE);
-        	setup((const char*)(_gateway->getGWParams()->gatewayName), Atype_Aggregater);
+
+        	string name = _gateway->getGWParams()->gatewayName;
+        	setup(name.c_str(), Atype_Aggregater);
         	_isActive = true;
         }
     }
