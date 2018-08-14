@@ -143,6 +143,8 @@ void writeCString(unsigned char** pptr, char* string);
 void writeMQTTSNString(unsigned char** pptr, MQTTSNString mqttstring);
 
 int MQTTSNPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int));
+int MQTTSNPacket_read_nb(unsigned char* buf, int buflen);
+
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 }
