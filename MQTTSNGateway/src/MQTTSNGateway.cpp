@@ -191,11 +191,6 @@ void Gateway::initialize(int argc, char** argv)
 		_params.keepAlive = atoi(param);
 	}
 
-	if (_params.keepAlive > 65536)
-	{
-		throw Exception("Gateway::initialize: KeepAliveTime is grater than 65536 Secs");
-	}
-
 	if (getParam("LoginID", param) == 0)
 	{
 		_params.loginId = strdup(param);
