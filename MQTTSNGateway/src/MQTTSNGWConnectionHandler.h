@@ -39,7 +39,6 @@ public:
 private:
 	void sendStoredPublish(Client* client);
 
-	char _pbuf[MQTTSNGW_MAX_PACKET_SIZE * 3];
 	Gateway* _gateway;
 };
 

@@ -44,7 +44,7 @@ Client::Client(bool secure)
 	_clientId = nullptr;
 	_willTopic = nullptr;
 	_willMsg = nullptr;
-	_connectData = {0, 0, 0, 0, 0, 0, 0};
+	_connectData = MQTTPacket_Connect_Initializer;
 	_network = new Network(secure);
 	_secureNetwork = secure;
 	_sensorNetype = true;
