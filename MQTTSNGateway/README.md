@@ -8,7 +8,11 @@ $ make
 $ make install   
 $ make clean    
 ````      
-MQTT-SNGateway, MQTT-SNLogmonitor and param.conf are copied into ../ directory.
+MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
+If you want to install the gateway into specific directories, enter a command line as follows:
+````
+$ make install INSTALL_DIR=/path/to/your_directory CONFIG_DIR=/path/to/your_directory
+````
 
     
 ### **step2. Execute the Gateway.**     
