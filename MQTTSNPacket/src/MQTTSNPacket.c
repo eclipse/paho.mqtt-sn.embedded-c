@@ -274,4 +274,20 @@ exit:
 	return rc;
 }
 
+int MQTTSNPacket_read_nb(unsigned char* buf, int buflen)
+{
+	int rc = MQTTSNPACKET_READ_ERROR;
+	int len = buflen;  /* the length of the whole packet including length field */
+	int lenlen = 0;
+	int datalen = 0;
+
+	/* 2. read the length.  This is variable in itself */
+	lenlen = MQTTSNPacket_decode(buf, len, &datalen);
+	if (datalen != len)
+		goto exit; /* there was an error */
+
+	rc = buf[lenlen]; /* return the packet type */
+exit:
+	return rc;
+}
 

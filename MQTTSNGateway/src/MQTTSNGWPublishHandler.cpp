@@ -44,7 +44,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* 
 	uint8_t* payload;
     MQTTSN_topicid topicid;
 	int payloadlen;
-	Publish pub = {0, 0, 0, 0, 0, 0};
+	Publish pub = MQTTPacket_Publish_Initializer;
 
 	char  shortTopic[2];
 

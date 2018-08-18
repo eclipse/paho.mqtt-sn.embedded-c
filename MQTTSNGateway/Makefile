@@ -18,6 +18,9 @@ OS := linux
 SENSORNET := udp
 TEST := tests
 
+INSTALL_DIR=../../
+CONFIG_DIR=../../
+
 CPPSRCS :=  \
 $(SRCDIR)/MQTTGWConnectionHandler.cpp \
 $(SRCDIR)/MQTTGWPacket.cpp \
@@ -143,11 +146,11 @@ clean:
 	rm -rf $(OUTDIR)
 
 install:
-	cp -pf $(PROG) ../../
-	cp -pf $(LPROG) ../../
-	cp -pf $(CONFIG) ../../
-	cp -pf $(CLIENTS) ../../
-	cp -pf $(PREDEFTOPIC) ../../
+	cp -pf $(PROG) $(INSTALL_DIR)
+	cp -pf $(LPROG) $(INSTALL_DIR)
+	cp -pf $(CONFIG) $(CONFIG_DIR)
+	cp -pf $(CLIENTS) $(CONFIG_DIR)
+	cp -pf $(PREDEFTOPIC) $(CONFIG_DIR)
 	
 
 exectest:

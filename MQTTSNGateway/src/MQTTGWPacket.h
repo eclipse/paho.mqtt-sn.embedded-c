@@ -116,6 +116,7 @@ typedef struct
 	unsigned char version;	/**< MQTT version number */
 } Connect;
 
+#define MQTTPacket_Connect_Initializer {{0}, 0, nullptr, nullptr, nullptr, nullptr, 0, 0}
 #define MQTTPacket_willOptions_initializer { {'M', 'Q', 'T', 'W'}, 0, {NULL, {0, NULL}}, {NULL, {0, NULL}}, 0, 0 }
 #define MQTTPacket_connectData_initializer { {'M', 'Q', 'T', 'C'}, 0, 4, {NULL, {0, NULL}}, 60, 1, 0, \
         MQTTPacket_willOptions_initializer, {NULL, {0, NULL}}, {NULL, {0, NULL}} }
@@ -173,6 +174,7 @@ typedef struct
 	int payloadlen;	/**< payload length */
 } Publish;
 
+#define MQTTPacket_Publish_Initializer {{0}, nullptr, 0, 0, nullptr, 0}
 
 /**
  * Data for one of the ack packets.

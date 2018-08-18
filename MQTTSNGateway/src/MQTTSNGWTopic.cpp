@@ -443,7 +443,7 @@ TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topi
     {
         return 0;
     }
-    if ( getElement(msgId) > 0 )
+    if ( getElement(msgId) )
     {
         erase(msgId);
     }

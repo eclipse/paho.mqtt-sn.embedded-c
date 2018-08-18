@@ -104,7 +104,7 @@ void BrokerRecvTask::run(void)
 			{
 				client = _gateway->getClientList()->getClient(0);
 
-				while (client > 0)
+				while ( client )
 				{
 					_light->blueLight(false);
 					if (client->getNetwork()->isValid())
