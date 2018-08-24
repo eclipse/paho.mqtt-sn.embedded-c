@@ -37,6 +37,7 @@ Gateway::Gateway(void)
     _packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
     _clientList = new ClientList();
     _adapterManager = new AdapterManager(this);
+    _topics = new Topics();
 }
 
 Gateway::~Gateway()
@@ -103,6 +104,11 @@ Gateway::~Gateway()
     {
         delete _clientList;
     }
+
+    if ( _topics )
+	{
+		delete _topics;
+	}
 }
 
 int Gateway::getParam(const char* parameter, char* value)
@@ -310,6 +316,11 @@ GatewayParams* Gateway::getGWParams(void)
 AdapterManager* Gateway::getAdapterManager(void)
 {
     return _adapterManager;
+}
+
+Topics* Gateway::getTopics(void)
+{
+    return _topics;
 }
 
 bool Gateway::hasSecureConnection(void)

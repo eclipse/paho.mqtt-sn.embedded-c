@@ -79,10 +79,18 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* 
 	else
 	{
 	    topic = client->getTopics()->getTopicById(&topicid);
+	    if ( !topic )
+	    {
+	    	topic = _gateway->getTopics()->getTopicById(&topicid);
+	    	if ( topic )
+	    	{
+	    		topic = client->getTopics()->add(topic->getTopicName()->c_str(), topic->getTopicId());
+	    	}
+	    }
 
 	    if( !topic && qos == 3 )
 	    {
-	        WRITELOG("%s Invali TopicId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+	        WRITELOG("%s Invalid TopicId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 	        return nullptr;
 	    }
 

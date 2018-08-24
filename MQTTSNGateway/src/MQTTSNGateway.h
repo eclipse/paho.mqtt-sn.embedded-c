@@ -191,6 +191,7 @@ public:
 	AdapterManager* getAdapterManager(void);
 	int getParam(const char* parameter, char* value);
 	bool hasSecureConnection(void);
+	Topics* getTopics(void);
 
 private:
 	GatewayParams  _params;
@@ -201,6 +202,7 @@ private:
 	LightIndicator _lightIndicator;
 	SensorNetwork  _sensorNetwork;
 	AdapterManager* _adapterManager {nullptr};
+	Topics* _topics;
 };
 
 }
