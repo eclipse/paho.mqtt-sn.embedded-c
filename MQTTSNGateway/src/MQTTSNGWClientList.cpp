@@ -24,7 +24,7 @@ extern Gateway* theGateway;
 /*=====================================
  Class ClientList
  =====================================*/
-const char* common_topic = "COMMON";
+const char* common_topic = "*";
 
 ClientList::ClientList()
 {
