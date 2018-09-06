@@ -108,22 +108,11 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 			Topic* topic = client->getTopics()->match(&topicId);
 			if (topic == nullptr)
 			{
-				WRITELOG(" Invalid Topic. PUBLISH message is canceled.\n");
-				if (pub.header.bits.qos == 1)
-				{
-					replyACK(client, &pub, PUBACK);
-				}
-				else if ( pub.header.bits.qos == 2 )
-				{
-					replyACK(client, &pub, PUBREC);
-				}
-
-				delete snPacket;
-				return;
+				/* add the Topic to the client when it receives a message from the MQTT broker to which
+				no short topic mapping exists since lost e.g. after gateway restart */
+				topic = client->getTopics()->add(&topicId);
 			}
 
-			/* add the Topic and get a TopicId */
-			topic = client->getTopics()->add(&topicId);
 			id = topic->getTopicId();
 
 			if (id > 0)
