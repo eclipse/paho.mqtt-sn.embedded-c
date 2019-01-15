@@ -7,14 +7,14 @@ It is dual licensed under the EPL and EDL (see about.html and notice.html for mo
 There are three sub-projects:
 
 1. MQTTSNPacket - simple de/serialization of MQTT-SN packets, plus helper functions
-2. MQTTGateway - MQTT-SN transparent gateway - connects MQTT-SN clients with an MQTT server.  See the README within the project for more information.
+2. MQTTGateway - MQTT-SN transparent/aggregating gateway - connects MQTT-SN clients with an MQTT server.  See the README within the project for more information.
 3. MQTTSNClient - high(er) level C++ client (not yet complete)
 
 The *MQTTSNPacket* directory contains the lowest level C library with the smallest requirements.  This supplies simple serialization
 and deserialization routines.  They serve as a base for the higher level libraries, but can also be used on their own.
 It is mainly up to you to write and read to and from the network.
 
-The *MQTTSNGateway* directory contains an MQTT-SN to MQTT transparent gateway (see the MQTT-SN specification for a description of that.)  It can
+The *MQTTSNGateway* directory contains an MQTT-SN to MQTT transparent/aggregating gateway (see the MQTT-SN specification for a description of that.)  It can
 be used to connect the MQTT-SN client to an MQTT server.
 
 The *MQTTSNClient* directory contains the next level C++ library.  This is intended to mirror the way the MQTTClient works in the Paho embedded
@@ -45,3 +45,4 @@ Discussion of the Paho clients takes place on the [Eclipse Mattermost Paho chann
 General questions about the MQTT protocol are discussed in the [MQTT Google Group](https://groups.google.com/forum/?hl=en-US&fromgroups#!forum/mqtt).
 
 More information is available via the [MQTT community](http://mqtt.org).
+

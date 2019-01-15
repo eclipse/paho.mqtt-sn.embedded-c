@@ -40,7 +40,7 @@ void Aggregater::initialize(void)
 {
     char param[MQTTSNGW_PARAM_MAX];
 
-    if (_gateway->getParam("AggregateGateway", param) == 0 )
+    if (_gateway->getParam("AggregatingGateway", param) == 0 )
     {
         if (!strcasecmp(param, "YES") )
         {

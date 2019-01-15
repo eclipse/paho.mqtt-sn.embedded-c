@@ -1,4 +1,7 @@
-**MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client (UDP) can not communicate directly with MQTT broker(TCP/IP).   
+# MQTT-SN Transparent / Aggrigating Gateway
+
+**MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
+This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.
 
 ### **step1. Build the gateway**   
 ````
@@ -36,12 +39,12 @@ BrokerPortNo=1883
 BrokerSecurePortNo=8883
 
 #
-# When AggregateGateway=YES or ClientAuthentication=YES,
+# When AggregatingGateway=YES or ClientAuthentication=YES,
 # All clients must be specified by the ClientList File  
 #
 
 ClientAuthentication=NO
-AggregateGateway=NO
+AggregatingGateway=NO
 QoS-1=NO
 Forwarder=NO
 
@@ -82,7 +85,7 @@ ShearedMemory=NO;
 Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW message.    
 **GatewayId** is used by GWINFO message.    
 **KeepAlive** is a duration of ADVERTISE message in seconds.    
-when **AggregateGateway** or **ClientAuthentication** is **YES**, All clients which connect to the gateway must be declared by a **ClientsList** file.       
+when **AggregatingGateway** or **ClientAuthentication** is **YES**, All clients which connect to the gateway must be declared by a **ClientsList** file.       
 Format of the file is ClientId and SensorNetwork Address. e.g. IP address and Port No etc, in CSV. more detail see clients.conf.    
 When **QoS-1** is **YES**, QoS-1 PUBLISH is available. All clients which send QoS-1 PUBLISH must be specified by Client.conf file. 
 When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
