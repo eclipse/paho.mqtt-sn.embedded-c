@@ -14,7 +14,7 @@ The *MQTTSNPacket* directory contains the lowest level C library with the smalle
 and deserialization routines.  They serve as a base for the higher level libraries, but can also be used on their own.
 It is mainly up to you to write and read to and from the network.
 
-The *MQTTSNGateway* directory contains an MQTT-SN to MQTT transparent gateway (see the MQTT-SN specification for a description of that.)  It can
+The *MQTTSNGateway* directory contains an MQTT-SN to MQTT transparent/aggregating gateway (see the MQTT-SN specification for a description of that.)  It can
 be used to connect the MQTT-SN client to an MQTT server.
 
 The *MQTTSNClient* directory contains the next level C++ library.  This is intended to mirror the way the MQTTClient works in the Paho embedded
