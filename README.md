@@ -7,7 +7,7 @@ It is dual licensed under the EPL and EDL (see about.html and notice.html for mo
 There are three sub-projects:
 
 1. MQTTSNPacket - simple de/serialization of MQTT-SN packets, plus helper functions
-2. MQTTGateway - MQTT-SN transparent gateway - connects MQTT-SN clients with an MQTT server.  See the README within the project for more information.
+2. MQTTGateway - MQTT-SN transparent/aggregating gateway - connects MQTT-SN clients with an MQTT server.  See the README within the project for more information.
 3. MQTTSNClient - high(er) level C++ client (not yet complete)
 
 The *MQTTSNPacket* directory contains the lowest level C library with the smallest requirements.  This supplies simple serialization
