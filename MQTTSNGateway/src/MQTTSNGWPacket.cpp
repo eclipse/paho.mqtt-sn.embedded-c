@@ -428,7 +428,7 @@ char* MQTTSNPacket::print(char* pbuf)
 	int i = MQTTSNPacket_decode(_buf, _bufLen, &value);
 	int size = _bufLen > SIZE_OF_LOG_PACKET ? SIZE_OF_LOG_PACKET : _bufLen;
 
-	for (; i < size; i++)
+	for (i = 0; i < size; i++)
 	{
 		sprintf(*pptr, " %02X", *(_buf + i));
 		*pptr += 3;

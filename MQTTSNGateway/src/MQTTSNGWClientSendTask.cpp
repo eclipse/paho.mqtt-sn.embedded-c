@@ -84,7 +84,7 @@ void ClientSendTask::run()
 
 void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 {
-	char pbuf[SIZE_OF_LOG_PACKET * 3];
+	char pbuf[(SIZE_OF_LOG_PACKET + 3) * 3];
 	char msgId[6];
 	const char* clientId = client ? (const char*)client->getClientId() : UNKNOWNCL ;
 

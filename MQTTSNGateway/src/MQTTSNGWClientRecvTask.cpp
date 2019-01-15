@@ -262,7 +262,7 @@ void ClientRecvTask::log(Client* client, MQTTSNPacket* packet, MQTTSNString* id)
 
 void ClientRecvTask::log(const char* clientId, MQTTSNPacket* packet)
 {
-    char pbuf[SIZE_OF_LOG_PACKET * 3];
+    char pbuf[ (SIZE_OF_LOG_PACKET + 3) * 3];
     char msgId[6];
 
     switch (packet->getType())
