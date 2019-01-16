@@ -59,6 +59,8 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPack
     if ( topicFilter.type == MQTTSN_TOPIC_TYPE_PREDEFINED )
     {
         topic = client->getTopics()->getTopicById(&topicFilter);
+
+
         if ( topic )
         {
             topicId = topic->getTopicId();
@@ -67,7 +69,15 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPack
         }
         else
         {
-            goto RespExit;
+        	topic = _gateway->getTopics()->getTopicById(&topicFilter);
+        	if ( !topic )
+        	{
+				topic = client->getTopics()->add(topic->getTopicName()->c_str(), topic->getTopicId());
+			}
+        	else
+        	{
+        		goto RespExit;
+        	}
         }
     }
     else if (topicFilter.type == MQTTSN_TOPIC_TYPE_NORMAL)

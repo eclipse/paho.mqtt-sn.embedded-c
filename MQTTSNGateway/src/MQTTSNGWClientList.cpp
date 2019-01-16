@@ -24,6 +24,8 @@ extern Gateway* theGateway;
 /*=====================================
  Class ClientList
  =====================================*/
+const char* common_topic = "*";
+
 ClientList::ClientList()
 {
     _clientCnt = 0;
@@ -414,50 +416,58 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
-    Client* client = getClient(clientId);
+	if ( clientId->cstring == common_topic )
+	{
+		_gateway->getTopics()->add((const char*)topicName.c_str(), topicId);
+		return 0;
+	}
+	else
+	{
+		Client* client = getClient(clientId);
 
-    if ( _authorize && client == nullptr)
-    {
-        return 0;
-    }
+		if ( _authorize && client == nullptr )
+		{
+			return 0;
+		}
 
-    /*  anonimous clients */
-    if ( _clientCnt > MAX_CLIENTS )
-    {
-        return nullptr;  // full of clients
-    }
+		/*  anonimous clients */
+		if ( _clientCnt > MAX_CLIENTS )
+		{
+			return nullptr;  // full of clients
+		}
 
-    if ( client == nullptr )
-    {
-        /* creat a new client */
-        client = new Client();
-        client->setClientId(*clientId);
-        if ( aggregate )
-        {
-        	client->setAggregated();
-        }
-        _mutex.lock();
+		if ( client == nullptr )
+		{
+			/* creat a new client */
+			client = new Client();
+			client->setClientId(*clientId);
+			if ( aggregate )
+			{
+				client->setAggregated();
+			}
+			_mutex.lock();
 
-        /* add the list */
-        if ( _firstClient == nullptr )
-        {
-            _firstClient = client;
-            _endClient = client;
-        }
-        else
-        {
-            _endClient->_nextClient = client;
-            client->_prevClient = _endClient;
-            _endClient = client;
-        }
-        _clientCnt++;
-        _mutex.unlock();
-    }
+			/* add the list */
+			if ( _firstClient == nullptr )
+			{
+				_firstClient = client;
+				_endClient = client;
+			}
+			else
+			{
+				_endClient->_nextClient = client;
+				client->_prevClient = _endClient;
+				_endClient = client;
+			}
+			_clientCnt++;
+			_mutex.unlock();
+		}
 
-    // create Topic & Add it
-    client->getTopics()->add((const char*)topicName.c_str(), topicId);
-    client->_hasPredefTopic = true;
-    return client;
+		// create Topic & Add it
+		client->getTopics()->add((const char*)topicName.c_str(), topicId);
+		client->_hasPredefTopic = true;
+		return client;
+	}
 }
 
 uint16_t ClientList::getClientCount()
