@@ -29,7 +29,7 @@ $ ./MQTT-SNGateway [-f Config file name]
 ### How to change the configuration of the gateway
 Example for **gateway.conf**:
 
-<pre><dev>
+````
 
 # config file of MQTT-SN Gateway
 #
@@ -78,7 +78,7 @@ ApiMode=2
 # LOG
 ShearedMemory=NO;
 
-</dev></pre>
+````
 
 **Broker config**
 * *BrokerName* - Domain name/ IP address of the MQTT broker
@@ -111,6 +111,22 @@ Multicast address is used for GWSEARCH messages. The Gateway is waiting GWSEARCH
 it sends GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address
 and GatewayPortNo) from GWINFO message by means of std::recvfrom(). Client should know the MulticastIP and
 MulticastPortNo to send a SEARCHGW message.
+
+### UDP over IPv6
+
+To use IPv6 instead of IPv4, you can change the following line in *Makefile* from\
+`SENSORNET := udp"`\
+to\
+`SENSORNET := udp6"`
+
+Rebuild the gateway as shown above. Configuration parameters within *gateway.conf* could look like this:
+````
+# UDP6
+GatewayUDP6Port = 1883
+#GatewayUDP6Bind = ff02::1
+GatewayUDP6Broadcast = ff02::1
+GatewayUDP6If = bt0
+````
 
 ### How to monitor the gateway from remote
 
