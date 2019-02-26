@@ -120,6 +120,8 @@ Uncomment line32 in MQTTSNGWDefined.h:
 
 and rebuild the gateway as shown above. Start the gateway, open a ssh terminal and execute LogMonitor with
 
-`$ ./MQTT-SNLogmonitor`
+```
+$ ./MQTT-SNLogmonitor
+```
 
 Now you can get the log on your terminal.
