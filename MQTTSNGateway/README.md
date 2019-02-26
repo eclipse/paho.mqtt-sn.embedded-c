@@ -116,12 +116,18 @@ MulticastPortNo to send a SEARCHGW message.
 
 Uncomment line32 in MQTTSNGWDefined.h:
 
-`//#define RINGBUFFER     // print out Packets log into shared memory./"`
+`//#define RINGBUFFER     // print out Packets log into shared memory.`    
+````    
+$ make   
+$ make install 
+$ make clean
+````
+restart the gateway.    
+open ssh terminal and execute LogMonitor.
 
-and rebuild the gateway as shown above. Start the gateway, open a ssh terminal and execute LogMonitor with
-
-```
+````
 $ ./MQTT-SNLogmonitor
-```
+````    
 
-Now you can get the log on your terminal.
+Now you can get the Log on your terminal.
+
