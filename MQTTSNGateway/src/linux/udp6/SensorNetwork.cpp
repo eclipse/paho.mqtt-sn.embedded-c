@@ -346,7 +346,6 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	return 0;
 }
 
-//TODO: test if unicast is working too....
 int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
 	char destStr[INET6_ADDRSTRLEN+10];
@@ -390,8 +389,6 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	{
 		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
 	}
-
-	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,port,status);
 
 	return status;
 }

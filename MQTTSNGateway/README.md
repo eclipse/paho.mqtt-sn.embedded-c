@@ -1,35 +1,38 @@
-# MQTT-SN Transparent / Aggregating Gateway
+# MQTT-SN Transparent / Aggrigating Gateway
 
-**MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker (TCP/IP).
-This Gateway can be configured to run as a transparent or aggregating gateway in the file *gateway.conf*.
+**MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
+This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.
 
-### **Step 1: Build the gateway**
+### **step1. Build the gateway**   
 ````
-$ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c
-$ cd paho.mqtt-sn.embedded-c/MQTTSNGateway
-$ make
-$ make install
-$ make clean
-````
-MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into **../** directory.
+$ git clone -b experiment https://github.com/eclipse/paho.mqtt-sn.embedded-c   
+$ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
+$ make [SENSORNET={udp6|xbee}] 
+$ make install   
+$ make clean    
+````      
+By default, a gateway for UDP is built.    
+In order to create a gateway for UDP6 or XBee, SENSORNET argument is required.  
+ 
+MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
 If you want to install the gateway into specific directories, enter a command line as follows:
 ````
 $ make install INSTALL_DIR=/path/to/your_directory CONFIG_DIR=/path/to/your_directory
 ````
 
+    
+### **step2. Execute the Gateway.**     
 
-### **Step 2: Execute the Gateway.**
-
-````
-$ cd ../
+````    
+$ cd ../   
 $ ./MQTT-SNGateway [-f Config file name]
-````
+````   
 
 
-### How to change the configuration of the gateway
-Example for **gateway.conf**:
-
-<pre><dev>
+### **How to Change the configuration of the gateway**    
+**../gateway.conf**   Contents are follows: 
+   
+<pre><dev>    
 
 # config file of MQTT-SN Gateway
 #
@@ -40,7 +43,7 @@ BrokerSecurePortNo=8883
 
 #
 # When AggregatingGateway=YES or ClientAuthentication=YES,
-# All clients must be specified by the ClientList File
+# All clients must be specified by the ClientList File  
 #
 
 ClientAuthentication=NO
@@ -78,45 +81,25 @@ ApiMode=2
 # LOG
 ShearedMemory=NO;
 
-</dev></pre>
+</dev></pre>    
 
-**Broker config**
-* *BrokerName* - Domain name/ IP address of the MQTT broker
-* *BrokerPortNo* - Port of the MQTT broker
-* *LoginID* - Username for login at the broker
-* *Password* - Password for login at the broker
+**BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
+**MulticastIP** and **MulticastPortNo** is a multicast address for GWSEARCH messages. Gateway is waiting GWSEARCH  and when receiving it send GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom().
+Client should know the MulticastIP and MulticastPortNo to send a SEARCHGW message.    
+**GatewayId** is used by GWINFO message.    
+**KeepAlive** is a duration of ADVERTISE message in seconds.    
+when **AggregatingGateway** or **ClientAuthentication** is **YES**, All clients which connect to the gateway must be declared by a **ClientsList** file.       
+Format of the file is ClientId and SensorNetwork Address. e.g. IP address and Port No etc, in CSV. more detail see clients.conf.    
+When **QoS-1** is **YES**, QoS-1 PUBLISH is available. All clients which send QoS-1 PUBLISH must be specified by Client.conf file. 
+When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
+When **Forwarder** is **YES**, Forwarder Encapsulation Message is available. Connectable Forwarders must be declared by a **ClientsList** file.     
+ 
 
-**Broker config for TLS**
-* *BrokerSecurePortNo* - TLS Port of the MQTT broker
-* *RootCAfile* - Path to the root CA file
-* *RootCApath* - Path to the CA certificates
-* *CertsFile* - Path to the certificate
-* *PrivateKey* - Path to the private key
+### ** How to monitor the gateway from remote. **
 
-**Gateway config**
-* *MulticastIP* - UDP multicast IP address of the gateway
-* *MulticastPortNo* - UDP multicast port of the gateway
-* *GatewayId* - ID of the gateway (for advertising)
-* *GatewayName* - Name of the gateway (for advertising)
-* *KeepAlive* - Connection timeout
-* *AggregatingGateway* - If 'YES', all clients which want to connect to the gateway must be declared inside of *clients.conf*
-* *ClientAuthentication* - If 'YES', all clients which want to connect to the gateway must be declared inside of *clients.conf*
-* *ClientsList* - path/to/your/custom_clients.conf
-* *PredefinedTopic* - If 'YES', then predefined topics specified by *predefinedTopic.conf* are effective
-* *PredefinedTopicList* - path/to/your/custom_predefinedTopic.conf
-* *QoS-1* - If 'YES', QoS-1 PUBLISH is available. All clients which send QoS-1 PUBLISH must be declared inside of *clients.conf*
-* *Forwarder* - If 'YES', then Forwarder Encapsulation Message is available. Connectable forwarders must be declared in *clients.conf*.
+Uncomment line32 in MQTTSNGWDefined.h.
 
-Multicast address is used for GWSEARCH messages. The Gateway is waiting GWSEARCH  and when receiving it,
-it sends GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address
-and GatewayPortNo) from GWINFO message by means of std::recvfrom(). Client should know the MulticastIP and
-MulticastPortNo to send a SEARCHGW message.
-
-### How to monitor the gateway from remote
-
-Uncomment line32 in MQTTSNGWDefined.h:
-
-`//#define RINGBUFFER     // print out Packets log into shared memory.`    
+`//#define RINGBUFFER     // print out Packets log into shared memory./"`    
 ````    
 $ make   
 $ make install 
@@ -125,9 +108,9 @@ $ make clean
 restart the gateway.    
 open ssh terminal and execute LogMonitor.
 
-````
-$ ./MQTT-SNLogmonitor
-````    
+`$ ./MQTT-SNLogmonitor`    
 
 Now you can get the Log on your terminal.
+
+
 
