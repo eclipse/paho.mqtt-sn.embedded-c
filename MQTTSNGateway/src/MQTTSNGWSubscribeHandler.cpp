@@ -60,25 +60,22 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPack
     {
         topic = client->getTopics()->getTopicById(&topicFilter);
 
-
-        if ( topic )
-        {
-            topicId = topic->getTopicId();
-            subscribe = new MQTTGWPacket();
-            subscribe->setSUBSCRIBE((char*)topic->getTopicName()->c_str(), (uint8_t)qos, (uint16_t)msgId);
-        }
-        else
+        if ( !topic )
         {
         	topic = _gateway->getTopics()->getTopicById(&topicFilter);
-        	if ( !topic )
-        	{
+			if ( topic )
+			{
 				topic = client->getTopics()->add(topic->getTopicName()->c_str(), topic->getTopicId());
 			}
-        	else
-        	{
-        		goto RespExit;
-        	}
+			else
+			{
+				goto RespExit;
+			}
         }
+        topicId = topic->getTopicId();
+        subscribe = new MQTTGWPacket();
+        subscribe->setSUBSCRIBE((char*)topic->getTopicName()->c_str(), (uint8_t)qos, (uint16_t)msgId);
+
     }
     else if (topicFilter.type == MQTTSN_TOPIC_TYPE_NORMAL)
     {
@@ -148,7 +145,6 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPa
 	    return nullptr;
     }
 
-	Topic* topic = client->getTopics()->getTopicById(&topicFilter);
 
 	if (topicFilter.type == MQTTSN_TOPIC_TYPE_SHORT)
 	{
@@ -161,6 +157,17 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPa
 	}
 	else
 	{
+		Topic* topic = nullptr;
+
+		if (topicFilter.type == MQTTSN_TOPIC_TYPE_PREDEFINED)
+		{
+			topic = client->getTopics()->getTopicById(&topicFilter);
+		}
+		else
+		{
+			topic = client->getTopics()->getTopicByName(&topicFilter);
+		}
+
 	    if ( topic == nullptr )
         {
             MQTTSNPacket* sUnsuback = new MQTTSNPacket();

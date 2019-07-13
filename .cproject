@@ -133,7 +133,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="MQTTSNGateway/src/linux/udp|MQTTSNGateway/GatewayTester|MQTTSNClient|MQTTSNGateway/src/MQTTSNGWProxy.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="MQTTSNGateway/src/linux/udp6|MQTTSNGateway/GatewayTester|MQTTSNClient|MQTTSNGateway/src/MQTTSNGWProxy.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				
@@ -277,7 +277,7 @@
                         						
                         <entry excluding="MQTTSNGWProxy.cpp|mainLogmonitor.cpp|tests|tests/mainTestProcessFramework.cpp|linux|linux/udp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src"/>
                         						
-                        <entry excluding="udp|xbee" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
+                        <entry excluding="udp6|xbee" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNPacket/src"/>
                         					
