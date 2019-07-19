@@ -13,8 +13,6 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#define RINGBUFFER
-
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNGWLogmonitor.h"
 #include <stdio.h>

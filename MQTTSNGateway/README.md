@@ -94,23 +94,31 @@ When **QoS-1** is **YES**, QoS-1 PUBLISH is available. All clients which send Qo
 When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
 When **Forwarder** is **YES**, Forwarder Encapsulation Message is available. Connectable Forwarders must be declared by a **ClientsList** file.     
  
-
 ### ** How to monitor the gateway from remote. **
-
-Uncomment line32 in MQTTSNGWDefined.h.
-
-`//#define RINGBUFFER     // print out Packets log into shared memory./"`    
-````    
-$ make   
-$ make install 
-$ make clean
+Change gateway.conf as follows:
+```
+# LOG
+ShearedMemory=YES;
 ````
-restart the gateway.    
+
+Restart the gateway with sudo only once to create shared memories.    
+
 open ssh terminal and execute LogMonitor.
 
 `$ ./MQTT-SNLogmonitor`    
 
 Now you can get the Log on your terminal.
+
+
+## ** Tips: **
+Uncomment the line 62, 63 in MQTTSNDefines.h then you can get more precise logs.
+```
+/*=================================
+ *    Log controls
+ ==================================*/
+//#define DEBUG          // print out log for debug
+//#define DEBUG_NWSTACK  // print out SensorNetwork log
+```
 
 
 
