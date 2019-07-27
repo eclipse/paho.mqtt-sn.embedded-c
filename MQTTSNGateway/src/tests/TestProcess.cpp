@@ -65,7 +65,7 @@ void TestProcess::run(void)
 	assert(1 == getArgc() || 3 == getArgc() );
 	assert(0 == strcmp(ARGV, *getArgv()));
 	getParam("BrokerName", value);
-	assert(0 == strcmp("iot.eclipse.org", value));
+	assert(0 == strcmp("mqtt.eclipse.org", value));
 
 	/* Test RingBuffer */
 	for ( i = 0; i < 1000; i++)
