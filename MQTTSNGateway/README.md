@@ -110,7 +110,7 @@ open ssh terminal and execute LogMonitor.
 Now you can get the Log on your terminal.
 
 
-## ** Tips: **
+## ** Tips **
 Uncomment the line 62, 63 in MQTTSNDefines.h then you can get more precise logs.
 ```
 /*=================================
