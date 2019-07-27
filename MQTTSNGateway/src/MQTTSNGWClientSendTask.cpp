@@ -18,6 +18,7 @@
 #include "MQTTSNGateway.h"
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include "MQTTSNGWQoSm1Proxy.h"
+#include <errno.h>
 
 using namespace MQTTSNGW;
 using namespace std;
@@ -75,8 +76,8 @@ void ClientSendTask::run()
 
 		if ( rc < 0 )
 		{
-			WRITELOG("%s ClientSendTask can't send a packet to the client %s%s.\n",
-				ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), ERRMSG_FOOTER);
+			WRITELOG("%s ClientSendTask can't send a packet to the client %s. Error=%d%s\n",
+				ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), errno, ERRMSG_FOOTER);
 		}
 		delete ev;
 	}

@@ -138,7 +138,7 @@ void publishTopic1(void)
 	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), QoS0);
 }
 
-void subscribeTopic2(void)
+void subscribeTopic10(void)
 {
 	SUBSCRIBE(10, on_Topic02, QoS1);
 }
@@ -190,7 +190,7 @@ TEST_LIST = {// e.g. TEST( Label, Test),
             TEST("Step0:Subscribe predef topic1",     subscribePredefTopic1),
 			 TEST("Step1:Publish topic1",     publishTopic1),
 			 TEST("Step2:Publish topic2",     publishTopic2),
-			 TEST("Step3:Subscribe topic2",   subscribeTopic2),
+			 TEST("Step3:Subscribe PreDefined topic10. ID is not defined.",   subscribeTopic10),
 			 TEST("Step4:Publish topic2",     publishTopic2),
 			 TEST("Step5:Unsubscribe topic2", unsubscribe),
 			 TEST("Step6:Publish topic2",     publishTopic2),

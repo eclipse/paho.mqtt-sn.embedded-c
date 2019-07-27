@@ -66,24 +66,52 @@ void SensorNetAddress::setAddress(struct sockaddr_in6 *IpAddr, uint16_t port)
 
 /**
  *  convert Text data to SensorNetAddress
- *  @param  buf is pointer of IP_Address:PortNo format text
+ *  @param  data is a IP_Address:PortNo format string
  *  @return success = 0,  Invalid format = -1
  */
 int SensorNetAddress::setAddress(string* data)
 {
-	const char *cstr = data->c_str();
-	inet_pton(AF_INET6, cstr, &(_IpAddr.sin6_addr));
-	return 0;
+
+	size_t pos = data->find_last_of(":");
+
+	if ( pos != string::npos)
+	{
+		int portNo = 0;
+		string port = data->substr(pos + 1);
+
+		if ( ( portNo = atoi(port.c_str()) ) > 0 )
+		{
+			_portNo = htons(portNo);
+
+			string ip = data->substr(1,pos - 1);
+			const char *cstr = ip.c_str();
+
+			if (inet_pton(AF_INET6, cstr, &(_IpAddr.sin6_addr)) == 1 )
+			{
+				return 0;
+			}
+		}
+	}
+	_portNo = 0;
+	memset((void *)&_IpAddr,0,sizeof(_IpAddr));
+	return -1;
 }
+
 /**
  *  convert Text data to SensorNetAddress
- *  @param  buf is pointer of IP_Address:PortNo format text
+ *  @param  data is pointer of IP_Address format text
  *  @return success = 0,  Invalid format = -1
  */
 int SensorNetAddress::setAddress(const char* data)
 {
-	inet_pton(AF_INET6, data, &(_IpAddr.sin6_addr));
-	return 0;
+	if ( inet_pton(AF_INET6, data, &(_IpAddr.sin6_addr)) == 1 )
+	{
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 char* SensorNetAddress::getAddress(void)
@@ -319,7 +347,6 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	return 0;
 }
 
-//TODO: test if unicast is working too....
 int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
 	char destStr[INET6_ADDRSTRLEN+10];
@@ -363,8 +390,6 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	{
 		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
 	}
-
-	WRITELOG("unicast sendto %s, port: %d length = %d\n", destStr,port,status);
 
 	return status;
 }

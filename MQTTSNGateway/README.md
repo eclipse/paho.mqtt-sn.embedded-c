@@ -7,10 +7,13 @@ This Gateway can run as a transparent or aggrigating Gateway by specifying the g
 ````
 $ git clone -b experiment https://github.com/eclipse/paho.mqtt-sn.embedded-c   
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
-$ make   
+$ make [SENSORNET={udp6|xbee}] 
 $ make install   
 $ make clean    
 ````      
+By default, a gateway for UDP is built.    
+In order to create a gateway for UDP6 or XBee, SENSORNET argument is required.  
+ 
 MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
 If you want to install the gateway into specific directories, enter a command line as follows:
 ````
@@ -91,22 +94,31 @@ When **QoS-1** is **YES**, QoS-1 PUBLISH is available. All clients which send Qo
 When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
 When **Forwarder** is **YES**, Forwarder Encapsulation Message is available. Connectable Forwarders must be declared by a **ClientsList** file.     
  
-
 ### ** How to monitor the gateway from remote. **
-
-Uncomment line32 in MQTTSNGWDefined.h.
-
-`//#define RINGBUFFER     // print out Packets log into shared memory./"`    
-````    
-$ make   
-$ make install 
-$ make clean
+Change gateway.conf as follows:
+```
+# LOG
+ShearedMemory=YES;
 ````
-restart the gateway.    
+
+Restart the gateway with sudo only once to create shared memories.    
+
 open ssh terminal and execute LogMonitor.
 
 `$ ./MQTT-SNLogmonitor`    
 
 Now you can get the Log on your terminal.
+
+
+## ** Tips **
+Uncomment the line 62, 63 in MQTTSNDefines.h then you can get more precise logs.
+```
+/*=================================
+ *    Log controls
+ ==================================*/
+//#define DEBUG          // print out log for debug
+//#define DEBUG_NWSTACK  // print out SensorNetwork log
+```
+
 
 

@@ -416,9 +416,9 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
-	if ( clientId->cstring == common_topic )
+	if ( strcmp(clientId->cstring, common_topic) == 0 )
 	{
-		_gateway->getTopics()->add((const char*)topicName.c_str(), topicId);
+		theGateway->getTopics()->add((const char*)topicName.c_str(), topicId);
 		return 0;
 	}
 	else
