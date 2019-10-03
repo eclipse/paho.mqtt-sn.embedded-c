@@ -239,7 +239,7 @@ void MQTTSNPublishHandler::handleRegAck( Client* client, MQTTSNPacket* packet)
             ev->setClientSendEvent(client, regAck);
             _gateway->getClientSendQue()->post(ev);
         }
-        if (client->isHoldPringReqest() && client->getWaitREGACKPacketList()->getCount() == 0 )
+        if (client->isHoldPingReqest() && client->getWaitREGACKPacketList()->getCount() == 0 )
         {
             /* send PINGREQ to the broker */
            client->resetPingRequest();

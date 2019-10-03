@@ -252,7 +252,7 @@ public:
 
     void holdPingRequest(void);
     void resetPingRequest(void);
-    bool isHoldPringReqest(void);
+    bool isHoldPingReqest(void);
 
     Client* getNextClient(void);
 
