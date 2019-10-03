@@ -170,19 +170,17 @@ void MQTTSNAggregateConnectionHandler::handlePingreq(Client* client, MQTTSNPacke
 	    sendStoredPublish(client);
 		client->holdPingRequest();
 	}
-	else
-	{
-        /* create and send PINGRESP to the PacketHandler */
-	    client->resetPingRequest();
 
-        MQTTGWPacket* pingresp = new MQTTGWPacket();
+	/* create and send PINGRESP to the PacketHandler */
+	client->resetPingRequest();
 
-        pingresp->setHeader(PINGRESP);
+	MQTTGWPacket* pingresp = new MQTTGWPacket();
 
-        Event* evt = new Event();
-        evt->setBrokerRecvEvent(client, pingresp);
-        _gateway->getPacketEventQue()->post(evt);
-	}
+	pingresp->setHeader(PINGRESP);
+
+	Event* evt = new Event();
+	evt->setBrokerRecvEvent(client, pingresp);
+	_gateway->getPacketEventQue()->post(evt);
 }
 
 void MQTTSNAggregateConnectionHandler::sendStoredPublish(Client* client)
