@@ -416,10 +416,16 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
+	if ( topicId == 0 )
+	{
+		WRITELOG("Invalid TopicId. Predefined Topic %s,  TopicId is 0. \n", topicName.c_str());
+		return nullptr;
+	}
+
 	if ( strcmp(clientId->cstring, common_topic) == 0 )
 	{
 		theGateway->getTopics()->add((const char*)topicName.c_str(), topicId);
-		return 0;
+		return nullptr;
 	}
 	else
 	{
@@ -427,7 +433,7 @@ Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicN
 
 		if ( _authorize && client == nullptr )
 		{
-			return 0;
+			return nullptr;
 		}
 
 		/*  anonimous clients */
