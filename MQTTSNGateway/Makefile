@@ -77,6 +77,7 @@ $(SUBDIR)/MQTTSNUnsubscribeServer.c
 CXX := g++
 CPPFLAGS += 
 
+# include directories, for MacOS/homebrew add -I/usr/local/opt/openssl/include/
 INCLUDE :=
 INCLUDES += $(INCLUDE) -I$(SRCDIR) \
 -I$(SRCDIR)/$(OS) \
@@ -84,12 +85,16 @@ INCLUDES += $(INCLUDE) -I$(SRCDIR) \
 -I$(SUBDIR) \
 -I$(SRCDIR)/$(TEST)
 
+# preprocessor defines
 DEFS :=
+
+# library search paths, for MacOS/homebrew add -L/usr/local/opt/openssl/lib/
 LIB :=
 LIBS += $(LIB) -L/usr/local/lib
-LDFLAGS := 
+
+LDFLAGS :=
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := -lpthread -lssl -lcrypto -lrt
+LDADD := -lpthread -lssl -lcrypto
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGNAME)

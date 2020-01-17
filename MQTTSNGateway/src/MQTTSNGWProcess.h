@@ -66,7 +66,7 @@ private:
 	string  _configDir;
 	string  _configFile;
 	RingBuffer* _rb;
-	Semaphore*  _rbsem;
+	NamedSemaphore*  _rbsem;
 	Mutex _mt;
 	int  _log;
 	char _rbdata[PROCESS_LOG_BUFFER_SIZE + 1];

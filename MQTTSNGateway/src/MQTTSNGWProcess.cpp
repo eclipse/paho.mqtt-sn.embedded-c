@@ -103,7 +103,7 @@ void Process::initialize(int argc, char** argv)
 			}
 		}
 	}
-	_rbsem = new Semaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
+	_rbsem = new NamedSemaphore(MQTTSNGW_RB_SEMAPHOR_NAME, 0);
 	_rb = new RingBuffer(_configDir.c_str());
 
 	if (getParam("ShearedMemory", param) == 0)
