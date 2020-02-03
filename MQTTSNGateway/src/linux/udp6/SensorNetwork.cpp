@@ -121,11 +121,8 @@ char* SensorNetAddress::getAddress(void)
 
 bool SensorNetAddress::isMatch(SensorNetAddress* addr)
 {
-	return ((this->_portNo == addr->_portNo) && \
-	(this->_IpAddr.sin6_addr.__in6_u.__u6_addr32[0] == addr->_IpAddr.sin6_addr.__in6_u.__u6_addr32[0]) && \
-	(this->_IpAddr.sin6_addr.__in6_u.__u6_addr32[1] == addr->_IpAddr.sin6_addr.__in6_u.__u6_addr32[1]) && \
-	(this->_IpAddr.sin6_addr.__in6_u.__u6_addr32[2] == addr->_IpAddr.sin6_addr.__in6_u.__u6_addr32[2]) && \
-	(this->_IpAddr.sin6_addr.__in6_u.__u6_addr32[3] == addr->_IpAddr.sin6_addr.__in6_u.__u6_addr32[3]));
+	return (this->_portNo == addr->_portNo) && \
+	(memcmp(this->_IpAddr.sin6_addr.s6_addr, addr->_IpAddr.sin6_addr.s6_addr, sizeof(this->_IpAddr.sin6_addr.s6_addr)) == 0);
 }
 
 SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
@@ -319,8 +316,13 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	//if given, set a given device name to bind to
 	if(strlen(interfaceName) > 0)
 	{
+#ifdef __APPLE__
+		int idx = if_nametoindex(interfaceName);
+		setsockopt(_sockfdUnicast, IPPROTO_IP, IP_BOUND_IF, &idx, sizeof(idx));
+#else	
 		//socket option: bind to a given interface name
 		setsockopt(_sockfdUnicast, SOL_SOCKET, SO_BINDTODEVICE, interfaceName, strlen(interfaceName));
+#endif
 	}
 
 	//socket option: reuse address
@@ -370,7 +372,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		strcpy(destStr, addr->getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_LINKLOCAL(addr->getAddress()))
+		if(IN6_IS_ADDR_LINKLOCAL(&addr->getIpAddress()->sin6_addr))
 		{
 			getaddrinfo(destStr, portStr.c_str(), &hints, &res);
 		}
@@ -411,8 +413,8 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 		strcpy(destStr, _grpAddr.getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_MC_NODELOCAL(_grpAddr.getAddress()) ||
-		   IN6_IS_ADDR_MC_LINKLOCAL(_grpAddr.getAddress()))
+		if(IN6_IS_ADDR_MC_NODELOCAL(&_grpAddr.getIpAddress()->sin6_addr) ||
+		   IN6_IS_ADDR_MC_LINKLOCAL(&_grpAddr.getIpAddress()->sin6_addr))
 		{
 			err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
 		}

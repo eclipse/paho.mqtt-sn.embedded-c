@@ -19,6 +19,9 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#ifdef __APPLE__
+#include <dispatch/dispatch.h>
+#endif
 #include "MQTTSNGWDefines.h"
 
 namespace MQTTSNGW
@@ -52,17 +55,34 @@ private:
 class Semaphore
 {
 public:
-	Semaphore();
-	Semaphore(unsigned int val);
-	Semaphore(const char* name, unsigned int val);
+	Semaphore(unsigned int val = 0);
 	~Semaphore();
 	void post(void);
 	void wait(void);
 	void timedwait(uint16_t millsec);
 
 private:
+#ifdef __APPLE__
+	dispatch_semaphore_t _sem;
+#else
+	sem_t _sem;
+#endif
+};
+
+/*=====================================
+         Class NamedSemaphore
+  ====================================*/
+class NamedSemaphore
+{
+public:
+	NamedSemaphore(const char* name, unsigned int val);
+	~NamedSemaphore();
+	void post(void);
+	void wait(void);
+	void timedwait(uint16_t millsec);
+
+private:
 	sem_t* _psem;
-	sem_t  _sem;
 	char*  _name;
 };
 
