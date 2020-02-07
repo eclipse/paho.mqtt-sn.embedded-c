@@ -118,7 +118,7 @@ void ClientList::setPredefinedTopics(bool aggrecate)
  * File format is:
  *     Lines bigning with # are comment line.
  *     ClientId, SensorNetAddress, "unstableLine", "secureConnection"
- *     in case of UDP, SensorNetAddress format is portNo@IPAddress.
+ *     in case of UDP, SensorNetAddress format is IPAddress:portNo.
  *     if the SensorNetwork is not stable, write unstableLine.
  *     if BrokerConnection is SSL, write secureConnection.
  *     if the client send PUBLISH QoS-1, QoS-1 is required.
@@ -380,7 +380,7 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
     }
     else
     {
-        MQTTSNString  dummyId MQTTSNString_initializer;;
+        MQTTSNString  dummyId MQTTSNString_initializer;
         dummyId.cstring = strdup("");
         client->setClientId(dummyId);
          free(dummyId.cstring);

@@ -127,7 +127,10 @@ void BrokerSendTask::run()
 			{
 				WRITELOG("%s BrokerSendTask: %s can't send a packet to the broker. errno=%d %s %s\n",
 						ERRMSG_HEADER, client->getClientId(), rc == -1 ? errno : 0, strerror(errno), ERRMSG_FOOTER);
-				client->getNetwork()->close();
+				if ( errno != EBADF )
+				{
+					client->getNetwork()->close();
+				}
 
 				/* Disconnect the client */
 				packet = new MQTTGWPacket();

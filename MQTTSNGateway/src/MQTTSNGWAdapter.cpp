@@ -126,6 +126,11 @@ bool Adapter::isSecure(SensorNetAddress* addr)
 	}
 }
 
+bool Adapter::isSecure(void)
+{
+	return _isSecure;
+}
+
 void Adapter::setClient(Client* client, bool secure)
 {
     if ( secure )
@@ -241,10 +246,10 @@ void Proxy::checkConnection(Client* client)
     if ( client->isDisconnect()  || ( client->isConnecting() && _responseTimer.isTimeup()) )
     {
         client->connectSended();
-        _responseTimer.start(QOSM1_PROXY_RESPONSE_DURATION * 1000UL);
+        _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
         MQTTSNPacket_connectData options = MQTTSNPacket_connectData_initializer;
         options.clientID.cstring = client->getClientId();
-        options.duration = QOSM1_PROXY_KEEPALIVE_DURATION;
+        options.duration = PROXY_KEEPALIVE_DURATION;
 
         MQTTSNPacket* packet = new MQTTSNPacket();
         packet->setCONNECT(&options);
@@ -260,10 +265,10 @@ void Proxy::checkConnection(Client* client)
             Event* ev = new Event();
             ev->setClientRecvEvent(client, packet);
             _gateway->getPacketEventQue()->post(ev);
-            _responseTimer.start(QOSM1_PROXY_RESPONSE_DURATION * 1000UL);
+            _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
             _isWaitingResp = true;
 
-            if ( ++_retryCnt > QOSM1_PROXY_MAX_RETRY_CNT )
+            if ( ++_retryCnt > PROXY_MAX_RETRY_CNT )
             {
                 client->disconnected();
             }
@@ -274,7 +279,7 @@ void Proxy::checkConnection(Client* client)
 
 void Proxy::resetPingTimer(void)
 {
-    _keepAliveTimer.start(QOSM1_PROXY_KEEPALIVE_DURATION * 1000UL);
+    _keepAliveTimer.start(PROXY_KEEPALIVE_DURATION * 1000UL);
 }
 
 void Proxy::recv(MQTTSNPacket* packet, Client* client)

@@ -1,7 +1,8 @@
 # MQTT-SN Transparent / Aggrigating Gateway
 
 **MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
-This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.
+This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.    
+The Transparent Gateway can not receive PUBLISH message from the broker at this version.
 
 ### **step1. Build the gateway**   
 ````
@@ -37,7 +38,7 @@ $ ./MQTT-SNGateway [-f Config file name]
 # config file of MQTT-SN Gateway
 #
 
-BrokerName=iot.eclipse.org
+BrokerName=mqtt.eclipse.org
 BrokerPortNo=1883
 BrokerSecurePortNo=8883
 

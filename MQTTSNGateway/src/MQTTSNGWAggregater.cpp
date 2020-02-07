@@ -44,10 +44,11 @@ void Aggregater::initialize(void)
     {
         if (!strcasecmp(param, "YES") )
         {
-           /* Create Aggregated Clients */
+            /* Create Aggregated Clients from clients.conf */
         	_gateway->getClientList()->setClientList(AGGREGATER_TYPE);
 
-        	string name = _gateway->getGWParams()->gatewayName;
+        	/* Create Aggregater Client */
+        	string name = string(_gateway->getGWParams()->gatewayName) + "_Aggregater";
         	setup(name.c_str(), Atype_Aggregater);
         	_isActive = true;
         }
@@ -64,6 +65,7 @@ bool Aggregater::isActive(void)
 
 uint16_t Aggregater::msgId(void)
 {
+	// Only SecureClient generates msgId to avoid duplication of msgId. Client does not generate it.
 	return Adapter::getSecureClient()->getNextPacketId();
 }
 

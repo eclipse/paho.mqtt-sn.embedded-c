@@ -54,6 +54,7 @@ void ForwarderList::initialize(Gateway* gw)
     {
         if (!strcasecmp(param, "YES") )
         {
+        	/* Create Fowarders from clients.conf */
         	gw->getClientList()->setClientList(FORWARDER_TYPE);
         }
     }
