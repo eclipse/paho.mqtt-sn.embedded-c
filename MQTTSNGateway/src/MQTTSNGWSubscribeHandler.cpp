@@ -223,7 +223,6 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPack
 			WRITELOG("%s MQTTSNSubscribeHandler can't create MessageIdTableElement  %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 			return;
 		}
-WRITELOG("msgId=%d\n",msgId);
 		subscribe->setMsgId(msgId);
 		Event* ev = new Event();
 		ev->setBrokerSendEvent(client, subscribe);

@@ -56,6 +56,7 @@ public:
     void send(MQTTSNPacket* packet, Client* client);
     bool isActive(void);
     bool isSecure(SensorNetAddress* addr);
+    bool isSecure(void);
     void savePacket(Client* client, MQTTSNPacket* packet);
 
 private:

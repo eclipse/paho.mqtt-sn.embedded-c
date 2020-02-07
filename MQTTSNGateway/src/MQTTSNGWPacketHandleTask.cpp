@@ -148,7 +148,7 @@ void PacketHandleTask::run()
 
 			if ( adpMgr->isAggregatedClient(client) )
 			{
-				aggregatePacketHandler(client, snPacket);
+				aggregatePacketHandler(client, snPacket);     // client is converted to Aggregater by BrokerSendTask
 			}
 			else
 			{

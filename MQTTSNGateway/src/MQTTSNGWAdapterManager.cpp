@@ -101,12 +101,18 @@ Client* AdapterManager::getClient(Client& client)
 		_qosm1Proxy->resetPingTimer(secure);
 	}
 	else if ( client.isAggregated() )
-
 	{
 		newClient = _aggregater->getAdapterClient(&client);
 		_aggregater->resetPingTimer(secure);
 	}
-
+	else if ( client.isQoSm1Proxy() )
+	{
+		_qosm1Proxy->resetPingTimer(secure);
+	}
+	else if ( client.isAggregater() )
+	{
+		_aggregater->resetPingTimer(secure);
+	}
 	return newClient;
 }
 

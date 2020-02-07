@@ -272,8 +272,8 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 	Publish pub;
 	packet->getPUBLISH(&pub);
 
-	WRITELOG(FORMAT_Y_G_G, currentDateTime(), packet->getName(),
-	RIGHTARROW, client->getClientId(), "is sleeping. a message was saved.");
+	// Start of temporary code
+	WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish Aggregater can't handle a  PUBLISH from the broker at the current version.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
 
 	if (pub.header.bits.qos == 1)
 	{
@@ -283,11 +283,12 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 	{
 		replyACK(client, &pub, PUBREC);
 	}
-
+	// End of temporary code
 
 
 	string* topicName = new string(pub.topic, pub.topiclen);
-	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);    // topic deletes topicName when the topic is deleted
+
 	AggregateTopicElement* list = _gateway->getAdapterManager()->createClientList(&topic);
 	if ( list != nullptr )
 	{
