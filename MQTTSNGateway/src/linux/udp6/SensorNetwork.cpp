@@ -175,6 +175,7 @@ int SensorNetwork::initialize(void)
 	string ip;
 	string broadcast;
 	string interface;
+	unsigned int hops = 1;
 
 	if (theProcess->getParam("GatewayUDP6Bind", param) == 0)
 	{
@@ -200,8 +201,14 @@ int SensorNetwork::initialize(void)
 		_description += " Interface: ";
 		_description += param;
 	}
+	if (theProcess->getParam("GatewayUDP6Hops", param) == 0)
+	{
+		hops = atoi(param);
+		_description += " Hops: ";
+		_description += param;
+	}
 
-	return UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str());
+	return UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str(), hops);
 }
 
 const char* SensorNetwork::getDescription(void)
@@ -244,7 +251,7 @@ void UDPPort6::close(void)
 	}
 }
 
-int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadcastAddr, const char* interfaceName)
+int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadcastAddr, const char* interfaceName, unsigned int hops)
 {
 	struct addrinfo hints, *res;
 	int errnu;
@@ -291,8 +298,15 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 		WRITELOG("UDP6::open - limit IPv6: %s",strerror(errnu));
 		return errnu;
 	}
+	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops,sizeof(hops));
+	if(errnu <0)
+	{
+	    WRITELOG("UDP6::open - limit HOPS: %s",strerror(errnu));
+	    return errnu;
+	}
 
 	_uniPortNo = uniPortNo;
+	_hops = hops;
 	freeaddrinfo(res);
 
 	//init the structs for getaddrinfo

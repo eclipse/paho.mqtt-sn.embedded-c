@@ -73,6 +73,14 @@ KeepAlive=900
 GatewayPortNo=10000
 MulticastIP=225.1.1.1
 MulticastPortNo=1883
+MulticastTTL=1  
+
+# UDP6
+GatewayUDP6Bind=FFFF:FFFE::1 
+GatewayUDP6Port=10000
+GatewayUDP6Broadcast=FF02::1
+GatewayUDP6If=wpan0
+GatewayUDP6Hops=1
 
 # XBee
 Baudrate=38400

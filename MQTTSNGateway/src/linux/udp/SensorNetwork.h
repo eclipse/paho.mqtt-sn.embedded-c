@@ -60,7 +60,7 @@ public:
 	UDPPort();
 	virtual ~UDPPort();
 
-	int open(const char* ipAddress, uint16_t multiPortNo,	uint16_t uniPortNo);
+	int open(const char* ipAddress, uint16_t multiPortNo,	uint16_t uniPortNo, unsigned int hops);
 	void close(void);
 	int unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* sendToAddr);
 	int broadcast(const uint8_t* buf, uint32_t length);
@@ -76,7 +76,7 @@ private:
 	SensorNetAddress _grpAddr;
 	SensorNetAddress _clientAddr;
 	bool _disconReq;
-
+	unsigned int _ttl;
 };
 
 /*===========================================
