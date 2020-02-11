@@ -161,7 +161,7 @@ void BrokerRecvTask::run(void)
 
 								delete packet;
 
-								if ( (rc == -1 || rc == -2) && client->isActive() )
+								if ( (rc == -1 || rc == -2) && ( client->isActive()  || client->isSleep() || client->isAwake() ))
 								{
 									/* disconnect the client */
 									packet = new MQTTGWPacket();
