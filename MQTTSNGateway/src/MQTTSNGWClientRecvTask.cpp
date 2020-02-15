@@ -145,9 +145,11 @@ void ClientRecvTask::run()
 					}
 				}
 			}
+			else
+			{
+				client = _gateway->getClientList()->getClient(senderAddr);
+			}
 		}
-
-		client = _gateway->getClientList()->getClient(senderAddr);
 
 		if ( client )
 		{
@@ -217,11 +219,11 @@ void ClientRecvTask::run()
 				log(client, packet, 0);
 				if ( packet->getType() == MQTTSN_ENCAPSULATED )
 				{
-					WRITELOG("%s Forwarder(%s) is not declared by ClientList file. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s MQTTSNGWClientRecvTask  Forwarder(%s) is not declared by ClientList file. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 				}
 				else
 				{
-					WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s MQTTSNGWClientRecvTask  Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 				}
 				delete packet;
 			}

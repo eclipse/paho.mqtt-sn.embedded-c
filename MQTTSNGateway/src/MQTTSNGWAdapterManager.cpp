@@ -127,8 +127,8 @@ int AdapterManager::unicastToClient(Client* client, MQTTSNPacket* packet, Client
 		MQTTSNGWEncapsulatedPacket encap(packet);
 		WirelessNodeId* wnId = fwd->getWirelessNodeId(client);
 		encap.setWirelessNodeId(wnId);
-		WRITELOG(FORMAT_Y_W_G, currentDateTime(), encap.getName(), RIGHTARROW, fwd->getId(), encap.print(pbuf));
 		task->log(client, packet);
+		WRITELOG(FORMAT_Y_W_G, currentDateTime(), encap.getName(), RIGHTARROW, fwd->getId(), encap.print(pbuf));
 		rc = encap.unicast(_gateway->getSensorNetwork(),fwd->getSensorNetAddr());
 	}
 	else
