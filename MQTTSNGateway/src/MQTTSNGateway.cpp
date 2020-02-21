@@ -294,7 +294,7 @@ void Gateway::run(void)
 	/* wait until all Task stop */
 	MultiTaskProcess::waitStop();
 
-	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
+	WRITELOG("\n\n%s MQTT-SN Gateway  stopped.\n\n", currentDateTime());
 	_lightIndicator.allLightOff();
 }
 

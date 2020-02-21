@@ -51,7 +51,7 @@ void ClientSendTask::run()
 
 		if (ev->getEventType() == EtStop)
 		{
-			WRITELOG("%s ClientSendTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s ClientSendTask   stopped.", currentDateTime());
 			delete ev;
 			break;
 		}

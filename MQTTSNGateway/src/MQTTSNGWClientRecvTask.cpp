@@ -77,7 +77,7 @@ void ClientRecvTask::run()
 
 		if (CHK_SIGINT)
 		{
-			WRITELOG("%s ClientRecvTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s ClientRecvTask   stopped.", currentDateTime());
 			delete packet;
 			return;
 		}

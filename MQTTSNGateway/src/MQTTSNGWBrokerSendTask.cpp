@@ -70,7 +70,7 @@ void BrokerSendTask::run()
 
 		if ( ev->getEventType() == EtStop )
 		{
-			WRITELOG("%s BrokerSendTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s BrokerSendTask   stopped.", currentDateTime());
 			delete ev;
 			return;
 		}

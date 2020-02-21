@@ -64,7 +64,7 @@ void BrokerRecvTask::run(void)
 		_light->blueLight(false);
 		if (CHK_SIGINT)
 		{
-			WRITELOG("%s BrokerRecvTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s BrokerRecvTask   stopped.", currentDateTime());
 			return;
 		}
 		timeout.tv_sec = 0;

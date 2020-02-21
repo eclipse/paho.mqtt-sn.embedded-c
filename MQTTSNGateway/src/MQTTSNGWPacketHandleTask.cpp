@@ -113,7 +113,7 @@ void PacketHandleTask::run()
 
 		if (ev->getEventType() == EtStop)
 		{
-			WRITELOG("%s PacketHandleTask stopped.\n", currentDateTime());
+			WRITELOG("\n%s PacketHandleTask stopped.", currentDateTime());
 			delete ev;
 			return;
 		}
