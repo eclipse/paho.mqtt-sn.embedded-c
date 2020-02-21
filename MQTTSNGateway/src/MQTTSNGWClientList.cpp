@@ -67,24 +67,12 @@ void ClientList::setClientList(int type)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	string fileName;
-	GatewayParams* params = theGateway->getGWParams();
-	if (theGateway->getParam("ClientsList", param) == 0)
-	{
-		fileName = string(param);
-	}
-	else
-	{
-		fileName = params->configDir + string(CLIENT_LIST);
-	}
+	theGateway->getParam("ClientsList", param);
+	fileName = string(param);
 
 	if (!createList(fileName.c_str(), type))
 	{
 		throw Exception("ClientList::initialize(): No client list defined by the configuration.");
-	}
-
-	if ( params->clientListName == nullptr )
-	{
-		params->clientListName = strdup(fileName.c_str());
 	}
 }
 
@@ -93,21 +81,11 @@ void ClientList::setPredefinedTopics(bool aggrecate)
 	char param[MQTTSNGW_PARAM_MAX];
 
 	string fileName;
-	GatewayParams* params = theGateway->getGWParams();
 
-	if (theGateway->getParam("PredefinedTopicList", param) == 0)
-	{
-		fileName = string(param);
-	}
-	else
-	{
-		fileName = params->configDir + string(PREDEFINEDTOPIC_FILE);
-	}
+	theGateway->getParam("PredefinedTopicList", param);
+	fileName = string(param);
 
-	if ( readPredefinedList(fileName.c_str(), aggrecate) )
-	{
-		params->predefinedTopicFileName = strdup(fileName.c_str());
-	}
+	readPredefinedList(fileName.c_str(), aggrecate);
 }
 
 /**
@@ -125,11 +103,11 @@ void ClientList::setPredefinedTopics(bool aggrecate)
  *
  * Ex:
  *     #Client List
- *     ClientId1,11200@192.168.10.10
- *     ClientID2,35000@192.168.50.200,unstableLine
- *     ClientID3,40000@192.168.200.50,secureConnection
- *     ClientID4,41000@192.168.200.51,unstableLine,secureConnection
- *      ClientID5,41000@192.168.200.51,unstableLine,secureConnection,QoS-1
+ *     ClientId1,192.168.10.10:11200
+ *     ClientID2,192.168.50.200:35000,unstableLine
+ *     ClientID3,192.168.200.50:40000,secureConnection
+ *     ClientID4,192.168.200.51:41000,unstableLine,secureConnection
+ *     ClientID5,192.168.200.51:41000,unstableLine,secureConnection,QoS-1
  */
 
 bool ClientList::createList(const char* fileName, int type)

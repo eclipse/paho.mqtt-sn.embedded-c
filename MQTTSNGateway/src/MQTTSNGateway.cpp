@@ -215,6 +215,26 @@ void Gateway::initialize(int argc, char** argv)
 		}
 	}
 
+	if (getParam("ClientsList", param) == 0)
+	{
+		_params.clientListName = strdup(param);
+	}
+
+	if (getParam("PredefinedTopicList", param) == 0)
+	{
+		_params.predefinedTopicFileName = strdup(param);
+	}
+
+	if ( _params.clientListName == nullptr )
+	{
+		_params.clientListName = strdup(( _params.configDir + string(CLIENT_LIST) ).c_str());
+	}
+
+	if ( _params.predefinedTopicFileName == nullptr )
+	{
+		_params.predefinedTopicFileName = strdup(( _params.configDir + string(PREDEFINEDTOPIC_FILE) ).c_str());
+	}
+
 	/*  ClientList and Adapters  Initialize  */
 	_adapterManager->initialize();
 
