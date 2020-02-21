@@ -25,7 +25,7 @@ $ make install INSTALL_DIR=/path/to/your_directory CONFIG_DIR=/path/to/your_dire
 ### **step2. Execute the Gateway.**     
 
 ````    
-$ cd ../   
+$ cd ../../   
 $ ./MQTT-SNGateway [-f Config file name]
 ````   
 If you get the error message as follows:
