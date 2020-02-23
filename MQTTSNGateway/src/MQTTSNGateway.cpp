@@ -86,6 +86,10 @@ Gateway::~Gateway()
 	{
 		free(_params.clientListName);
 	}
+	if ( _params.predefinedTopicFileName )
+	{
+		free( _params.predefinedTopicFileName);
+	}
 	if ( _params.configName )
 	{
 		free(_params.configName);
@@ -114,6 +118,16 @@ Gateway::~Gateway()
 int Gateway::getParam(const char* parameter, char* value)
 {
     return MultiTaskProcess::getParam(parameter, value);
+}
+
+char* Gateway::getClientListFileName(void)
+{
+	return _params.clientListName;
+}
+
+char* Gateway::getPredefinedTopicFileName(void)
+{
+	return _params.predefinedTopicFileName;
 }
 
 void Gateway::initialize(int argc, char** argv)

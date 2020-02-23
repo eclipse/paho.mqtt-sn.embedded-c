@@ -160,8 +160,8 @@ public:
 	char* rootCApath {nullptr};
 	char* rootCAfile {nullptr};
 	char* certKey {nullptr};
-	char* privateKey {nullptr};
 	char* predefinedTopicFileName {nullptr};
+	char* privateKey {nullptr};
 	char* qosMinusClientListName {nullptr};
 	bool  clientAuthentication {false};
 };
@@ -190,6 +190,9 @@ public:
 	GatewayParams* getGWParams(void);
 	AdapterManager* getAdapterManager(void);
 	int getParam(const char* parameter, char* value);
+	char* getClientListFileName(void);
+	char* getPredefinedTopicFileName(void);
+
 	bool hasSecureConnection(void);
 	Topics* getTopics(void);
 

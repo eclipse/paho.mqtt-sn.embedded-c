@@ -65,12 +65,8 @@ void ClientList::initialize(bool aggregate)
 
 void ClientList::setClientList(int type)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-	string fileName;
-	theGateway->getParam("ClientsList", param);
-	fileName = string(param);
 
-	if (!createList(fileName.c_str(), type))
+	if (!createList(theGateway->getClientListFileName(), type))
 	{
 		throw Exception("ClientList::initialize(): No client list defined by the configuration.");
 	}
@@ -78,14 +74,7 @@ void ClientList::setClientList(int type)
 
 void ClientList::setPredefinedTopics(bool aggrecate)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-
-	string fileName;
-
-	theGateway->getParam("PredefinedTopicList", param);
-	fileName = string(param);
-
-	readPredefinedList(fileName.c_str(), aggrecate);
+	readPredefinedList(theGateway->getPredefinedTopicFileName(), aggrecate);
 }
 
 /**
