@@ -455,14 +455,13 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	return 0;
 }
 
-//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
 	struct timeval timeout;
 	fd_set recvfds;
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1000000;    // 1 sec
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;    // 1 sec
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
 
@@ -477,7 +476,6 @@ int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 	return rc;
 }
 
-//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
 {
 	sockaddr_in6 sender;

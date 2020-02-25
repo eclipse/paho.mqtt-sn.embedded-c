@@ -392,8 +392,8 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 	fd_set recvfds;
 	int maxSock = 0;
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1000000;    // 1 sec
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;    // 1 sec
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
 	FD_SET(_sockfdMulticast, &recvfds);
