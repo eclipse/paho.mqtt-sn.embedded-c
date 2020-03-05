@@ -61,20 +61,28 @@ void ClientList::initialize(bool aggregate)
 		setClientList(type);
         _authorize = true;
     }
+
+    if ( theGateway->getGWParams()->predefinedTopic )
+    {
+    	setPredefinedTopics(aggregate);
+    }
 }
 
 void ClientList::setClientList(int type)
 {
-
-	if (!createList(theGateway->getClientListFileName(), type))
+	if (!createList(theGateway->getGWParams()->clientListName, type))
 	{
-		throw Exception("ClientList::initialize(): No client list defined by the configuration.");
+		throw Exception("ClientList::setClientList No client list defined by config file.");
 	}
 }
 
 void ClientList::setPredefinedTopics(bool aggrecate)
 {
-	readPredefinedList(theGateway->getPredefinedTopicFileName(), aggrecate);
+	if ( !readPredefinedList(theGateway->getGWParams()->predefinedTopicFileName, aggrecate) )
+	{
+		throw Exception("ClientList::setPredefinedTopics No predefindTopi list defined by config file.");
+
+	}
 }
 
 /**
@@ -108,7 +116,7 @@ bool ClientList::createList(const char* fileName, int type)
     bool stable;
     bool qos_1;
     bool forwarder;
-    bool rc = true;
+    bool rc = false;
     SensorNetAddress netAddr;
     MQTTSNString clientId = MQTTSNString_initializer;
 
@@ -161,6 +169,7 @@ bool ClientList::createList(const char* fileName, int type)
             free(clientId.cstring);
         }
         fclose(fp);
+        rc = true;
     }
     return rc;
 }

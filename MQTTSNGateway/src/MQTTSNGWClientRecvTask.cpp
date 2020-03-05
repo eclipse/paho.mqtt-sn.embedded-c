@@ -60,7 +60,7 @@ void ClientRecvTask::run()
 	Event* ev = nullptr;
 	AdapterManager* adpMgr = _gateway->getAdapterManager();
 	QoSm1Proxy* qosm1Proxy = adpMgr->getQoSm1Proxy();
-	bool isAggrActive = adpMgr->isAggregaterActive();
+	int  clientType = adpMgr->isAggregaterActive() ? AGGREGATER_TYPE : TRANSPEARENT_TYPE;
 	ClientList* clientList = _gateway->getClientList();
 	EventQue* packetEventQue = _gateway->getPacketEventQue();
 
@@ -133,11 +133,12 @@ void ClientRecvTask::run()
 			{
 				 const char* clientName = qosm1Proxy->getClientId(senderAddr);
 
-				if ( clientName )
+				if ( clientName != nullptr )
 				{
+					client = qosm1Proxy->getClient();
+
 					if ( !packet->isQoSMinusPUBLISH() )
 					{
-						client = qosm1Proxy->getClient();
 						log(clientName, packet);
 						WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, senderAddr->sprint(buf), ERRMSG_FOOTER);
 						delete packet;
@@ -145,10 +146,14 @@ void ClientRecvTask::run()
 					}
 				}
 			}
-			client = _gateway->getClientList()->getClient(senderAddr);
+
+			if ( client == nullptr )
+			{
+				client = _gateway->getClientList()->getClient(senderAddr);
+			}
 		}
 
-		if ( client )
+		if ( client != nullptr )
 		{
 			/* write log and post Event */
 			log(client, packet, 0);
@@ -178,7 +183,7 @@ void ClientRecvTask::run()
 				    if ( client == nullptr )
 				    {
 				        /* create a new client */
-				        client = clientList->createClient(0, &data.clientID, isAggrActive);
+				        client = clientList->createClient(0, &data.clientID, clientType);
 				    }
 				    /* Add to af forwarded client list of forwarder. */
                     fwd->addClient(client, &nodeId);
@@ -193,7 +198,7 @@ void ClientRecvTask::run()
                     else
                     {
                         /* create a new client */
-                        client = clientList->createClient(senderAddr, &data.clientID, isAggrActive);
+                        client = clientList->createClient(senderAddr, &data.clientID, clientType);
                     }
 				}
 

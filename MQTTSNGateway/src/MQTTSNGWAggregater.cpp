@@ -36,23 +36,12 @@ Aggregater::~Aggregater(void)
 
 }
 
-void Aggregater::initialize(void)
+void Aggregater::initialize(char* gwName)
 {
-    char param[MQTTSNGW_PARAM_MAX];
-
-    if (_gateway->getParam("AggregatingGateway", param) == 0 )
-    {
-        if (!strcasecmp(param, "YES") )
-        {
-            /* Create Aggregated Clients from clients.conf */
-        	_gateway->getClientList()->setClientList(AGGREGATER_TYPE);
-
-        	/* Create Aggregater Client */
-        	string name = string(_gateway->getGWParams()->gatewayName) + "_Aggregater";
-        	setup(name.c_str(), Atype_Aggregater);
-        	_isActive = true;
-        }
-    }
+	/* Create Aggregater Client */
+	string name = string(gwName) + string("_Aggregater");
+	setup(name.c_str(), Atype_Aggregater);
+	_isActive = true;
 
     //testMessageIdTable();
 
@@ -95,26 +84,38 @@ uint16_t Aggregater::getMsgId(Client* client, uint16_t clientMsgId)
 	return _msgIdTable.getMsgId(client, clientMsgId);
 }
 
+AggregateTopicElement* Aggregater::addAggregateTopic(Topic* topic, Client* client)
+{
+	return _topicTable.add(topic, client);
+}
+
+
 void Aggregater::removeAggregateTopic(Topic* topic, Client* client)
 {
-      // ToDo: AggregateGW this method called when the client disconnect and erase it`s Topics. this method call */
+	_topicTable.erase(topic, client);
 }
 
-void Aggregater::removeAggregateTopicList(Topics* topics, Client* client)
+AggregateTopicElement* Aggregater::findTopic(Topic* topic)
 {
-      // ToDo: AggregateGW this method called when the client disconnect and erase it`s Topics. this method call */
+	return _topicTable.getAggregateTopicElement(topic);
 }
 
-int Aggregater::addAggregateTopic(Topic* topic, Client* client)
+ClientTopicElement* Aggregater::getClientElement(Topic* topic)
 {
-	// ToDo: AggregateGW  */
-	return 0;
+	AggregateTopicElement* elm = findTopic(topic);
+	if ( elm != nullptr )
+	{
+		return elm->getFirstClientTopicElement();
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
-AggregateTopicElement* Aggregater::createClientList(Topic* topic)
+void Aggregater::printAggregateTopicTable(void)
 {
-	// ToDo: AggregateGW  */
-	return 0;
+	_topicTable.print();
 }
 
 bool Aggregater::testMessageIdTable(void)

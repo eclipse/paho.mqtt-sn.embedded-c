@@ -217,7 +217,7 @@ Client* Adapter::getAdapterClient(Client* client)
 {
 	if ( client->isSecureNetwork() )
 	{
-		return _client;
+		return _clientSecure;
 	}
 	else
 	{

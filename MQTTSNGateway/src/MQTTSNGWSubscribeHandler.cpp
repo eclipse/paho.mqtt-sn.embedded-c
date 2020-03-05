@@ -203,11 +203,6 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPack
 
 	if ( subscribe != nullptr )
 	{
-		UTF8String str = subscribe->getTopic();
-		string* topicName = new string(str.data, str.len);
-		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
-		 _gateway->getAdapterManager()->addAggregateTopic(&topic, client);
-
 		int msgId = 0;
 		if ( packet->isDuplicate() )
 		{
@@ -223,6 +218,13 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPack
 			WRITELOG("%s MQTTSNSubscribeHandler can't create MessageIdTableElement  %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 			return;
 		}
+
+		UTF8String str = subscribe->getTopic();
+		string* topicName = new string(str.data, str.len);    // topicName is delete by topic
+		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+
+		_gateway->getAdapterManager()->getAggregater()->addAggregateTopic(&topic, client);
+
 		subscribe->setMsgId(msgId);
 		Event* ev = new Event();
 		ev->setBrokerSendEvent(client, subscribe);
@@ -235,11 +237,6 @@ void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client, MQTTSNPa
 	MQTTGWPacket* unsubscribe = handleUnsubscribe(client, packet);
 	if ( unsubscribe != nullptr )
 	{
-		UTF8String str = unsubscribe->getTopic();
-		string* topicName = new string(str.data, str.len);
-		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
-		_gateway->getAdapterManager()->removeAggregateTopic(&topic, client);
-
 		int msgId = 0;
 		if ( packet->isDuplicate() )
 		{
@@ -255,6 +252,12 @@ void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client, MQTTSNPa
 			WRITELOG("%s MQTTSNUnsubscribeHandler can't create MessageIdTableElement  %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 			return;
 		}
+
+		UTF8String str = unsubscribe->getTopic();
+		string* topicName = new string(str.data, str.len);     // topicName is delete by topic
+		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+		_gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(&topic, client);
+
 		unsubscribe->setMsgId(msgId);
 		Event* ev = new Event();
 		ev->setBrokerSendEvent(client, unsubscribe);

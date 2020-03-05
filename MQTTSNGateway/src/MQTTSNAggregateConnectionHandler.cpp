@@ -81,7 +81,15 @@ void MQTTSNAggregateConnectionHandler::handleConnect(Client* client, MQTTSNPacke
 		/* renew the TopicList */
 		if (topics)
 		{
-			_gateway->getAdapterManager()->removeAggregateTopicList(topics, client);
+			Topic* tp = topics->getFirstTopic();
+			while( tp != nullptr )
+			{
+				if ( tp->getType() == MQTTSN_TOPIC_TYPE_NORMAL )
+				{
+					_gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(tp, client);
+				}
+				tp = topics->getNextTopic(tp);
+			}
 			topics->eraseNormal();
 		}
 		client->setSessionStatus(true);
@@ -189,7 +197,6 @@ void MQTTSNAggregateConnectionHandler::sendStoredPublish(Client* client)
 
     while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
     {
-        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
         client->deleteFirstClientSleepPacket();  // pop the que to delete element.
 
         Event* ev = new Event();

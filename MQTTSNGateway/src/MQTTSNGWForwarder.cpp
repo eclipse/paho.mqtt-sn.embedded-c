@@ -47,17 +47,8 @@ ForwarderList::~ForwarderList()
 
 void ForwarderList::initialize(Gateway* gw)
 {
-    char param[MQTTSNGW_PARAM_MAX];
-    string fileName;
-
-    if (gw->getParam("Forwarder", param) == 0 )
-    {
-        if (!strcasecmp(param, "YES") )
-        {
-        	/* Create Fowarders from clients.conf */
-        	gw->getClientList()->setClientList(FORWARDER_TYPE);
-        }
-    }
+	/* Create Fowarders from clients.conf */
+	gw->getClientList()->setClientList(FORWARDER_TYPE);
 }
 
 

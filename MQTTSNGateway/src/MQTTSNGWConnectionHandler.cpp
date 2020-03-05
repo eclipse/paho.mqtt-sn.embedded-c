@@ -291,7 +291,6 @@ void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
 
     while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
     {
-        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
         client->deleteFirstClientSleepPacket();  // pop the que to delete element.
 
         Event* ev = new Event();

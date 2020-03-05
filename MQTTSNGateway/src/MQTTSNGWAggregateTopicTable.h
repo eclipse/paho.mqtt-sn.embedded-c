@@ -39,10 +39,16 @@ public:
 	~AggregateTopicTable();
 
 	AggregateTopicElement* add(Topic* topic, Client* client);
-	AggregateTopicElement* getClientList(Topic* client);
-	void remove(Topic* topic, Client* client);
+	AggregateTopicElement* getAggregateTopicElement(Topic* topic);
+	ClientTopicElement* getClientElement(Topic* topic);
+	void erase(Topic* topic, Client* client);
 	void clear(void);
+
+	void print(void);
+
 private:
+	void erase(AggregateTopicElement* elmTopic);
+	Mutex _mutex;
 	AggregateTopicElement* _head {nullptr};
 	AggregateTopicElement* _tail {nullptr};
 	int _cnt {0};
@@ -61,14 +67,16 @@ public:
     ~AggregateTopicElement(void);
 
     ClientTopicElement* add(Client* client);
-    ClientTopicElement* getFirstElement(void);
-    ClientTopicElement* getNextElement(ClientTopicElement* elm);
-    void erase(ClientTopicElement* elm);
+    ClientTopicElement* getFirstClientTopicElement(void);
+    ClientTopicElement* getNextClientTopicElement(ClientTopicElement* elmClient);
+    void eraseClient(Client* client);
     ClientTopicElement* find(Client* client);
 
 private:
     Mutex _mutex;
     Topic* _topic {nullptr};
+    AggregateTopicElement* _next {nullptr};
+    AggregateTopicElement* _prev {nullptr};
     ClientTopicElement* _head {nullptr};
     ClientTopicElement* _tail {nullptr};
 };
@@ -83,6 +91,8 @@ class ClientTopicElement
 public:
     ClientTopicElement(Client* client);
     ~ClientTopicElement(void);
+
+    ClientTopicElement* getNextClientElement(void);
     Client* getClient(void);
 
 private:

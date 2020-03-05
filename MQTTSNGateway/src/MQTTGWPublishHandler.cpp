@@ -272,53 +272,31 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 	Publish pub;
 	packet->getPUBLISH(&pub);
 
-	// Start of temporary code
-	WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish Aggregater can't handle a  PUBLISH from the broker at the current version.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
 
-	if (pub.header.bits.qos == 1)
+	string* topicName = new string(pub.topic, pub.topiclen);   // topic deletes topicName when the topic is deleted
+	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+
+	// ToDo: need to refacter
+	ClientTopicElement* elm = _gateway->getAdapterManager()->getAggregater()->getClientElement(&topic);
+
+	while ( elm != nullptr )
 	{
-		replyACK(client, &pub, PUBACK);
-	}
-	else if ( pub.header.bits.qos == 2)
-	{
-		replyACK(client, &pub, PUBREC);
-	}
-	// End of temporary code
+		Client* devClient = elm->getClient();
+		MQTTGWPacket* msg = new MQTTGWPacket();
+		*msg = *packet;
 
-
-	string* topicName = new string(pub.topic, pub.topiclen);
-	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);    // topic deletes topicName when the topic is deleted
-
-	AggregateTopicElement* list = _gateway->getAdapterManager()->createClientList(&topic);
-	if ( list != nullptr )
-	{
-		ClientTopicElement* p = list->getFirstElement();
-
-		while ( p )
+		if ( msg->getType() == 0 )
 		{
-			Client* devClient = p->getClient();
-			if ( devClient != nullptr )
-			{
-				MQTTGWPacket* msg = new MQTTGWPacket();
-				*msg = *packet;
-				if ( msg->getType() == 0 )
-				{
-					WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
-					delete msg;
-					break;
-				}
-				Event* ev = new Event();
-				ev->setBrokerRecvEvent(devClient, msg);
-				_gateway->getPacketEventQue()->post(ev);
-			}
-			else
-			{
-				break;
-			}
-
-			p = list->getNextElement(p);
+			WRITELOG("%s MQTTGWPublishHandler::handleAggregatePublish can't allocate memories for Packet.%s\n", ERRMSG_HEADER,ERRMSG_FOOTER);
+			delete msg;
+			break;
 		}
-		delete list;
+
+		Event* ev = new Event();
+		ev->setBrokerRecvEvent(devClient, msg);
+		_gateway->getPacketEventQue()->post(ev);
+
+		elm = elm->getNextClientElement();
 	}
 }
 

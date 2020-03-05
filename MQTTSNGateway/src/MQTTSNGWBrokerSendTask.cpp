@@ -81,7 +81,7 @@ void BrokerSendTask::run()
 			packet = ev->getMQTTGWPacket();
 
 			/* Check Client is managed by Adapters */
-			client = adpMgr->getClient(*client);
+			client = adpMgr->getClient(client);
 
 			if ( packet->getType() == CONNECT && client->getNetwork()->isValid() )
 			{

@@ -35,7 +35,7 @@ public:
 	QoSm1Proxy(Gateway* gw);
     ~QoSm1Proxy(void);
 
-    void initialize(void);
+    void initialize(char* GWnAME);
     bool isActive(void);
 
 private:

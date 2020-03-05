@@ -40,13 +40,23 @@ AdapterManager::AdapterManager(Gateway* gw)
 }
 
 
-void AdapterManager::initialize(void)
+void AdapterManager::initialize(char* gwName, bool aggregate, bool forwarder, bool qosM1)
 {
-    _aggregater->initialize();
-    _forwarders->initialize(_gateway);
-    _qosm1Proxy->initialize();
-}
+    if ( aggregate )
+    {
+    	_aggregater->initialize(gwName);
+    }
 
+    if ( qosM1 )
+    {
+    	_qosm1Proxy->initialize(gwName);
+    }
+
+    if ( forwarder )
+    {
+    	_forwarders->initialize(_gateway);
+    }
+}
 
 AdapterManager::~AdapterManager(void)
 {
@@ -91,25 +101,26 @@ bool AdapterManager::isAggregatedClient(Client* client)
 	}
 }
 
-Client* AdapterManager::getClient(Client& client)
+Client* AdapterManager::getClient(Client* client)
 {
-	bool secure = client.isSecureNetwork();
-	Client* newClient = &client;
-	if ( client.isQoSm1() )
+	bool secure = client->isSecureNetwork();
+	Client* newClient = client;
+
+	if ( client->isQoSm1() )
 	{
-		newClient = _qosm1Proxy->getAdapterClient(&client);
+		newClient = _qosm1Proxy->getAdapterClient(client);
 		_qosm1Proxy->resetPingTimer(secure);
 	}
-	else if ( client.isAggregated() )
+	else if ( client->isAggregated() )
 	{
-		newClient = _aggregater->getAdapterClient(&client);
+		newClient = _aggregater->getAdapterClient(client);
 		_aggregater->resetPingTimer(secure);
 	}
-	else if ( client.isQoSm1Proxy() )
+	else if ( client->isQoSm1Proxy() )
 	{
 		_qosm1Proxy->resetPingTimer(secure);
 	}
-	else if ( client.isAggregater() )
+	else if ( client->isAggregater() )
 	{
 		_aggregater->resetPingTimer(secure);
 	}
@@ -173,22 +184,26 @@ bool AdapterManager::isAggregaterActive(void)
 	return _aggregater->isActive();
 }
 
-AggregateTopicElement* AdapterManager::createClientList(Topic* topic)
+/*
+AggregateTopicElement* AdapterManager::findTopic(Topic* topic)
 {
-	return _aggregater->createClientList(topic);
+	return _aggregater->findTopic(topic);
 }
 
-int AdapterManager::addAggregateTopic(Topic* topic, Client* client)
+AggregateTopicElement* AdapterManager::addAggregateTopic(Topic* topic, Client* client)
 {
 	return _aggregater->addAggregateTopic(topic, client);
 }
 
+
 void AdapterManager::removeAggregateTopic(Topic* topic, Client* client)
 {
-	 _aggregater->removeAggregateTopic(topic, client);
+	 //_aggregater->removeAggregateTopic(topic, client);
 }
 
 void AdapterManager::removeAggregateTopicList(Topics* topics, Client* client)
 {
-	 _aggregater->removeAggregateTopicList(topics, client);
+
 }
+*/
+

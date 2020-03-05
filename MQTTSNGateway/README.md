@@ -2,7 +2,6 @@
 
 **MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
 This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.    
-The Aggregating Gateway can not receive PUBLISH message from the broker at this version.
 
 ### **step1. Build the gateway**   
 ````

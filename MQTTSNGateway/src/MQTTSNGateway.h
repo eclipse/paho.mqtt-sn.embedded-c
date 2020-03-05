@@ -164,6 +164,10 @@ public:
 	char* privateKey {nullptr};
 	char* qosMinusClientListName {nullptr};
 	bool  clientAuthentication {false};
+	bool  predefinedTopic  {false};
+	bool  aggregatingGw   {false};
+	bool  qosMinus1   {false};
+	bool  forwarder   {false};
 };
 
 
