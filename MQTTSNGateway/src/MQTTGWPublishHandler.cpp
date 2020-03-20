@@ -276,7 +276,7 @@ void MQTTGWPublishHandler::handleAggregatePublish(Client* client, MQTTGWPacket* 
 	string* topicName = new string(pub.topic, pub.topiclen);   // topic deletes topicName when the topic is deleted
 	Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
 
-	// ToDo: need to refacter
+	// ToDo: need to refactor
 	ClientTopicElement* elm = _gateway->getAdapterManager()->getAggregater()->getClientElement(&topic);
 
 	while ( elm != nullptr )
