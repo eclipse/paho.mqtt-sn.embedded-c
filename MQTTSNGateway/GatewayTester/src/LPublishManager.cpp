@@ -119,7 +119,7 @@ void LPublishManager::sendPublish(PubElement* elm)
 
     uint8_t msg[MQTTSN_MAX_MSG_LENGTH + 1];
     uint8_t org = 0;
-    if (elm->payloadlen > 128)
+    if (elm->payloadlen > 248)
     {
         msg[0] = 0x01;
         setUint16(msg + 1, elm->payloadlen + 9);
