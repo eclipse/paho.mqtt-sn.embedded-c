@@ -143,6 +143,7 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
             if ( p->_client == client )
             {
                 client->setForwarder(this);
+                p->setWirelessNodeId(id);
                 return;
             }
             prev = p;

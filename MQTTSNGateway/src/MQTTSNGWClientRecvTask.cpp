@@ -178,14 +178,14 @@ void ClientRecvTask::run()
 
 				client = clientList->getClient(&data.clientID);
 
-				if ( fwd )
+				if ( fwd != nullptr )
 				{
 				    if ( client == nullptr )
 				    {
 				        /* create a new client */
 				        client = clientList->createClient(0, &data.clientID, clientType);
 				    }
-				    /* Add to af forwarded client list of forwarder. */
+				    /* Add to a forwarded client list of forwarder. */
                     fwd->addClient(client, &nodeId);
 				}
 				else
