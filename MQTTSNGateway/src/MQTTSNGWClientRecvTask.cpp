@@ -204,7 +204,7 @@ void ClientRecvTask::run()
 
 				log(client, packet, &data.clientID);
 
-				if (!client)
+				if ( client == nullptr )
 				{
 	                WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
