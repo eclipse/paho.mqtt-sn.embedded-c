@@ -198,6 +198,9 @@ void PacketHandleTask::aggregatePacketHandler(Client*client, MQTTSNPacket* packe
 	case MQTTSN_DISCONNECT:
 		_mqttsnAggrConnection->handleDisconnect(client, packet);
 		break;
+	case MQTTSN_WILLTOPICUPD:
+		_mqttsnConnection->handleWilltopicupd(client, packet);
+		break;
 	case MQTTSN_WILLMSGUPD:
 		_mqttsnConnection->handleWillmsgupd(client, packet);
 		break;
@@ -288,6 +291,9 @@ void PacketHandleTask::transparentPacketHandler(Client*client, MQTTSNPacket* pac
 		break;
 	case MQTTSN_DISCONNECT:
 		_mqttsnConnection->handleDisconnect(client, packet);
+		break;
+	case MQTTSN_WILLTOPICUPD:
+		_mqttsnConnection->handleWilltopicupd(client, packet);
 		break;
 	case MQTTSN_WILLMSGUPD:
 		_mqttsnConnection->handleWillmsgupd(client, packet);
