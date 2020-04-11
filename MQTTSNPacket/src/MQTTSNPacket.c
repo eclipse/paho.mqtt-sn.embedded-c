@@ -53,7 +53,7 @@ const char* MQTTSNPacket_name(int code)
  */
 int MQTTSNPacket_len(int length)
 {
-	return (length > 255) ? length + 3 : length + 1;
+	return (length >= 255) ? length + 3 : length + 1;
 }
 
 /**
