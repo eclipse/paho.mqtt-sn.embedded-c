@@ -53,7 +53,7 @@ const char* MQTTSNPacket_name(int code)
  */
 int MQTTSNPacket_len(int length)
 {
-	return (length > 255) ? length + 3 : length + 1;
+	return (length >= 255) ? length + 3 : length + 1;
 }
 
 /**
@@ -67,7 +67,7 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
 	int rc = 0;
 
 	FUNC_ENTRY;
-	if (length > 255)
+	if (length >= 255)
 	{
 		writeChar(&buf, 0x01);
 		writeInt(&buf, length);
