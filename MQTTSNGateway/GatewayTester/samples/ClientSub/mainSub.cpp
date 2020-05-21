@@ -54,7 +54,7 @@ extern LScreen* theScreen;
 UDPCONF  = {
 	"ClientSUB", // ClientId
 	{225,1,1,1},         // Multicast group IP
-	1883,                // Multicast group Port
+	10000,                // Multicast group Port
 	20011,               // Local PortNo
 };
 

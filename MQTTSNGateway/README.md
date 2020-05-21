@@ -84,7 +84,7 @@ SerialDevice=/dev/ttyUSB0
 ApiMode=2
 
 # LOG
-ShearedMemory=NO;
+ShearedMemory=NO
 ```
 
 * **BrokerName** to specify a domain name or IP address of the Broker.
@@ -119,7 +119,7 @@ Change gateway.conf as follows:
 
 ```conf
 # LOG
-ShearedMemory=YES;
+ShearedMemory=YES
 ````
 
 Restart the gateway with sudo only once to create shared memories.

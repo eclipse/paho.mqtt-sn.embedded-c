@@ -359,8 +359,10 @@ void PacketHandleTask::transparentPacketHandler(Client*client, MQTTGWPacket* pac
 	case UNSUBACK:
 		_mqttSubscribe->handleUnsuback(client, packet);
 		break;
+	case DISCONNECT:
+		client->disconnected();    // Just change Client's status to "Disconnected"
+		break;
 	default:
 		break;
 	}
 }
-
