@@ -22,27 +22,26 @@
 using namespace std;
 using namespace MQTTSNGW;
 
-char* currentDateTime(void);
+char *currentDateTime(void);
 
 /*=====================================
  Class BrokerRecvTask
  =====================================*/
-BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
+BrokerRecvTask::BrokerRecvTask(Gateway *gateway)
 {
 	_gateway = gateway;
-	_gateway->attach((Thread*)this);
+	_gateway->attach((Thread *)this);
 	_light = nullptr;
 }
 
 BrokerRecvTask::~BrokerRecvTask()
 {
-
 }
 
 /**
  *  Initialize attributs of this class
  */
-void BrokerRecvTask::initialize(int argc, char** argv)
+void BrokerRecvTask::initialize(int argc, char **argv)
 {
 	_light = _gateway->getLightIndicator();
 }
@@ -53,9 +52,9 @@ void BrokerRecvTask::initialize(int argc, char** argv)
 void BrokerRecvTask::run(void)
 {
 	struct timeval timeout;
-	MQTTGWPacket* packet = nullptr;
+	MQTTGWPacket *packet = nullptr;
 	int rc;
-	Event* ev = nullptr;
+	Event *ev = nullptr;
 	fd_set rset;
 	fd_set wset;
 
@@ -68,16 +67,16 @@ void BrokerRecvTask::run(void)
 			return;
 		}
 		timeout.tv_sec = 0;
-		timeout.tv_usec = 500000;    // 500 msec
+		timeout.tv_usec = 500000; // 500 msec
 		FD_ZERO(&rset);
 		FD_ZERO(&wset);
 		int maxSock = 0;
 		int sockfd = 0;
 
 		/* Prepare sockets list to read */
-		Client* client = _gateway->getClientList()->getClient(0);
+		Client *client = _gateway->getClientList()->getClient(0);
 
-		while ( client )
+		while (client)
 		{
 			if (client->getNetwork()->isValid())
 			{
@@ -104,7 +103,7 @@ void BrokerRecvTask::run(void)
 			{
 				client = _gateway->getClientList()->getClient(0);
 
-				while ( client )
+				while (client)
 				{
 					_light->blueLight(false);
 					if (client->getNetwork()->isValid())
@@ -117,9 +116,9 @@ void BrokerRecvTask::run(void)
 							/* read sockets */
 							_light->blueLight(true);
 							rc = packet->recv(client->getNetwork());
-							if ( rc > 0 )
+							if (rc > 0)
 							{
-								if ( log(client, packet) == -1 )
+								if (log(client, packet) == -1)
 								{
 									delete packet;
 									goto nextClient;
@@ -132,7 +131,7 @@ void BrokerRecvTask::run(void)
 							}
 							else
 							{
-								if ( rc == 0 )  // Disconnected
+								if (rc == 0) // Disconnected
 								{
 									client->getNetwork()->close();
 									delete packet;
@@ -140,7 +139,7 @@ void BrokerRecvTask::run(void)
 									/* delete client when the client is not authorized & session is clean */
 									_gateway->getClientList()->erase(client);
 
-									if ( client )
+									if (client)
 									{
 										client = client->getNextClient();
 									}
@@ -148,20 +147,23 @@ void BrokerRecvTask::run(void)
 								}
 								else if (rc == -1)
 								{
+									WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName());
 									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n", ERRMSG_HEADER, errno, client->getClientId(), ERRMSG_FOOTER);
 								}
-								else if ( rc == -2 )
+								else if (rc == -2)
 								{
-									WRITELOG("%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s %s\n", ERRMSG_HEADER, client->getClientId(),ERRMSG_FOOTER);
+									WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName());
+									WRITELOG("%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 								}
-								else if ( rc == -3 )
+								else if (rc == -3)
 								{
+									WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName());
 									WRITELOG("%s BrokerRecvTask can't get memories for the packet %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 								}
 
 								delete packet;
 
-								if ( (rc == -1 || rc == -2) && ( client->isActive()  || client->isSleep() || client->isAwake() ))
+								if ((rc == -1 || rc == -2) && (client->isActive() || client->isSleep() || client->isAwake()))
 								{
 									/* disconnect the client */
 									packet = new MQTTGWPacket();
@@ -173,7 +175,7 @@ void BrokerRecvTask::run(void)
 							}
 						}
 					}
-					nextClient:
+				nextClient:
 					client = client->getNextClient();
 				}
 			}
@@ -184,9 +186,9 @@ void BrokerRecvTask::run(void)
 /**
  *  write message content into stdout or Ringbuffer
  */
-int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
+int BrokerRecvTask::log(Client *client, MQTTGWPacket *packet)
 {
-	char pbuf[(SIZE_OF_LOG_PACKET + 5 )* 3];
+	char pbuf[(SIZE_OF_LOG_PACKET + 5) * 3];
 	char msgId[6];
 	int rc = 0;
 
