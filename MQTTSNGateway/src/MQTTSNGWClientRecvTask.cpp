@@ -192,8 +192,11 @@ void ClientRecvTask::run()
 				{
                     if ( client )
                     {
-                        /* Client exists. Set SensorNet Address of it. */
-                        client->setClientAddress(senderAddr);
+                        /* Client exists. Set SensorNet Address of it, if Client is not secure one. */
+                    	if ( !client->isSecureNetwork() )
+                    	{
+                    		client->setClientAddress(senderAddr);
+                    	}
                     }
                     else
                     {
