@@ -192,8 +192,8 @@ void ClientRecvTask::run()
 				{
                     if ( client )
                     {
-                        /* Client exists. Set SensorNet Address of it, if Client is not secure one. */
-                    	if ( !client->isSecureNetwork() )
+                        /* Authentication is not required */
+                    	if ( _gateway->getGWParams()->clientAuthentication == false)
                     	{
                     		client->setClientAddress(senderAddr);
                     	}
