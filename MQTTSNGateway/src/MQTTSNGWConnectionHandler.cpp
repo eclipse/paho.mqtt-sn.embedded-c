@@ -104,10 +104,14 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 	connectData->keepAliveTimer = data.duration;
 	connectData->flags.bits.will = data.willFlag;
 
-	if ((const char*) _gateway->getGWParams()->loginId != nullptr && (const char*) _gateway->getGWParams()->password != 0)
+	if ((const char*) _gateway->getGWParams()->loginId != nullptr)
+	{
+		connectData->flags.bits.username = 1;
+	}
+
+	if ((const char*) _gateway->getGWParams()->password != 0)
 	{
 		connectData->flags.bits.password = 1;
-		connectData->flags.bits.username = 1;
 	}
 
 	client->setSessionStatus(false);
