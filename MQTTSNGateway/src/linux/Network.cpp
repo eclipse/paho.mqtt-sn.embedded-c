@@ -541,6 +541,15 @@ loop:
 		case SSL_ERROR_WANT_WRITE:
 			readBlockedOnWrite = true;
 			break;
+		case SSL_ERROR_SYSCALL:
+			SSL_free(_ssl);
+			_ssl = 0;
+			_numOfInstance--;
+			//TCPStack::close();
+			_busy = false;
+			_mutex.unlock();
+			return -1;
+			break;
 		default:
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
 			WRITELOG("Network::recv() %s\n", errmsg);
