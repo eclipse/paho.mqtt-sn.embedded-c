@@ -14,6 +14,7 @@
  * Contributors:
  *    Benjamin Aigner - Adaption of the UDPv4 code to use UDPv6
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - improve portability
  **************************************************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -123,6 +124,13 @@ bool SensorNetAddress::isMatch(SensorNetAddress* addr)
 {
 	return (this->_portNo == addr->_portNo) && \
 	(memcmp(this->_IpAddr.sin6_addr.s6_addr, addr->_IpAddr.sin6_addr.s6_addr, sizeof(this->_IpAddr.sin6_addr.s6_addr)) == 0);
+#if 0
+	return ((this->_portNo == addr->_portNo) && \
+	(this->_IpAddr.sin6_addr.s6_addr32[0] == addr->_IpAddr.sin6_addr.s6_addr32[0]) && \
+	(this->_IpAddr.sin6_addr.s6_addr32[1] == addr->_IpAddr.sin6_addr.s6_addr32[1]) && \
+	(this->_IpAddr.sin6_addr.s6_addr32[2] == addr->_IpAddr.sin6_addr.s6_addr32[2]) && \
+	(this->_IpAddr.sin6_addr.s6_addr32[3] == addr->_IpAddr.sin6_addr.s6_addr32[3]));
+#endif
 }
 
 SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
