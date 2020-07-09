@@ -162,8 +162,7 @@ int Process::getParam(const char* parameter, char* value)
 
 	if ((fp = fopen(configPath.c_str(), "r")) == NULL)
 	{
-		WRITELOG("No config file:[%s]\n", configPath.c_str());
-		return -1;
+		throw Exception("No config file:[" + configPath + "]\n");
 	}
 
 	while (true)
