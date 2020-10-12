@@ -100,7 +100,8 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPack
         topicstr[0] = topicFilter.data.short_name[0];
         topicstr[1] = topicFilter.data.short_name[1];
         topicstr[2] = 0;
-        topicId = 0;
+        topicId = topicFilter.data.short_name[0] << 8;
+        topicId |= topicFilter.data.short_name[1];
         subscribe = new MQTTGWPacket();
         subscribe->setSUBSCRIBE(topicstr, (uint8_t)qos, (uint16_t)msgId);
     }
