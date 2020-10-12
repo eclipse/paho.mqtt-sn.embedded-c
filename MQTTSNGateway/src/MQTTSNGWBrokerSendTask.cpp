@@ -41,7 +41,7 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 
 BrokerSendTask::~BrokerSendTask()
 {
-	WRITELOG("BrokerSendTask is deleted normally.\r\n");
+//	WRITELOG("BrokerSendTask is deleted normally.\r\n");
 }
 
 /**

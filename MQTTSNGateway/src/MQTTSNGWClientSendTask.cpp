@@ -35,7 +35,7 @@ ClientSendTask::ClientSendTask(Gateway* gateway)
 
 ClientSendTask::~ClientSendTask()
 {
-	WRITELOG("ClientSendTask is deleted normally.\r\n");
+//	WRITELOG("ClientSendTask is deleted normally.\r\n");
 }
 
 void ClientSendTask::run()

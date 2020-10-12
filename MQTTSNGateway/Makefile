@@ -18,18 +18,6 @@ OS := linux
 SENSORNET := udp
 TEST := tests
 
-# include directories, for MacOS/homebrew add -I/usr/local/opt/openssl/include/
-# library search paths, for MacOS/homebrew add -L/usr/local/opt/openssl/lib/
-ifeq ($(shell) uname),Darwin)
-	CXX := clang++
-	INCLUDE := -I/usr/local/opt/openssl/include/
-	LIB := -L/usr/local/opt/openssl/lib/
-else
-	CXX := g++
-	INCLUDE :=
-	LIB :=
-endif
-
 INSTALL_DIR=../../
 CONFIG_DIR=../../
 
@@ -88,17 +76,21 @@ $(SUBDIR)/MQTTSNUnsubscribeServer.c
 
 CPPFLAGS += 
 
+INCLUDE :=
 INCLUDES += $(INCLUDE) -I$(SRCDIR) \
 -I$(SRCDIR)/$(OS) \
 -I$(SRCDIR)/$(OS)/$(SENSORNET) \
 -I$(SUBDIR) \
--I$(SRCDIR)/$(TEST)
+-I$(SRCDIR)/$(TEST) \
+-I/usr/local/opt/openssl/include/
 
 # preprocessor defines
 DEFS :=
 
+CXX := g++
 
-LIBS += $(LIB) -L/usr/local/lib
+LIB :=
+LIBS += $(LIB) -L/usr/local/lib -L/usr/local/opt/openssl/lib/
 
 LDFLAGS :=
 CXXFLAGS := -Wall -O3 -std=c++11
