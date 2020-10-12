@@ -214,7 +214,7 @@ void TestTopics::test(void)
 	for ( int i = 0; i < 10 ; i++ )
 	{
 		MQTTSN_topicid tp1;
-		char tp0[10];
+		char tp0[20];
 		sprintf(tp0, "Topic/%d/%d", i, i);
 		tp1.type = MQTTSN_TOPIC_TYPE_NORMAL;
 		tp1.data.long_.len = strlen(tp0);
@@ -237,7 +237,7 @@ void TestTopics::test(void)
 	for ( int i = 0; i < 10 ; i++ )
 	{
 		MQTTSN_topicid tp1;
-		char tp0[10];
+		char tp0[20];
 		sprintf(tp0, "Topic/%d", i);
 		tp1.type = MQTTSN_TOPIC_TYPE_NORMAL;
 		tp1.data.long_.len = strlen(tp0);
@@ -261,7 +261,7 @@ void TestTopics::test(void)
 	for ( int i = 0; i < 10 ; i++ )
 	{
 		MQTTSN_topicid tpid1;
-		char tp0[10];
+		char tp0[20];
 		sprintf(tp0, "TOPIC/%d/%d", i, i);
 		tpid1.type = MQTTSN_TOPIC_TYPE_NORMAL;
 		tpid1.data.long_.len = strlen(tp0);

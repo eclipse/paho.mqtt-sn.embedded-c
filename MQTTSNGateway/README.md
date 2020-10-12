@@ -7,12 +7,12 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 ````
 $ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c   
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
-$ make [SENSORNET={udp6|xbee}] 
+$ make [SENSORNET={udp6|xbee|loralink}] 
 $ make install   
 $ make clean    
 ````      
 By default, a gateway for UDP is built.    
-In order to create a gateway for UDP6 or XBee, SENSORNET argument is required.  
+In order to create a gateway for UDP6, XBee or LoRaLink, SENSORNET argument is required.  
  
 MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
 If you want to install the gateway into specific directories, enter a command line as follows:
@@ -93,6 +93,11 @@ GatewayUDP6Hops=1
 Baudrate=38400
 SerialDevice=/dev/ttyUSB0
 ApiMode=2
+
+#LoRaLink
+BaudrateLoRaLink=115200
+DeviceRxLoRaLink=/dev/ttyLoRaLinkRx
+DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 
 # LOG
 ShearedMemory=NO;
