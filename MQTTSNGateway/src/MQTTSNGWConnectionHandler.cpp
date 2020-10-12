@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2016, 2020 Tomoaki Yamaguchi and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -104,10 +104,14 @@ void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet
 	connectData->keepAliveTimer = data.duration;
 	connectData->flags.bits.will = data.willFlag;
 
-	if ((const char*) _gateway->getGWParams()->loginId != nullptr && (const char*) _gateway->getGWParams()->password != 0)
+	if ((const char*) _gateway->getGWParams()->loginId != nullptr)
+	{
+		connectData->flags.bits.username = 1;
+	}
+
+	if ((const char*) _gateway->getGWParams()->password != 0)
 	{
 		connectData->flags.bits.password = 1;
-		connectData->flags.bits.username = 1;
 	}
 
 	client->setSessionStatus(false);
@@ -275,14 +279,18 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 	if ( ( client->isSleep() || client->isAwake() ) &&  client->getClientSleepPacket() )
 	{
 	    sendStoredPublish(client);
+		client->holdPingRequest();
 	}
-
-	/* send PINGREQ to the broker */
-	MQTTGWPacket* pingreq = new MQTTGWPacket();
-	pingreq->setHeader(PINGREQ);
-	Event* evt = new Event();
-	evt->setBrokerSendEvent(client, pingreq);
-	_gateway->getBrokerSendQue()->post(evt);
+	else
+	{
+        /* send PINGREQ to the broker */
+	    client->resetPingRequest();
+        MQTTGWPacket* pingreq = new MQTTGWPacket();
+        pingreq->setHeader(PINGREQ);
+        Event* evt = new Event();
+        evt->setBrokerSendEvent(client, pingreq);
+        _gateway->getBrokerSendQue()->post(evt);
+	}
 }
 
 void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
@@ -291,6 +299,7 @@ void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
 
     while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
     {
+        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
         client->deleteFirstClientSleepPacket();  // pop the que to delete element.
 
         Event* ev = new Event();

@@ -145,11 +145,7 @@ bool TCPStack::accept(TCPStack& new_socket)
 
 int TCPStack::send(const uint8_t* buf, int length)
 {
-#ifdef __APPLE__
-	return ::send(_sockfd, buf, length, SO_NOSIGPIPE);	
-#else
 	return ::send(_sockfd, buf, length, MSG_NOSIGNAL);
-#endif
 }
 
 int TCPStack::recv(uint8_t* buf, int len)
@@ -544,6 +540,15 @@ loop:
 			break;
 		case SSL_ERROR_WANT_WRITE:
 			readBlockedOnWrite = true;
+			break;
+		case SSL_ERROR_SYSCALL:
+			SSL_free(_ssl);
+			_ssl = 0;
+			_numOfInstance--;
+			//TCPStack::close();
+			_busy = false;
+			_mutex.unlock();
+			return -1;
 			break;
 		default:
 			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
