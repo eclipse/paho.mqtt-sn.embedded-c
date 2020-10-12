@@ -199,6 +199,7 @@ public:
 
 	bool hasSecureConnection(void);
 	Topics* getTopics(void);
+	bool IsStopping(void);
 
 private:
 	GatewayParams  _params;
@@ -210,6 +211,7 @@ private:
 	SensorNetwork  _sensorNetwork;
 	AdapterManager* _adapterManager {nullptr};
 	Topics* _topics;
+	bool _stopFlg;
 };
 
 }

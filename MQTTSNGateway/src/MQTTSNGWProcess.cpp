@@ -307,7 +307,7 @@ void MultiTaskProcess::waitStop(void)
 	}
 }
 
-void MultiTaskProcess::threadStoped(void)
+void MultiTaskProcess::threadStopped(void)
 {
 	_mutex.lock();
 	_stopCount++;

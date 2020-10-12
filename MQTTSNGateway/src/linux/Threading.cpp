@@ -541,7 +541,7 @@ int Thread::start(void)
 
 void Thread::stopProcess(void)
 {
-	theMultiTaskProcess->threadStoped();
+	theMultiTaskProcess->threadStopped();
 }
 
 void Thread::stop(void)

@@ -38,6 +38,7 @@ Gateway::Gateway(void)
     _clientList = new ClientList();
     _adapterManager = new AdapterManager(this);
     _topics = new Topics();
+    _stopFlg = false;
 }
 
 Gateway::~Gateway()
@@ -113,6 +114,7 @@ Gateway::~Gateway()
 	{
 		delete _topics;
 	}
+    WRITELOG("Gateway        is deleted normally.\r\n");
 }
 
 int Gateway::getParam(const char* parameter, char* value)
@@ -309,9 +311,12 @@ void Gateway::run(void)
 	WRITELOG(" CertKey:    %s\n", _params.certKey);
 	WRITELOG(" PrivateKey: %s\n\n\n", _params.privateKey);
 
+	_stopFlg = false;
 
 	/* Run Tasks until CTRL+C entred */
 	MultiTaskProcess::run();
+
+	_stopFlg = true;
 
 	/* stop Tasks */
 	Event* ev = new Event();
@@ -329,6 +334,11 @@ void Gateway::run(void)
 
 	WRITELOG("\n\n%s MQTT-SN Gateway  stopped.\n\n", currentDateTime());
 	_lightIndicator.allLightOff();
+}
+
+bool Gateway::IsStopping(void)
+{
+	return _stopFlg;
 }
 
 EventQue* Gateway::getPacketEventQue()

@@ -84,7 +84,7 @@ public:
 	int getParam(const char* parameter, char* value);
 	void run(void);
 	void waitStop(void);
-	void threadStoped(void);
+	void threadStopped(void);
 	void attach(Thread* thread);
 
 private:
