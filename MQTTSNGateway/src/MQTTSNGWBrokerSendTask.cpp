@@ -41,7 +41,7 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 
 BrokerSendTask::~BrokerSendTask()
 {
-
+	WRITELOG("BrokerSendTask is deleted normally.\r\n");
 }
 
 /**
@@ -120,6 +120,11 @@ void BrokerSendTask::run()
 				if ( packet->getType() == CONNECT )
 				{
 					client->connectSended();
+				}
+				else if ( packet->getType() == DISCONNECT )
+				{
+					client->getNetwork()->close();
+					client->disconnected();
 				}
 				log(client, packet);
 			}
