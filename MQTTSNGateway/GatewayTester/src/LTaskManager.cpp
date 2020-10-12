@@ -56,12 +56,14 @@ void LTaskManager::run(void){
 	int i = 0;
 	char c = 0;
 	bool cancelFlg = false;
+	TestList test = {0};
+	TaskList task = {0};
 
 	if ( !theClientMode )
 	{
 			theClient->getGwProxy()->getMessage();
 
-			for (i = 0; _tests[i].testTask > 0; i++)
+			for (i = 0; _tests[i].testTask > test.testTask; i++)
 			{
 				PROMPT("Execute \"%s\" ? ( y/n ) : ", _tests[i].testLabel);
 				while (true)
@@ -118,7 +120,7 @@ void LTaskManager::run(void){
 		while (true)
 		{
 			theClient->getGwProxy()->getMessage();
-			for (_index = 0; _tasks[_index].callback > 0; _index++)
+			for (_index = 0; _tasks[_index].callback > task.callback; _index++)
 			{
 				if ((_tasks[_index].prevTime + _tasks[_index].interval <= time(NULL)) &&
 					 _tasks[_index].count == 0)
