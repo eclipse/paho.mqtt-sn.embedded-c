@@ -21,27 +21,40 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
-#include <semaphore.h>
 #include <fcntl.h>
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace std;
 using namespace MQTTSNGW;
 
-#if defined(OSX)
-int sem_timedwait(sem_type sem, const struct timespec *timeout)
+#ifdef __APPLE__
+
+int sem_timedwait(sem_t *sem, const struct timespec *abs_timeout)
 {
-	int rc = -1;
-	int64_t tout = timeout->tv_sec * 1000L + tv_nsec * 1000000L
-	rc = (int)dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, tout));
-	if (rc != 0)
+	while (true)
 	{
-		rc = ETIMEDOUT;
+		// try to lock the semaphore
+		int result = sem_trywait(sem);
+		if (result != -1 || errno != EAGAIN)
+			return result;
+
+		// spin lock
+		sched_yield();
+
+		// check if timeout reached
+		struct timespec ts;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		if (ts.tv_sec > abs_timeout->tv_sec
+			|| (ts.tv_sec == abs_timeout->tv_sec && abs_timeout->tv_nsec >= ts.tv_nsec))
+		{
+			return ETIMEDOUT;
+		}
 	}
- 	return rc;
 }
+
 #endif
 
 /*=====================================
@@ -69,7 +82,7 @@ Mutex::Mutex(const char* fileName)
 		throw Exception( -1, "Mutex can't create a shared memory.");
 	}
 	_pmutex = (pthread_mutex_t*) shmat(_shmid, NULL, 0);
-	if (_pmutex < 0)
+	if (_pmutex == (void*) -1)
 	{
 		throw Exception( -1, "Mutex can't attach shared memory.");
 	}
@@ -153,21 +166,61 @@ void Mutex::unlock(void)
  Class Semaphore
  =====================================*/
 
-Semaphore::Semaphore()
-{
-	sem_init(&_sem, 0, 0);
-	_name = 0;
-	_psem = 0;
-}
-
 Semaphore::Semaphore(unsigned int val)
 {
+#ifdef __APPLE__
+	_sem = dispatch_semaphore_create(val);
+#else
 	sem_init(&_sem, 0, val);
-	_name = 0;
-	_psem = 0;
+#endif
 }
 
-Semaphore::Semaphore(const char* name, unsigned int val)
+Semaphore::~Semaphore()
+{
+#ifdef __APPLE__
+	dispatch_release(_sem);
+#else
+	sem_destroy(&_sem);
+#endif
+}
+
+void Semaphore::post(void)
+{
+#ifdef __APPLE__
+	dispatch_semaphore_signal(_sem);
+#else
+	sem_post(&_sem);
+#endif
+}
+
+void Semaphore::wait(void)
+{
+#ifdef __APPLE__
+	dispatch_semaphore_wait(_sem, DISPATCH_TIME_FOREVER);
+#else
+	sem_wait(&_sem);
+#endif
+}
+
+void Semaphore::timedwait(uint16_t millsec)
+{
+#ifdef __APPLE__
+	dispatch_semaphore_wait(_sem, dispatch_time(DISPATCH_TIME_NOW, int64_t(millsec) * 1000000));
+#else
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	int nsec = ts.tv_nsec + (millsec % 1000) * 1000000;
+	ts.tv_nsec = nsec % 1000000000;
+	ts.tv_sec += millsec / 1000 + nsec / 1000000000;
+	sem_timedwait(&_sem, &ts);
+#endif
+}
+
+/*=====================================
+ Class NamedSemaphore
+ =====================================*/
+
+NamedSemaphore::NamedSemaphore(const char* name, unsigned int val)
 {
 	_psem = sem_open(name, O_CREAT, 0666, val);
 	if (_psem == SEM_FAILED)
@@ -181,67 +234,30 @@ Semaphore::Semaphore(const char* name, unsigned int val)
 	}
 }
 
-Semaphore::~Semaphore()
+NamedSemaphore::~NamedSemaphore()
 {
-	if (_name)
-	{
-		sem_close(_psem);
-		sem_unlink(_name);
-		free(_name);
-	}
-	else
-	{
-		sem_destroy(&_sem);
-	}
+	sem_close(_psem);
+	sem_unlink(_name);
+	free(_name);
 }
 
-void Semaphore::post(void)
+void NamedSemaphore::post(void)
 {
-	int val = 0;
-	if (_psem)
-	{
-		sem_getvalue(_psem, &val);
-		if (val <= 0)
-		{
-			sem_post(_psem);
-		}
-	}
-	else
-	{
-		sem_getvalue(&_sem, &val);
-		if (val <= 0)
-		{
-			sem_post(&_sem);
-		}
-	}
+	sem_post(_psem);
 }
 
-void Semaphore::wait(void)
+void NamedSemaphore::wait(void)
 {
-	if (_psem)
-	{
-		sem_wait(_psem);
-	}
-	else
-	{
-		sem_wait(&_sem);
-	}
+	sem_wait(_psem);
 }
 
-void Semaphore::timedwait(uint16_t millsec)
+void NamedSemaphore::timedwait(uint16_t millsec)
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_REALTIME, &ts);
 	ts.tv_sec += millsec / 1000;
 	ts.tv_nsec = (millsec % 1000) * 1000000;
-	if (_psem)
-	{
-		sem_timedwait(_psem, &ts);
-	}
-	else
-	{
-		sem_timedwait(&_sem, &ts);
-	}
+	sem_timedwait(_psem, &ts);
 }
 
 /*=========================================
@@ -274,7 +290,7 @@ RingBuffer::RingBuffer(const char* keyDirectory)
 	if ((_shmid = shmget(key, PROCESS_LOG_BUFFER_SIZE,
 	IPC_CREAT | IPC_EXCL | 0666)) >= 0)
 	{
-		if ((_shmaddr = (uint16_t*) shmat(_shmid, NULL, 0)) > 0)
+		if ((_shmaddr = (uint16_t*) shmat(_shmid, NULL, 0)) != (void*) -1)
 		{
 			_length = (uint16_t*) _shmaddr;
 			_start = (uint16_t*) _length + sizeof(uint16_t*);
@@ -290,9 +306,9 @@ RingBuffer::RingBuffer(const char* keyDirectory)
 			throw Exception(-1, "RingBuffer can't attach shared memory.");
 		}
 	}
-	else if ((_shmid = shmget(key, PROCESS_LOG_BUFFER_SIZE, IPC_CREAT | 0666)) >= 0)
+	else if ((_shmid = shmget(key, PROCESS_LOG_BUFFER_SIZE, IPC_CREAT | 0666)) != -1)
 	{
-		if ((_shmaddr = (uint16_t*) shmat(_shmid, NULL, 0)) > 0)
+		if ((_shmaddr = (uint16_t*) shmat(_shmid, NULL, 0)) != (void*) -1)
 		{
 			_length = (uint16_t*) _shmaddr;
 			_start = (uint16_t*) _length + sizeof(uint16_t*);
@@ -330,7 +346,7 @@ RingBuffer::~RingBuffer()
 		}
 	}
 
-	if (_pmx > 0)
+	if (_pmx != NULL)
 	{
 		delete _pmx;
 	}
@@ -525,7 +541,7 @@ int Thread::start(void)
 
 void Thread::stopProcess(void)
 {
-	theMultiTaskProcess->threadStoped();
+	theMultiTaskProcess->threadStopped();
 }
 
 void Thread::stop(void)

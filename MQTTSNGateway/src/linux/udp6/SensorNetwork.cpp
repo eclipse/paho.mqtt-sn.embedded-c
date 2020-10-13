@@ -122,11 +122,8 @@ char* SensorNetAddress::getAddress(void)
 
 bool SensorNetAddress::isMatch(SensorNetAddress* addr)
 {
-	return ((this->_portNo == addr->_portNo) && \
-	(this->_IpAddr.sin6_addr.s6_addr32[0] == addr->_IpAddr.sin6_addr.s6_addr32[0]) && \
-	(this->_IpAddr.sin6_addr.s6_addr32[1] == addr->_IpAddr.sin6_addr.s6_addr32[1]) && \
-	(this->_IpAddr.sin6_addr.s6_addr32[2] == addr->_IpAddr.sin6_addr.s6_addr32[2]) && \
-	(this->_IpAddr.sin6_addr.s6_addr32[3] == addr->_IpAddr.sin6_addr.s6_addr32[3]));
+	return (this->_portNo == addr->_portNo) && \
+	(memcmp(this->_IpAddr.sin6_addr.s6_addr, addr->_IpAddr.sin6_addr.s6_addr, sizeof(this->_IpAddr.sin6_addr.s6_addr)) == 0);
 }
 
 SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
@@ -179,6 +176,7 @@ int SensorNetwork::initialize(void)
 	string ip;
 	string broadcast;
 	string interface;
+	unsigned int hops = 1;
 
 	if (theProcess->getParam("GatewayUDP6Bind", param) == 0)
 	{
@@ -204,8 +202,14 @@ int SensorNetwork::initialize(void)
 		_description += " Interface: ";
 		_description += param;
 	}
+	if (theProcess->getParam("GatewayUDP6Hops", param) == 0)
+	{
+		hops = atoi(param);
+		_description += " Hops: ";
+		_description += param;
+	}
 
-	return UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str());
+	return UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str(), hops);
 }
 
 const char* SensorNetwork::getDescription(void)
@@ -248,7 +252,7 @@ void UDPPort6::close(void)
 	}
 }
 
-int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadcastAddr, const char* interfaceName)
+int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadcastAddr, const char* interfaceName, unsigned int hops)
 {
 	struct addrinfo hints, *res;
 	int errnu;
@@ -295,8 +299,15 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 		WRITELOG("UDP6::open - limit IPv6: %s",strerror(errnu));
 		return errnu;
 	}
+	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops,sizeof(hops));
+	if(errnu <0)
+	{
+	    WRITELOG("UDP6::open - limit HOPS: %s",strerror(errnu));
+	    return errnu;
+	}
 
 	_uniPortNo = uniPortNo;
+	_hops = hops;
 	freeaddrinfo(res);
 
 	//init the structs for getaddrinfo
@@ -320,8 +331,13 @@ int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadc
 	//if given, set a given device name to bind to
 	if(strlen(interfaceName) > 0)
 	{
+#ifdef __APPLE__
+		int idx = if_nametoindex(interfaceName);
+		setsockopt(_sockfdUnicast, IPPROTO_IP, IP_BOUND_IF, &idx, sizeof(idx));
+#else	
 		//socket option: bind to a given interface name
 		setsockopt(_sockfdUnicast, SOL_SOCKET, SO_BINDTODEVICE, interfaceName, strlen(interfaceName));
+#endif
 	}
 
 	//socket option: reuse address
@@ -371,7 +387,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		strcpy(destStr, addr->getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_LINKLOCAL(addr->getAddress()))
+		if(IN6_IS_ADDR_LINKLOCAL(&addr->getIpAddress()->sin6_addr))
 		{
 			getaddrinfo(destStr, portStr.c_str(), &hints, &res);
 		}
@@ -412,8 +428,8 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 		strcpy(destStr, _grpAddr.getAddress());
 		strcat(destStr,"%");
 		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_MC_NODELOCAL(_grpAddr.getAddress()) ||
-		   IN6_IS_ADDR_MC_LINKLOCAL(_grpAddr.getAddress()))
+		if(IN6_IS_ADDR_MC_NODELOCAL(&_grpAddr.getIpAddress()->sin6_addr) ||
+		   IN6_IS_ADDR_MC_LINKLOCAL(&_grpAddr.getIpAddress()->sin6_addr))
 		{
 			err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
 		}
@@ -440,14 +456,13 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	return 0;
 }
 
-//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
 	struct timeval timeout;
 	fd_set recvfds;
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1000000;    // 1 sec
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;    // 1 sec
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
 
@@ -462,7 +477,6 @@ int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 	return rc;
 }
 
-//TODO: test if this is working properly (GW works, but this function is not completely tested)
 int UDPPort6::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
 {
 	sockaddr_in6 sender;

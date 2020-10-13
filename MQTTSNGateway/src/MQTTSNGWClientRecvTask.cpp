@@ -60,7 +60,7 @@ void ClientRecvTask::run()
 	Event* ev = nullptr;
 	AdapterManager* adpMgr = _gateway->getAdapterManager();
 	QoSm1Proxy* qosm1Proxy = adpMgr->getQoSm1Proxy();
-	bool isAggrActive = adpMgr->isAggregaterActive();
+	int  clientType = adpMgr->isAggregaterActive() ? AGGREGATER_TYPE : TRANSPEARENT_TYPE;
 	ClientList* clientList = _gateway->getClientList();
 	EventQue* packetEventQue = _gateway->getPacketEventQue();
 
@@ -77,7 +77,7 @@ void ClientRecvTask::run()
 
 		if (CHK_SIGINT)
 		{
-			WRITELOG("%s ClientRecvTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s ClientRecvTask   stopped.", currentDateTime());
 			delete packet;
 			return;
 		}
@@ -133,11 +133,12 @@ void ClientRecvTask::run()
 			{
 				 const char* clientName = qosm1Proxy->getClientId(senderAddr);
 
-				if ( clientName )
+				if ( clientName != nullptr )
 				{
+					client = qosm1Proxy->getClient();
+
 					if ( !packet->isQoSMinusPUBLISH() )
 					{
-						client = qosm1Proxy->getClient();
 						log(clientName, packet);
 						WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n", ERRMSG_HEADER, clientName, senderAddr->sprint(buf), ERRMSG_FOOTER);
 						delete packet;
@@ -145,11 +146,14 @@ void ClientRecvTask::run()
 					}
 				}
 			}
+
+			if ( client == nullptr )
+			{
+				client = _gateway->getClientList()->getClient(senderAddr);
+			}
 		}
 
-		client = _gateway->getClientList()->getClient(senderAddr);
-
-		if ( client )
+		if ( client != nullptr )
 		{
 			/* write log and post Event */
 			log(client, packet, 0);
@@ -174,33 +178,36 @@ void ClientRecvTask::run()
 
 				client = clientList->getClient(&data.clientID);
 
-				if ( fwd )
+				if ( fwd != nullptr )
 				{
 				    if ( client == nullptr )
 				    {
 				        /* create a new client */
-				        client = clientList->createClient(0, &data.clientID, isAggrActive);
+				        client = clientList->createClient(0, &data.clientID, clientType);
 				    }
-				    /* Add to af forwarded client list of forwarder. */
+				    /* Add to a forwarded client list of forwarder. */
                     fwd->addClient(client, &nodeId);
 				}
 				else
 				{
                     if ( client )
                     {
-                        /* Client exists. Set SensorNet Address of it. */
-                        client->setClientAddress(senderAddr);
+                        /* Authentication is not required */
+                    	if ( _gateway->getGWParams()->clientAuthentication == false)
+                    	{
+                    		client->setClientAddress(senderAddr);
+                    	}
                     }
                     else
                     {
                         /* create a new client */
-                        client = clientList->createClient(senderAddr, &data.clientID, isAggrActive);
+                        client = clientList->createClient(senderAddr, &data.clientID, clientType);
                     }
 				}
 
 				log(client, packet, &data.clientID);
 
-				if (!client)
+				if ( client == nullptr )
 				{
 	                WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 					delete packet;
@@ -217,11 +224,11 @@ void ClientRecvTask::run()
 				log(client, packet, 0);
 				if ( packet->getType() == MQTTSN_ENCAPSULATED )
 				{
-					WRITELOG("%s Forwarder(%s) is not declared by ClientList file. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s MQTTSNGWClientRecvTask  Forwarder(%s) is not declared by ClientList file. message has been discarded.%s\n", ERRMSG_HEADER, _sensorNetwork->getSenderAddress()->sprint(buf), ERRMSG_FOOTER);
 				}
 				else
 				{
-					WRITELOG("%s Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s MQTTSNGWClientRecvTask  Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
 				}
 				delete packet;
 			}

@@ -53,7 +53,7 @@ const char* MQTTSNPacket_name(int code)
  */
 int MQTTSNPacket_len(int length)
 {
-	return (length > 255) ? length + 3 : length + 1;
+	return (length >= 255) ? length + 3 : length + 1;
 }
 
 /**
@@ -67,7 +67,7 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
 	int rc = 0;
 
 	FUNC_ENTRY;
-	if (length > 255)
+	if (length >= 255)
 	{
 		writeChar(&buf, 0x01);
 		writeInt(&buf, length);
@@ -83,7 +83,8 @@ int MQTTSNPacket_encode(unsigned char* buf, int length)
 
 /**
  * Obtains the MQTT-SN packet length from received data
- * @param getcharfn pointer to function to read the next character from the data source
+ * @param buf the buffer that contains the MQTT-SN packet
+ * @param buflen the length in bytes of the supplied buffer
  * @param value the decoded length returned
  * @return the number of bytes read from the socket
  */

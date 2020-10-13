@@ -185,7 +185,7 @@ int SensorNetwork::initialize(void)
 	uint16_t multicastPortNo = 0;
 	uint16_t unicastPortNo = 0;
 	string ip;
-
+	unsigned int ttl = 1;
 	/*
 	 * theProcess->getParam( ) copies
 	 * a text specified by "Key" into param[] from the Gateway.conf
@@ -216,9 +216,15 @@ int SensorNetwork::initialize(void)
 		_description += " Gateway Port ";
 		_description += param;
 	}
+	if (theProcess->getParam("MulticastTTL", param) == 0)
+	{
+		ttl = atoi(param);
+		_description += " TTL: ";
+		_description += param;
+	}
 
 	/*  Prepare UDP sockets */
-	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo);
+	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo, ttl);
 }
 
 const char* SensorNetwork::getDescription(void)
@@ -261,7 +267,7 @@ void UDPPort::close(void)
 	}
 }
 
-int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo)
+int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo, unsigned int ttl)
 {
 	char loopch = 0;
 	const int reuse = 1;
@@ -275,6 +281,7 @@ int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortN
 	uint32_t ip = inet_addr(ipAddress);
 	_grpAddr.setAddress(ip, htons(multiPortNo));
 	_clientAddr.setAddress(ip, htons(uniPortNo));
+	_ttl = ttl;
 
 	/*------ Create unicast socket --------*/
 	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -342,6 +349,13 @@ int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortN
 		return -1;
 	}
 
+	if (setsockopt(_sockfdMulticast, IPPROTO_IP, IP_MULTICAST_TTL, &ttl,sizeof(ttl)) < 0)
+	{
+		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
+		close();
+		return -1;
+	}
+
 	if (setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
 	{
 		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
@@ -378,8 +392,8 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 	fd_set recvfds;
 	int maxSock = 0;
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1000000;    // 1 sec
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;    // 1 sec
 	FD_ZERO(&recvfds);
 	FD_SET(_sockfdUnicast, &recvfds);
 	FD_SET(_sockfdMulticast, &recvfds);

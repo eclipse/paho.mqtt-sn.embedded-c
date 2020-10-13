@@ -31,6 +31,7 @@ namespace MQTTSNGW
 class Topic
 {
     friend class Topics;
+    friend class AggregateTopicTable;
 public:
     Topic();
     Topic(string* topic, MQTTSN_topicTypes type);
@@ -39,7 +40,9 @@ public:
     uint16_t getTopicId(void);
     MQTTSN_topicTypes getType(void);
     bool isMatch(string* topicName);
+    Topic* duplicate(void);
     void print(void);
+
 private:
     MQTTSN_topicTypes _type;
     uint16_t _topicId;
@@ -59,6 +62,8 @@ public:
     Topic* add(const char* topicName, uint16_t id = 0);
     Topic* getTopicByName(const MQTTSN_topicid* topic);
     Topic* getTopicById(const MQTTSN_topicid* topicid);
+    Topic* getFirstTopic(void);
+    Topic* getNextTopic(Topic* topic);
     Topic* match(const MQTTSN_topicid* topicid);
     void eraseNormal(void);
     uint16_t getNextTopicId();

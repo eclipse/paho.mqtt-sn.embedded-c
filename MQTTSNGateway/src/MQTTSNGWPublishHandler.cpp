@@ -94,6 +94,12 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* 
 	        return nullptr;
 	    }
 
+	    if ( ( qos == 0 || qos == 3 ) && msgId > 0 )
+	    {
+	        WRITELOG("%s Invalid MsgId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+	        return nullptr;
+	    }
+
 		if( !topic && msgId && qos > 0 && qos < 3 )
 		{
 			/* Reply PubAck with INVALID_TOPIC_ID to the client */
@@ -233,7 +239,7 @@ void MQTTSNPublishHandler::handleRegAck( Client* client, MQTTSNPacket* packet)
             ev->setClientSendEvent(client, regAck);
             _gateway->getClientSendQue()->post(ev);
         }
-        if (client->isHoldPringReqest() && client->getWaitREGACKPacketList()->getCount() == 0 )
+        if (client->isHoldPingReqest() && client->getWaitREGACKPacketList()->getCount() == 0 )
         {
             /* send PINGREQ to the broker */
            client->resetPingRequest();

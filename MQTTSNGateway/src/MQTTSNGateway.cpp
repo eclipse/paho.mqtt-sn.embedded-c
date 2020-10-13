@@ -38,6 +38,7 @@ Gateway::Gateway(void)
     _clientList = new ClientList();
     _adapterManager = new AdapterManager(this);
     _topics = new Topics();
+    _stopFlg = false;
 }
 
 Gateway::~Gateway()
@@ -86,6 +87,10 @@ Gateway::~Gateway()
 	{
 		free(_params.clientListName);
 	}
+	if ( _params.predefinedTopicFileName )
+	{
+		free( _params.predefinedTopicFileName);
+	}
 	if ( _params.configName )
 	{
 		free(_params.configName);
@@ -109,11 +114,22 @@ Gateway::~Gateway()
 	{
 		delete _topics;
 	}
+//    WRITELOG("Gateway        is deleted normally.\r\n");
 }
 
 int Gateway::getParam(const char* parameter, char* value)
 {
     return MultiTaskProcess::getParam(parameter, value);
+}
+
+char* Gateway::getClientListFileName(void)
+{
+	return _params.clientListName;
+}
+
+char* Gateway::getPredefinedTopicFileName(void)
+{
+	return _params.predefinedTopicFileName;
 }
 
 void Gateway::initialize(int argc, char** argv)
@@ -215,14 +231,53 @@ void Gateway::initialize(int argc, char** argv)
 		}
 	}
 
-	/*  ClientList and Adapters  Initialize  */
-	_adapterManager->initialize();
+	if (getParam("ClientsList", param) == 0)
+	{
+		_params.clientListName = strdup(param);
+	}
 
-	bool aggregate = _adapterManager->isAggregaterActive();
-	_clientList->initialize(aggregate);
+	if (getParam("PredefinedTopic", param) == 0)
+	{
+		if ( !strcasecmp(param, "YES") )
+		{
+			_params.predefinedTopic = true;
+			if (getParam("PredefinedTopicList", param) == 0)
+			{
+				_params.predefinedTopicFileName = strdup(param);
+			}
+		}
+	}
 
-	/*  Setup predefined topics  */
-	_clientList->setPredefinedTopics(aggregate);
+	if (getParam("AggregatingGateway", param) == 0)
+	{
+		if ( !strcasecmp(param, "YES") )
+		{
+			_params.aggregatingGw = true;
+		}
+	}
+
+	if (getParam("Forwarder", param) == 0)
+	{
+		if ( !strcasecmp(param, "YES") )
+		{
+			_params.forwarder = true;
+		}
+	}
+
+	if (getParam("QoS-1", param) == 0)
+	{
+		if ( !strcasecmp(param, "YES") )
+		{
+			_params.qosMinus1 = true;
+		}
+	}
+
+
+		/*  Initialize adapters */
+		_adapterManager->initialize( _params.gatewayName, _params.aggregatingGw, _params.forwarder, _params.qosMinus1);
+
+		/*  Setup ClientList and Predefined topics  */
+		_clientList->initialize(_params.aggregatingGw);
 }
 
 void Gateway::run(void)
@@ -256,9 +311,12 @@ void Gateway::run(void)
 	WRITELOG(" CertKey:    %s\n", _params.certKey);
 	WRITELOG(" PrivateKey: %s\n\n\n", _params.privateKey);
 
+	_stopFlg = false;
 
 	/* Run Tasks until CTRL+C entred */
 	MultiTaskProcess::run();
+
+	_stopFlg = true;
 
 	/* stop Tasks */
 	Event* ev = new Event();
@@ -274,8 +332,13 @@ void Gateway::run(void)
 	/* wait until all Task stop */
 	MultiTaskProcess::waitStop();
 
-	WRITELOG("\n%s MQTT-SN Gateway  stoped\n\n", currentDateTime());
+	WRITELOG("\n\n%s MQTT-SN Gateway  stopped.\n\n", currentDateTime());
 	_lightIndicator.allLightOff();
+}
+
+bool Gateway::IsStopping(void)
+{
+	return _stopFlg;
 }
 
 EventQue* Gateway::getPacketEventQue()

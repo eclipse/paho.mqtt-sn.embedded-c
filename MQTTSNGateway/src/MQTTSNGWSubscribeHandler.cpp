@@ -100,7 +100,8 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPack
         topicstr[0] = topicFilter.data.short_name[0];
         topicstr[1] = topicFilter.data.short_name[1];
         topicstr[2] = 0;
-        topicId = 0;
+        topicId = topicFilter.data.short_name[0] << 8;
+        topicId |= topicFilter.data.short_name[1];
         subscribe = new MQTTGWPacket();
         subscribe->setSUBSCRIBE(topicstr, (uint8_t)qos, (uint16_t)msgId);
     }
@@ -203,11 +204,6 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPack
 
 	if ( subscribe != nullptr )
 	{
-		UTF8String str = subscribe->getTopic();
-		string* topicName = new string(str.data, str.len);
-		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
-		 _gateway->getAdapterManager()->addAggregateTopic(&topic, client);
-
 		int msgId = 0;
 		if ( packet->isDuplicate() )
 		{
@@ -223,7 +219,13 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPack
 			WRITELOG("%s MQTTSNSubscribeHandler can't create MessageIdTableElement  %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 			return;
 		}
-WRITELOG("msgId=%d\n",msgId);
+
+		UTF8String str = subscribe->getTopic();
+		string* topicName = new string(str.data, str.len);    // topicName is delete by topic
+		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+
+		_gateway->getAdapterManager()->getAggregater()->addAggregateTopic(&topic, client);
+
 		subscribe->setMsgId(msgId);
 		Event* ev = new Event();
 		ev->setBrokerSendEvent(client, subscribe);
@@ -236,11 +238,6 @@ void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client, MQTTSNPa
 	MQTTGWPacket* unsubscribe = handleUnsubscribe(client, packet);
 	if ( unsubscribe != nullptr )
 	{
-		UTF8String str = unsubscribe->getTopic();
-		string* topicName = new string(str.data, str.len);
-		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
-		_gateway->getAdapterManager()->removeAggregateTopic(&topic, client);
-
 		int msgId = 0;
 		if ( packet->isDuplicate() )
 		{
@@ -256,6 +253,12 @@ void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client, MQTTSNPa
 			WRITELOG("%s MQTTSNUnsubscribeHandler can't create MessageIdTableElement  %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 			return;
 		}
+
+		UTF8String str = unsubscribe->getTopic();
+		string* topicName = new string(str.data, str.len);     // topicName is delete by topic
+		Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
+		_gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(&topic, client);
+
 		unsubscribe->setMsgId(msgId);
 		Event* ev = new Event();
 		ev->setBrokerSendEvent(client, unsubscribe);

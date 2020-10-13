@@ -47,16 +47,8 @@ ForwarderList::~ForwarderList()
 
 void ForwarderList::initialize(Gateway* gw)
 {
-    char param[MQTTSNGW_PARAM_MAX];
-    string fileName;
-
-    if (gw->getParam("Forwarder", param) == 0 )
-    {
-        if (!strcasecmp(param, "YES") )
-        {
-        	gw->getClientList()->setClientList(FORWARDER_TYPE);
-        }
-    }
+	/* Create Fowarders from clients.conf */
+	gw->getClientList()->setClientList(FORWARDER_TYPE);
 }
 
 
@@ -151,6 +143,7 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
             if ( p->_client == client )
             {
                 client->setForwarder(this);
+                p->setWirelessNodeId(id);
                 return;
             }
             prev = p;

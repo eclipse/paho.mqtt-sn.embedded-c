@@ -38,28 +38,20 @@ QoSm1Proxy::~QoSm1Proxy(void)
 }
 
 
-void QoSm1Proxy::initialize(void)
+void QoSm1Proxy::initialize(char* gwName)
 {
-    char param[MQTTSNGW_PARAM_MAX];
-
     if ( _gateway->hasSecureConnection() )
     {
 		_isSecure = true;
     }
 
-    if (_gateway->getParam("QoS-1", param) == 0 )
-    {
-        if (strcasecmp(param, "YES") == 0 )
-        {
-        	/*  Create QoS-1 Clients */
-        	_gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
+	/*  Create QoS-1 Clients from clients.conf */
+	_gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
 
-            /* initialize Adapter */
-			string name = string(_gateway->getGWParams()->gatewayName) + "QoS-1";
-            setup(name.c_str(), Atype_QoSm1Proxy);
-           _isActive = true;
-        }
-    }
+	/* Create a client for  QoS-1 proxy */
+	string name = string(gwName) + string("_QoS-1");
+	setup(name.c_str(), Atype_QoSm1Proxy);
+   _isActive = true;
 }
 
 

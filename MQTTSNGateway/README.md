@@ -1,18 +1,18 @@
-# MQTT-SN Transparent / Aggrigating Gateway
+# MQTT-SN Transparent / Aggregating Gateway
 
 **MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
-This Gateway can run as a transparent or aggrigating Gateway by specifying the gateway.conf.
+This Gateway can run as a transparent or aggregating Gateway by specifying the gateway.conf.    
 
 ### **step1. Build the gateway**   
 ````
-$ git clone -b experiment https://github.com/eclipse/paho.mqtt-sn.embedded-c   
+$ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c   
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
-$ make [SENSORNET={udp6|xbee}] 
+$ make [SENSORNET={udp6|xbee|loralink}] 
 $ make install   
 $ make clean    
 ````      
 By default, a gateway for UDP is built.    
-In order to create a gateway for UDP6 or XBee, SENSORNET argument is required.  
+In order to create a gateway for UDP6, XBee or LoRaLink, SENSORNET argument is required.  
  
 MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
 If you want to install the gateway into specific directories, enter a command line as follows:
@@ -24,10 +24,18 @@ $ make install INSTALL_DIR=/path/to/your_directory CONFIG_DIR=/path/to/your_dire
 ### **step2. Execute the Gateway.**     
 
 ````    
-$ cd ../   
+$ cd ../../   
 $ ./MQTT-SNGateway [-f Config file name]
 ````   
-
+If you get the error message as follows:
+````    
+what(): RingBuffer can't create a shared memory.
+Aborted (core dumped)
+````
+You have to start using sudo command only once for the first time.    
+````
+$ sudo ./MQTT-SNGateway [-f Config file name]
+````
 
 ### **How to Change the configuration of the gateway**    
 **../gateway.conf**   Contents are follows: 
@@ -37,7 +45,7 @@ $ ./MQTT-SNGateway [-f Config file name]
 # config file of MQTT-SN Gateway
 #
 
-BrokerName=iot.eclipse.org
+BrokerName=mqtt.eclipse.org
 BrokerPortNo=1883
 BrokerSecurePortNo=8883
 
@@ -72,11 +80,24 @@ KeepAlive=900
 GatewayPortNo=10000
 MulticastIP=225.1.1.1
 MulticastPortNo=1883
+MulticastTTL=1  
+
+# UDP6
+GatewayUDP6Bind=FFFF:FFFE::1 
+GatewayUDP6Port=10000
+GatewayUDP6Broadcast=FF02::1
+GatewayUDP6If=wpan0
+GatewayUDP6Hops=1
 
 # XBee
 Baudrate=38400
 SerialDevice=/dev/ttyUSB0
 ApiMode=2
+
+#LoRaLink
+BaudrateLoRaLink=115200
+DeviceRxLoRaLink=/dev/ttyLoRaLinkRx
+DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 
 # LOG
 ShearedMemory=NO;

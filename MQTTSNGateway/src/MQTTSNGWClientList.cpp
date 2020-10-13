@@ -61,52 +61,27 @@ void ClientList::initialize(bool aggregate)
 		setClientList(type);
         _authorize = true;
     }
+
+    if ( theGateway->getGWParams()->predefinedTopic )
+    {
+    	setPredefinedTopics(aggregate);
+    }
 }
 
 void ClientList::setClientList(int type)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-	string fileName;
-	GatewayParams* params = theGateway->getGWParams();
-	if (theGateway->getParam("ClientsList", param) == 0)
+	if (!createList(theGateway->getGWParams()->clientListName, type))
 	{
-		fileName = string(param);
-	}
-	else
-	{
-		fileName = params->configDir + string(CLIENT_LIST);
-	}
-
-	if (!createList(fileName.c_str(), type))
-	{
-		throw Exception("ClientList::initialize(): No client list defined by the configuration.");
-	}
-
-	if ( params->clientListName == nullptr )
-	{
-		params->clientListName = strdup(fileName.c_str());
+		throw Exception("ClientList::setClientList No client list defined by config file.");
 	}
 }
 
 void ClientList::setPredefinedTopics(bool aggrecate)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-
-	string fileName;
-	GatewayParams* params = theGateway->getGWParams();
-
-	if (theGateway->getParam("PredefinedTopicList", param) == 0)
+	if ( !readPredefinedList(theGateway->getGWParams()->predefinedTopicFileName, aggrecate) )
 	{
-		fileName = string(param);
-	}
-	else
-	{
-		fileName = params->configDir + string(PREDEFINEDTOPIC_FILE);
-	}
+		throw Exception("ClientList::setPredefinedTopics No predefindTopi list defined by config file.");
 
-	if ( readPredefinedList(fileName.c_str(), aggrecate) )
-	{
-		params->predefinedTopicFileName = strdup(fileName.c_str());
 	}
 }
 
@@ -118,18 +93,18 @@ void ClientList::setPredefinedTopics(bool aggrecate)
  * File format is:
  *     Lines bigning with # are comment line.
  *     ClientId, SensorNetAddress, "unstableLine", "secureConnection"
- *     in case of UDP, SensorNetAddress format is portNo@IPAddress.
+ *     in case of UDP, SensorNetAddress format is IPAddress:portNo.
  *     if the SensorNetwork is not stable, write unstableLine.
  *     if BrokerConnection is SSL, write secureConnection.
  *     if the client send PUBLISH QoS-1, QoS-1 is required.
  *
  * Ex:
  *     #Client List
- *     ClientId1,11200@192.168.10.10
- *     ClientID2,35000@192.168.50.200,unstableLine
- *     ClientID3,40000@192.168.200.50,secureConnection
- *     ClientID4,41000@192.168.200.51,unstableLine,secureConnection
- *      ClientID5,41000@192.168.200.51,unstableLine,secureConnection,QoS-1
+ *     ClientId1,192.168.10.10:11200
+ *     ClientID2,192.168.50.200:35000,unstableLine
+ *     ClientID3,192.168.200.50:40000,secureConnection
+ *     ClientID4,192.168.200.51:41000,unstableLine,secureConnection
+ *     ClientID5,192.168.200.51:41000,unstableLine,secureConnection,QoS-1
  */
 
 bool ClientList::createList(const char* fileName, int type)
@@ -141,7 +116,7 @@ bool ClientList::createList(const char* fileName, int type)
     bool stable;
     bool qos_1;
     bool forwarder;
-    bool rc = true;
+    bool rc = false;
     SensorNetAddress netAddr;
     MQTTSNString clientId = MQTTSNString_initializer;
 
@@ -194,6 +169,7 @@ bool ClientList::createList(const char* fileName, int type)
             free(clientId.cstring);
         }
         fclose(fp);
+        rc = true;
     }
     return rc;
 }
@@ -380,7 +356,7 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
     }
     else
     {
-        MQTTSNString  dummyId MQTTSNString_initializer;;
+        MQTTSNString  dummyId MQTTSNString_initializer;
         dummyId.cstring = strdup("");
         client->setClientId(dummyId);
          free(dummyId.cstring);
@@ -416,10 +392,16 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
+	if ( topicId == 0 )
+	{
+		WRITELOG("Invalid TopicId. Predefined Topic %s,  TopicId is 0. \n", topicName.c_str());
+		return nullptr;
+	}
+
 	if ( strcmp(clientId->cstring, common_topic) == 0 )
 	{
 		theGateway->getTopics()->add((const char*)topicName.c_str(), topicId);
-		return 0;
+		return nullptr;
 	}
 	else
 	{
@@ -427,7 +409,7 @@ Client* ClientList::createPredefinedTopic( MQTTSNString* clientId, string topicN
 
 		if ( _authorize && client == nullptr )
 		{
-			return 0;
+			return nullptr;
 		}
 
 		/*  anonimous clients */

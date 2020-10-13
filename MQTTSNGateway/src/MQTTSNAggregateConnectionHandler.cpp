@@ -81,7 +81,15 @@ void MQTTSNAggregateConnectionHandler::handleConnect(Client* client, MQTTSNPacke
 		/* renew the TopicList */
 		if (topics)
 		{
-			_gateway->getAdapterManager()->removeAggregateTopicList(topics, client);
+			Topic* tp = topics->getFirstTopic();
+			while( tp != nullptr )
+			{
+				if ( tp->getType() == MQTTSN_TOPIC_TYPE_NORMAL )
+				{
+					_gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(tp, client);
+				}
+				tp = topics->getNextTopic(tp);
+			}
 			topics->eraseNormal();
 		}
 		client->setSessionStatus(true);
@@ -170,19 +178,17 @@ void MQTTSNAggregateConnectionHandler::handlePingreq(Client* client, MQTTSNPacke
 	    sendStoredPublish(client);
 		client->holdPingRequest();
 	}
-	else
-	{
-        /* create and send PINGRESP to the PacketHandler */
-	    client->resetPingRequest();
 
-        MQTTGWPacket* pingresp = new MQTTGWPacket();
+	/* create and send PINGRESP to the PacketHandler */
+	client->resetPingRequest();
 
-        pingresp->setHeader(PINGRESP);
+	MQTTGWPacket* pingresp = new MQTTGWPacket();
 
-        Event* evt = new Event();
-        evt->setBrokerRecvEvent(client, pingresp);
-        _gateway->getPacketEventQue()->post(evt);
-	}
+	pingresp->setHeader(PINGRESP);
+
+	Event* evt = new Event();
+	evt->setBrokerRecvEvent(client, pingresp);
+	_gateway->getPacketEventQue()->post(evt);
 }
 
 void MQTTSNAggregateConnectionHandler::sendStoredPublish(Client* client)
@@ -191,7 +197,6 @@ void MQTTSNAggregateConnectionHandler::sendStoredPublish(Client* client)
 
     while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
     {
-        // ToDo:  This version can't re-send PUBLISH when PUBACK is not returned.
         client->deleteFirstClientSleepPacket();  // pop the que to delete element.
 
         Event* ev = new Event();

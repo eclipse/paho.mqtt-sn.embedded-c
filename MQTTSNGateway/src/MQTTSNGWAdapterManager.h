@@ -40,21 +40,17 @@ class AdapterManager
 public:
 	AdapterManager(Gateway* gw);
     ~AdapterManager(void);
-    void initialize(void);
+    void initialize(char* gwName, bool aggregater, bool fowarder, bool qosM1);
     ForwarderList* getForwarderList(void);
     QoSm1Proxy* getQoSm1Proxy(void);
     Aggregater* getAggregater(void);
     void checkConnection(void);
 
     bool isAggregatedClient(Client* client);
-    Client* getClient(Client& client);
+    Client* getClient(Client* client);
     Client* convertClient(uint16_t msgId, uint16_t* clientMsgId);
     int unicastToClient(Client* client, MQTTSNPacket* packet, ClientSendTask* task);
     bool isAggregaterActive(void);
-    AggregateTopicElement* createClientList(Topic* topic);
-    int addAggregateTopic(Topic* topic, Client* client);
-    void removeAggregateTopic(Topic* topic, Client* client);
-    void removeAggregateTopicList(Topics* topics, Client* client);
 
 private:
     Gateway* _gateway {nullptr};

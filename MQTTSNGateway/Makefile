@@ -74,7 +74,6 @@ $(SUBDIR)/MQTTSNSubscribeServer.c \
 $(SUBDIR)/MQTTSNUnsubscribeClient.c \
 $(SUBDIR)/MQTTSNUnsubscribeServer.c 
 
-CXX := g++
 CPPFLAGS += 
 
 INCLUDE :=
@@ -82,14 +81,20 @@ INCLUDES += $(INCLUDE) -I$(SRCDIR) \
 -I$(SRCDIR)/$(OS) \
 -I$(SRCDIR)/$(OS)/$(SENSORNET) \
 -I$(SUBDIR) \
--I$(SRCDIR)/$(TEST)
+-I$(SRCDIR)/$(TEST) \
+-I/usr/local/opt/openssl/include/
 
+# preprocessor defines
 DEFS :=
+
+CXX := g++
+
 LIB :=
-LIBS += $(LIB) -L/usr/local/lib
-LDFLAGS := 
+LIBS += $(LIB) -L/usr/local/lib -L/usr/local/opt/openssl/lib/
+
+LDFLAGS :=
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := -lpthread -lssl -lcrypto -lrt
+LDADD := -lpthread -lssl -lcrypto
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGNAME)

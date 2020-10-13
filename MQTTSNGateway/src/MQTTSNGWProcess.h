@@ -66,7 +66,7 @@ private:
 	string  _configDir;
 	string  _configFile;
 	RingBuffer* _rb;
-	Semaphore*  _rbsem;
+	NamedSemaphore*  _rbsem;
 	Mutex _mt;
 	int  _log;
 	char _rbdata[PROCESS_LOG_BUFFER_SIZE + 1];
@@ -84,7 +84,7 @@ public:
 	int getParam(const char* parameter, char* value);
 	void run(void);
 	void waitStop(void);
-	void threadStoped(void);
+	void threadStopped(void);
 	void attach(Thread* thread);
 
 private:

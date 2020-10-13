@@ -113,7 +113,7 @@ void PacketHandleTask::run()
 
 		if (ev->getEventType() == EtStop)
 		{
-			WRITELOG("%s PacketHandleTask stopped.\n", currentDateTime());
+			WRITELOG("\n%s PacketHandleTask stopped.", currentDateTime());
 			delete ev;
 			return;
 		}
@@ -148,7 +148,7 @@ void PacketHandleTask::run()
 
 			if ( adpMgr->isAggregatedClient(client) )
 			{
-				aggregatePacketHandler(client, snPacket);
+				aggregatePacketHandler(client, snPacket);     // client is converted to Aggregater by BrokerSendTask
 			}
 			else
 			{
@@ -197,6 +197,9 @@ void PacketHandleTask::aggregatePacketHandler(Client*client, MQTTSNPacket* packe
 		break;
 	case MQTTSN_DISCONNECT:
 		_mqttsnAggrConnection->handleDisconnect(client, packet);
+		break;
+	case MQTTSN_WILLTOPICUPD:
+		_mqttsnConnection->handleWilltopicupd(client, packet);
 		break;
 	case MQTTSN_WILLMSGUPD:
 		_mqttsnConnection->handleWillmsgupd(client, packet);
@@ -289,6 +292,9 @@ void PacketHandleTask::transparentPacketHandler(Client*client, MQTTSNPacket* pac
 	case MQTTSN_DISCONNECT:
 		_mqttsnConnection->handleDisconnect(client, packet);
 		break;
+	case MQTTSN_WILLTOPICUPD:
+		_mqttsnConnection->handleWilltopicupd(client, packet);
+		break;
 	case MQTTSN_WILLMSGUPD:
 		_mqttsnConnection->handleWillmsgupd(client, packet);
 		break;
@@ -358,6 +364,9 @@ void PacketHandleTask::transparentPacketHandler(Client*client, MQTTGWPacket* pac
 		break;
 	case UNSUBACK:
 		_mqttSubscribe->handleUnsuback(client, packet);
+		break;
+	case DISCONNECT:
+		client->disconnected();    // Just change Client's status to "Disconnected"
 		break;
 	default:
 		break;

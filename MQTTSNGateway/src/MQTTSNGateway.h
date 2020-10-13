@@ -26,7 +26,7 @@ namespace MQTTSNGW
 /*=================================
  *    Starting prompt
  ==================================*/
-#define PAHO_COPYRIGHT0 " * MQTT-SN Transparent Gateway"
+#define PAHO_COPYRIGHT0 " * MQTT-SN Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
 #define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
 #define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
@@ -160,10 +160,14 @@ public:
 	char* rootCApath {nullptr};
 	char* rootCAfile {nullptr};
 	char* certKey {nullptr};
-	char* privateKey {nullptr};
 	char* predefinedTopicFileName {nullptr};
+	char* privateKey {nullptr};
 	char* qosMinusClientListName {nullptr};
 	bool  clientAuthentication {false};
+	bool  predefinedTopic  {false};
+	bool  aggregatingGw   {false};
+	bool  qosMinus1   {false};
+	bool  forwarder   {false};
 };
 
 
@@ -190,8 +194,12 @@ public:
 	GatewayParams* getGWParams(void);
 	AdapterManager* getAdapterManager(void);
 	int getParam(const char* parameter, char* value);
+	char* getClientListFileName(void);
+	char* getPredefinedTopicFileName(void);
+
 	bool hasSecureConnection(void);
 	Topics* getTopics(void);
+	bool IsStopping(void);
 
 private:
 	GatewayParams  _params;
@@ -203,6 +211,7 @@ private:
 	SensorNetwork  _sensorNetwork;
 	AdapterManager* _adapterManager {nullptr};
 	Topics* _topics;
+	bool _stopFlg;
 };
 
 }

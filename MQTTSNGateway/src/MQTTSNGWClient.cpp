@@ -572,7 +572,7 @@ void Client::resetPingRequest(void)
     _holdPingRequest = false;
 }
 
-bool Client::isHoldPringReqest(void)
+bool Client::isHoldPingReqest(void)
 {
     return _holdPingRequest;
 }

@@ -34,6 +34,11 @@ Client* ClientTopicElement::getClient(void)
 	return _client;
 }
 
+ClientTopicElement* ClientTopicElement::getNextClientElement(void)
+{
+	return _next;
+}
+
 /*=====================================
  Class AggregateTopicElement
  =====================================*/
@@ -44,6 +49,7 @@ AggregateTopicElement::AggregateTopicElement(void)
 
 AggregateTopicElement::AggregateTopicElement(Topic* topic, Client* client)
 {
+	_topic = topic;
 	ClientTopicElement* elm = new ClientTopicElement(client);
 	if ( elm != nullptr )
 	{
@@ -76,7 +82,9 @@ ClientTopicElement* AggregateTopicElement::add(Client* client)
 	{
 		return nullptr;
 	}
+
 	_mutex.lock();
+
 	if ( _head == nullptr )
 	{
 		_head = elm;
@@ -95,7 +103,7 @@ ClientTopicElement* AggregateTopicElement::add(Client* client)
 		else
 		{
 			delete elm;
-			elm = nullptr;
+			elm = p;
 		}
 	}
 	_mutex.unlock();
@@ -105,7 +113,7 @@ ClientTopicElement* AggregateTopicElement::add(Client* client)
 ClientTopicElement* AggregateTopicElement::find(Client* client)
 {
 	ClientTopicElement* p = _head;
-	while ( p )
+	while ( p != nullptr )
 	{
 		if ( p->_client == client)
 		{
@@ -116,16 +124,48 @@ ClientTopicElement* AggregateTopicElement::find(Client* client)
 	return p;
 }
 
-ClientTopicElement* AggregateTopicElement::getFirstElement(void)
+ClientTopicElement* AggregateTopicElement::getFirstClientTopicElement(void)
 {
 	return _head;
 }
 
-ClientTopicElement* AggregateTopicElement::getNextElement(ClientTopicElement* elm)
+ClientTopicElement* AggregateTopicElement::getNextClientTopicElement(ClientTopicElement* elmClient)
 {
-	return elm->_next;
+	return elmClient->_next;
 }
 
+void AggregateTopicElement::eraseClient(Client* client)
+{
+	_mutex.lock();
+
+	ClientTopicElement* p = find(client);
+	if ( p != nullptr )
+	{
+		if ( p->_prev == nullptr )    // head element
+		{
+			_head = p->_next;
+			if ( p->_next == nullptr )   // head & only one
+			{
+				_tail = nullptr;
+			}
+			else
+			{
+				p->_next->_prev = nullptr;  // head & midle
+			}
+		}
+		else if ( p->_next != nullptr )  // middle
+		{
+			p->_prev->_next = p->_next;
+		}
+		else    // tail
+		{
+			p->_prev->_next = nullptr;
+			_tail = p->_prev;
+		}
+		delete p;
+	}
+	_mutex.unlock();
+}
 
 /*=====================================
  Class AggregateTopicTable
@@ -143,19 +183,138 @@ AggregateTopicTable::~AggregateTopicTable()
 
 AggregateTopicElement* AggregateTopicTable::add(Topic* topic, Client* client)
 {
-	//ToDo: AggregateGW
-	return 0;
+	AggregateTopicElement* elm = nullptr;
+	_mutex.lock();
+	elm = getAggregateTopicElement(topic);
+	if ( elm != nullptr )
+	{
+		if ( elm->find(client) == nullptr )
+		{
+			elm->add(client);
+		}
+	}
+	else
+	{
+		Topic* newTopic = topic->duplicate();
+		elm = new AggregateTopicElement(newTopic, client);
+		if ( _head == nullptr )
+		{
+			_head = elm;
+			_tail = elm;
+		}
+		else
+		{
+			elm->_prev = _tail;
+			_tail->_next = elm;
+			_tail = elm;
+		}
+	}
+	_mutex.unlock();
+	return elm;
 }
 
-void AggregateTopicTable::remove(Topic* topic, Client* client)
+void AggregateTopicTable::erase(Topic* topic, Client* client)
 {
-	//ToDo: AggregateGW
+	AggregateTopicElement* elm = nullptr;
+
+	_mutex.lock();
+	elm = getAggregateTopicElement(topic);
+
+	if ( elm != nullptr )
+	{
+		elm->eraseClient(client);
+	}
+	if ( elm->_head == nullptr )
+	{
+		erase(elm);
+	}
+	_mutex.unlock();
+	return;
 }
 
-AggregateTopicElement* AggregateTopicTable::getClientList(Topic* client)
+void AggregateTopicTable::erase(AggregateTopicElement* elmTopic)
 {
-	// ToDo: AggregateGW
-	return 0;
+	if ( elmTopic != nullptr )
+	{
+		if ( elmTopic->_prev == nullptr )    // head element
+		{
+			_head = elmTopic->_next;
+			if ( elmTopic->_next == nullptr )   // head & only one
+			{
+				_tail = nullptr;
+			}
+			else
+			{
+				elmTopic->_next->_prev = nullptr;  // head & midle
+			}
+		}
+		else if ( elmTopic->_next != nullptr )  // middle
+		{
+			elmTopic->_prev->_next = elmTopic->_next;
+		}
+		else    // tail
+		{
+			elmTopic->_prev->_next = nullptr;
+			_tail = elmTopic->_prev;
+		}
+		delete elmTopic;
+	}
 }
 
+AggregateTopicElement* AggregateTopicTable::getAggregateTopicElement(Topic* topic)
+{
+	AggregateTopicElement* elm = _head;
 
+	while( elm != nullptr )
+	{
+		if ( elm->_topic->isMatch(topic->_topicName) )
+		{
+			break;
+		}
+		elm = elm->_next;
+	}
+	return elm;
+}
+
+ClientTopicElement* AggregateTopicTable::getClientElement(Topic* topic)
+{
+	AggregateTopicElement* elm = getAggregateTopicElement(topic);
+	if ( elm != nullptr )
+	{
+		return elm->_head;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+void AggregateTopicTable::print(void)
+{
+	AggregateTopicElement* elm = _head;
+
+	printf("Beginning of AggregateTopicTable\n");
+	while( elm != nullptr )
+	{
+		printf("%s\n", elm->_topic->getTopicName()->c_str());
+
+		ClientTopicElement* clElm = elm->getFirstClientTopicElement();
+		Client* client = clElm->getClient();
+
+		while ( client != nullptr )
+		{
+			printf("    %s\n", client->getClientId());
+			clElm = clElm->getNextClientElement();
+			if ( clElm != nullptr )
+			{
+				client = clElm->getClient();
+			}
+			else
+			{
+				client = nullptr;
+			}
+		}
+		elm = elm->_next;
+	}
+	printf("End of AggregateTopicTable\n");
+}

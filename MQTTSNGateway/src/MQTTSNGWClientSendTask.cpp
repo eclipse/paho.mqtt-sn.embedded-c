@@ -35,7 +35,7 @@ ClientSendTask::ClientSendTask(Gateway* gateway)
 
 ClientSendTask::~ClientSendTask()
 {
-
+//	WRITELOG("ClientSendTask is deleted normally.\r\n");
 }
 
 void ClientSendTask::run()
@@ -49,35 +49,44 @@ void ClientSendTask::run()
 	{
 		Event* ev = _gateway->getClientSendQue()->wait();
 
-		if (ev->getEventType() == EtStop)
+		if (ev->getEventType() == EtStop || _gateway->IsStopping() )
 		{
-			WRITELOG("%s ClientSendTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s ClientSendTask   stopped.", currentDateTime());
 			delete ev;
 			break;
 		}
-		if (ev->getEventType() == EtClientSend)
-		{
-			client = ev->getClient();
-			packet = ev->getMQTTSNPacket();
-			rc = adpMgr->unicastToClient(client, packet, this);
-		}
-		else if (ev->getEventType() == EtBroadcast)
-		{
-			packet = ev->getMQTTSNPacket();
-			log(client, packet);
-			rc = packet->broadcast(_sensorNetwork);
-		}
-		else if (ev->getEventType() == EtSensornetSend)
-		{
-			packet = ev->getMQTTSNPacket();
-			log(client, packet);
-			rc = packet->unicast(_sensorNetwork, ev->getSensorNetAddress());
-		}
 
-		if ( rc < 0 )
+		if (ev->getEventType() == EtBroadcast)
 		{
-			WRITELOG("%s ClientSendTask can't send a packet to the client %s. Error=%d%s\n",
-				ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), errno, ERRMSG_FOOTER);
+			packet = ev->getMQTTSNPacket();
+			log(client, packet);
+
+			if ( packet->broadcast(_sensorNetwork) < 0 )
+			{
+				WRITELOG("%s ClientSendTask can't multicast a packet Error=%d%s\n",
+					ERRMSG_HEADER, errno, ERRMSG_FOOTER);
+			}
+		}
+		else
+		{
+			if (ev->getEventType() == EtClientSend)
+			{
+				client = ev->getClient();
+				packet = ev->getMQTTSNPacket();
+				rc = adpMgr->unicastToClient(client, packet, this);
+			}
+			else if (ev->getEventType() == EtSensornetSend)
+			{
+				packet = ev->getMQTTSNPacket();
+				log(client, packet);
+				rc = packet->unicast(_sensorNetwork, ev->getSensorNetAddress());
+			}
+
+			if ( rc < 0 )
+			{
+				WRITELOG("%s ClientSendTask can't send a packet to the client %s. Error=%d%s\n",
+					ERRMSG_HEADER, (client ? (const char*)client->getClientId() : UNKNOWNCL ), errno, ERRMSG_FOOTER);
+			}
 		}
 		delete ev;
 	}

@@ -63,6 +63,15 @@ MQTTSN_topicTypes Topic::getType(void)
     return _type;
 }
 
+Topic* Topic::duplicate(void)
+{
+	Topic* newTopic = new Topic();
+	newTopic->_type = _type;
+	newTopic->_topicId = _topicId;
+	newTopic->_topicName = new string(_topicName->c_str());
+	return newTopic;
+}
+
 bool Topic::isMatch(string* topicName)
 {
 	string::size_type tlen = _topicName->size();
@@ -352,6 +361,16 @@ void Topics::eraseNormal(void)
             topic = topic->_next;
         }
     }
+}
+
+Topic* Topics::getFirstTopic(void)
+{
+	return _first;
+}
+
+Topic* Topics::getNextTopic(Topic* topic)
+{
+	return topic->_next;
 }
 
 void Topics::print(void)

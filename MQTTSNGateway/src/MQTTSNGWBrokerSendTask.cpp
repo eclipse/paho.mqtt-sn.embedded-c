@@ -41,7 +41,7 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
 
 BrokerSendTask::~BrokerSendTask()
 {
-
+//	WRITELOG("BrokerSendTask is deleted normally.\r\n");
 }
 
 /**
@@ -70,7 +70,7 @@ void BrokerSendTask::run()
 
 		if ( ev->getEventType() == EtStop )
 		{
-			WRITELOG("%s BrokerSendTask   stopped.\n", currentDateTime());
+			WRITELOG("\n%s BrokerSendTask   stopped.", currentDateTime());
 			delete ev;
 			return;
 		}
@@ -81,7 +81,7 @@ void BrokerSendTask::run()
 			packet = ev->getMQTTGWPacket();
 
 			/* Check Client is managed by Adapters */
-			client = adpMgr->getClient(*client);
+			client = adpMgr->getClient(client);
 
 			if ( packet->getType() == CONNECT && client->getNetwork()->isValid() )
 			{
@@ -121,13 +121,21 @@ void BrokerSendTask::run()
 				{
 					client->connectSended();
 				}
+				else if ( packet->getType() == DISCONNECT )
+				{
+					client->getNetwork()->close();
+					client->disconnected();
+				}
 				log(client, packet);
 			}
 			else
 			{
 				WRITELOG("%s BrokerSendTask: %s can't send a packet to the broker. errno=%d %s %s\n",
 						ERRMSG_HEADER, client->getClientId(), rc == -1 ? errno : 0, strerror(errno), ERRMSG_FOOTER);
-				client->getNetwork()->close();
+				if ( errno != EBADF )
+				{
+					client->getNetwork()->close();
+				}
 
 				/* Disconnect the client */
 				packet = new MQTTGWPacket();
