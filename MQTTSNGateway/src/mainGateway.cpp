@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2016, 2020 Tomoaki Yamaguchi and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -38,13 +38,13 @@ int main(int argc, char** argv)
     gateway.run();
     try
     {
-		gateway.initialize(argc, argv);
-		gateway.run();
-	}
+      gateway.initialize(argc, argv);
+		  gateway.run();
+	  }
     catch (const std::exception &ex)
     {
-		WRITELOG("\nEclipse Paho MQTT-SN Gateway exception: %s\n", ex.what());
-		WRITELOG("MQTT-SNGateway [-f Config file name]\n");
-	}
+		  WRITELOG("\nEclipse Paho MQTT-SN Gateway exception: %s\n", ex.what());
+		  WRITELOG("MQTT-SNGateway [-f Config file name]\n");
+	  }
 	return 0;
 }

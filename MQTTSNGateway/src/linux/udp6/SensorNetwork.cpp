@@ -14,6 +14,7 @@
  * Contributors:
  *    Benjamin Aigner - Adaption of the UDPv4 code to use UDPv6
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
+ *    Tieto Poland Sp. z o.o. - improve portability
  **************************************************************************************/
 #include <stdio.h>
 #include <unistd.h>
