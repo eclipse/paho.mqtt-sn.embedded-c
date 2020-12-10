@@ -494,11 +494,6 @@ Event::Event()
 
 Event::~Event()
 {
-	if (_sensorNetAddr)
-	{
-		delete _sensorNetAddr;
-	}
-
 	if (_mqttSNPacket)
 	{
 		delete _mqttSNPacket;

@@ -228,7 +228,11 @@ void ClientRecvTask::run()
 				}
 				else
 				{
-					WRITELOG("%s MQTTSNGWClientRecvTask  Client(%s) is not connecting. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);
+					WRITELOG("%s MQTTSNGWClientRecvTask  Client(%s) is not connected. message has been discarded.%s\n", ERRMSG_HEADER, senderAddr->sprint(buf), ERRMSG_FOOTER);MQTTSNPacket* snPacket = new MQTTSNPacket();
+					snPacket->setDISCONNECT(0);
+					Event* ev1 = new Event();
+					ev1->setClientSendEvent(senderAddr, snPacket);
+					_gateway->getClientSendQue()->post(ev1);
 				}
 				delete packet;
 			}
