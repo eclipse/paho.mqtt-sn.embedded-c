@@ -281,7 +281,7 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 	    sendStoredPublish(client);
 		client->holdPingRequest();
 	}
-	else
+	// else
 	{
         /* send PINGREQ to the broker */
 	    client->resetPingRequest();
