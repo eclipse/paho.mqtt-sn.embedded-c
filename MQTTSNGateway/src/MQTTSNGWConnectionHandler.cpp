@@ -281,16 +281,13 @@ void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet
 	    sendStoredPublish(client);
 		client->holdPingRequest();
 	}
-	else
-	{
-        /* send PINGREQ to the broker */
-	    client->resetPingRequest();
-        MQTTGWPacket* pingreq = new MQTTGWPacket();
-        pingreq->setHeader(PINGREQ);
-        Event* evt = new Event();
-        evt->setBrokerSendEvent(client, pingreq);
-        _gateway->getBrokerSendQue()->post(evt);
-	}
+	/* send PINGREQ to the broker */
+	client->resetPingRequest();
+	MQTTGWPacket* pingreq = new MQTTGWPacket();
+	pingreq->setHeader(PINGREQ);
+	Event* evt = new Event();
+	evt->setBrokerSendEvent(client, pingreq);
+	_gateway->getBrokerSendQue()->post(evt);
 }
 
 void MQTTSNConnectionHandler::sendStoredPublish(Client* client)
