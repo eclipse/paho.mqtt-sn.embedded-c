@@ -21,17 +21,17 @@
 using namespace MQTTSNGW;
 using namespace std;
 
-WirelessNodeId::WirelessNodeId()
-    :
-    _len{0},
-    _nodeId{0}
+WirelessNodeId::WirelessNodeId() :
+        _len
+        { 0 }, _nodeId
+        { 0 }
 {
 
 }
 
 WirelessNodeId::~WirelessNodeId()
 {
-    if ( _nodeId )
+    if (_nodeId)
     {
         free(_nodeId);
     }
@@ -39,12 +39,12 @@ WirelessNodeId::~WirelessNodeId()
 
 void WirelessNodeId::setId(uint8_t* id, uint8_t len)
 {
-    if ( _nodeId )
-     {
-         free(_nodeId);
-     }
-    uint8_t* buf = (uint8_t*)malloc(len);
-    if ( buf )
+    if (_nodeId)
+    {
+        free(_nodeId);
+    }
+    uint8_t* buf = (uint8_t*) malloc(len);
+    if (buf)
     {
         memcpy(buf, id, len);
         _len = len;
@@ -64,7 +64,7 @@ void WirelessNodeId::setId(WirelessNodeId* id)
 
 bool WirelessNodeId::operator ==(WirelessNodeId& id)
 {
-    if ( _len == id._len )
+    if (_len == id._len)
     {
         return memcmp(_nodeId, id._nodeId, _len) == 0;
     }
@@ -77,16 +77,18 @@ bool WirelessNodeId::operator ==(WirelessNodeId& id)
 /*
  *    Class MQTTSNGWEncapsulatedPacket
  */
-MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket()
-    :  _mqttsn{0},
-       _ctrl{0}
+MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket() :
+        _mqttsn
+        { 0 }, _ctrl
+        { 0 }
 {
 
 }
 
-MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket(MQTTSNPacket* packet)
-    :  _mqttsn{packet},
-       _ctrl{0}
+MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket(MQTTSNPacket* packet) :
+        _mqttsn
+        { packet }, _ctrl
+        { 0 }
 {
 
 }
@@ -96,7 +98,8 @@ MQTTSNGWEncapsulatedPacket::~MQTTSNGWEncapsulatedPacket()
     /*  Do not delete the MQTTSNPacket.  MQTTSNPacket is deleted by delete Event */
 }
 
-int MQTTSNGWEncapsulatedPacket::unicast(SensorNetwork* network, SensorNetAddress* sendTo)
+int MQTTSNGWEncapsulatedPacket::unicast(SensorNetwork* network,
+        SensorNetAddress* sendTo)
 {
     uint8_t buf[MQTTSNGW_MAX_PACKET_SIZE];
     int len = serialize(buf);
@@ -109,18 +112,19 @@ int MQTTSNGWEncapsulatedPacket::serialize(uint8_t* buf)
     buf[0] = _id._len + 3;
     buf[1] = MQTTSN_ENCAPSULATED;
     buf[2] = _ctrl;
-    memcpy( buf + 3, _id._nodeId, _id._len);
-    if ( _mqttsn )
+    memcpy(buf + 3, _id._nodeId, _id._len);
+    if (_mqttsn)
     {
         len = _mqttsn->getPacketLength();
         memcpy(buf + buf[0], _mqttsn->getPacketData(), len);
     }
-    return  buf[0] + len;
+    return buf[0] + len;
 }
 
-int MQTTSNGWEncapsulatedPacket::desirialize(unsigned char* buf, unsigned short len)
+int MQTTSNGWEncapsulatedPacket::desirialize(unsigned char* buf,
+        unsigned short len)
 {
-    if ( _mqttsn )
+    if (_mqttsn)
     {
         delete _mqttsn;
         _mqttsn = nullptr;

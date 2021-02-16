@@ -33,12 +33,12 @@ class ClientRecvTask;
 class ClientSendTask;
 
 /*=====================================
-     Class AdapterManager
+ Class AdapterManager
  =====================================*/
 class AdapterManager
 {
 public:
-	AdapterManager(Gateway* gw);
+    AdapterManager(Gateway* gw);
     ~AdapterManager(void);
     void initialize(char* gwName, bool aggregater, bool fowarder, bool qosM1);
     ForwarderList* getForwarderList(void);
@@ -49,18 +49,16 @@ public:
     bool isAggregatedClient(Client* client);
     Client* getClient(Client* client);
     Client* convertClient(uint16_t msgId, uint16_t* clientMsgId);
-    int unicastToClient(Client* client, MQTTSNPacket* packet, ClientSendTask* task);
+    int unicastToClient(Client* client, MQTTSNPacket* packet,
+            ClientSendTask* task);
     bool isAggregaterActive(void);
 
 private:
-    Gateway* _gateway {nullptr};
-    ForwarderList* _forwarders {nullptr};
-    QoSm1Proxy*  _qosm1Proxy {nullptr};
-    Aggregater* _aggregater {nullptr};
+    Gateway* _gateway { nullptr };
+    ForwarderList* _forwarders { nullptr };
+    QoSm1Proxy* _qosm1Proxy { nullptr };
+    Aggregater* _aggregater { nullptr };
 };
-
-
-
 
 }
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWADAPTERMANAGER_H_ */

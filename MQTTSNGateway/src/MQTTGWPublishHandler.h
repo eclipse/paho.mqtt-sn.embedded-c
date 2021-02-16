@@ -26,25 +26,23 @@ namespace MQTTSNGW
 class MQTTGWPublishHandler
 {
 public:
-	MQTTGWPublishHandler(Gateway* gateway);
-	~MQTTGWPublishHandler();
-	void handlePublish(Client* client, MQTTGWPacket* packet);
-	void handlePuback(Client* client, MQTTGWPacket* packet);
-	void handleAck(Client* client, MQTTGWPacket* packet, int type);
+    MQTTGWPublishHandler(Gateway* gateway);
+    ~MQTTGWPublishHandler();
+    void handlePublish(Client* client, MQTTGWPacket* packet);
+    void handlePuback(Client* client, MQTTGWPacket* packet);
+    void handleAck(Client* client, MQTTGWPacket* packet, int type);
 
-	void handleAggregatePublish(Client* client, MQTTGWPacket* packet);
-	void handleAggregatePuback(Client* client, MQTTGWPacket* packet);
-	void handleAggregateAck(Client* client, MQTTGWPacket* packet, int type);
-	void handleAggregatePubrel(Client* client, MQTTGWPacket* packet);
+    void handleAggregatePublish(Client* client, MQTTGWPacket* packet);
+    void handleAggregatePuback(Client* client, MQTTGWPacket* packet);
+    void handleAggregateAck(Client* client, MQTTGWPacket* packet, int type);
+    void handleAggregatePubrel(Client* client, MQTTGWPacket* packet);
 
 private:
-	void replyACK(Client* client, Publish* pub, int type);
+    void replyACK(Client* client, Publish* pub, int type);
 
-	Gateway* _gateway;
+    Gateway* _gateway;
 };
 
 }
-
-
 
 #endif /* MQTTGWPUBLISHHANDLER_H_ */

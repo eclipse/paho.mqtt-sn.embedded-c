@@ -40,39 +40,38 @@ class MQTTSNAggregateConnectionHandler;
 class Thread;
 class Timer;
 /*=====================================
-        Class PacketHandleTask
+ Class PacketHandleTask
  =====================================*/
-class PacketHandleTask : public Thread
+class PacketHandleTask: public Thread
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend class MQTTGWAggregatePublishHandler;
-	friend class MQTTGWAggregateSubscribeHandler;
-	friend class MQTTSNAggregateConnectionHandler;
-	friend class MQTTSNAggregatePublishHandler;
-	friend class MQTTSNAggregateSubscribeHandler;
+MAGIC_WORD_FOR_THREAD;
+    friend class MQTTGWAggregatePublishHandler;
+    friend class MQTTGWAggregateSubscribeHandler;
+    friend class MQTTSNAggregateConnectionHandler;
+    friend class MQTTSNAggregatePublishHandler;
+    friend class MQTTSNAggregateSubscribeHandler;
 public:
-	PacketHandleTask(Gateway* gateway);
-	~PacketHandleTask();
-	void run();
+    PacketHandleTask(Gateway* gateway);
+    ~PacketHandleTask();
+    void run();
 private:
-	void aggregatePacketHandler(Client*client, MQTTSNPacket* packet);
-	void aggregatePacketHandler(Client*client, MQTTGWPacket* packet);
-	void transparentPacketHandler(Client*client, MQTTSNPacket* packet);
-	void transparentPacketHandler(Client*client, MQTTGWPacket* packet);
+    void aggregatePacketHandler(Client*client, MQTTSNPacket* packet);
+    void aggregatePacketHandler(Client*client, MQTTGWPacket* packet);
+    void transparentPacketHandler(Client*client, MQTTSNPacket* packet);
+    void transparentPacketHandler(Client*client, MQTTGWPacket* packet);
 
-	Gateway* _gateway {nullptr};
-	Timer _advertiseTimer;
-	Timer _sendUnixTimer;
-	MQTTGWConnectionHandler* _mqttConnection {nullptr};
-	MQTTGWPublishHandler*    _mqttPublish {nullptr};
-	MQTTGWSubscribeHandler*  _mqttSubscribe {nullptr};
-	MQTTSNConnectionHandler* _mqttsnConnection {nullptr};
-	MQTTSNPublishHandler*    _mqttsnPublish {nullptr};
-	MQTTSNSubscribeHandler*  _mqttsnSubscribe {nullptr};
-
-	MQTTSNAggregateConnectionHandler* _mqttsnAggrConnection {nullptr};
+    Gateway* _gateway
+    { nullptr };
+    Timer _advertiseTimer;
+    Timer _sendUnixTimer;
+    MQTTGWConnectionHandler* _mqttConnection { nullptr };
+    MQTTGWPublishHandler* _mqttPublish { nullptr };
+    MQTTGWSubscribeHandler* _mqttSubscribe { nullptr };
+    MQTTSNConnectionHandler* _mqttsnConnection { nullptr };
+    MQTTSNPublishHandler* _mqttsnPublish { nullptr };
+    MQTTSNSubscribeHandler* _mqttsnSubscribe { nullptr };
+    MQTTSNAggregateConnectionHandler* _mqttsnAggrConnection { nullptr };
 };
-
 
 }
 

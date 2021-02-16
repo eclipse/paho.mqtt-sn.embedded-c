@@ -22,7 +22,7 @@ using namespace MQTTSNGW;
 
 MQTTGWSubscribeHandler::MQTTGWSubscribeHandler(Gateway* gateway)
 {
-	_gateway = gateway;
+    _gateway = gateway;
 }
 
 MQTTGWSubscribeHandler::~MQTTGWSubscribeHandler()
@@ -32,68 +32,74 @@ MQTTGWSubscribeHandler::~MQTTGWSubscribeHandler()
 
 void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
 {
-	uint16_t msgId;
-	uint8_t rc;
-	uint8_t returnCode;
-	int qos = 0;
+    uint16_t msgId;
+    uint8_t rc;
+    uint8_t returnCode;
+    int qos = 0;
 
-	packet->getSUBACK(&msgId, &rc);
-	TopicIdMapElement* topicId = client->getWaitedSubTopicId(msgId);
+    packet->getSUBACK(&msgId, &rc);
+    TopicIdMapElement* topicId = client->getWaitedSubTopicId(msgId);
 
-	if (topicId)
-	{
-		MQTTSNPacket* snPacket = new MQTTSNPacket();
+    if (topicId)
+    {
+        MQTTSNPacket* snPacket = new MQTTSNPacket();
 
-		if (rc == 0x80)
-		{
-			returnCode = MQTTSN_RC_REJECTED_INVALID_TOPIC_ID;
-		}
-		else
-		{
-			returnCode = MQTTSN_RC_ACCEPTED;
-			qos = rc;
-		}
-		snPacket->setSUBACK(qos, topicId->getTopicId(), msgId, returnCode);
-		Event* evt = new Event();
-		evt->setClientSendEvent(client, snPacket);
-		_gateway->getClientSendQue()->post(evt);
+        if (rc == 0x80)
+        {
+            returnCode = MQTTSN_RC_REJECTED_INVALID_TOPIC_ID;
+        }
+        else
+        {
+            returnCode = MQTTSN_RC_ACCEPTED;
+            qos = rc;
+        }
+        snPacket->setSUBACK(qos, topicId->getTopicId(), msgId, returnCode);
+        Event* evt = new Event();
+        evt->setClientSendEvent(client, snPacket);
+        _gateway->getClientSendQue()->post(evt);
         client->eraseWaitedSubTopicId(msgId);
-	}
+    }
 }
 
-void MQTTGWSubscribeHandler::handleUnsuback(Client* client, MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleUnsuback(Client* client,
+        MQTTGWPacket* packet)
 {
-	Ack ack;
-	packet->getAck(&ack);
-	MQTTSNPacket* snPacket = new MQTTSNPacket();
-	snPacket->setUNSUBACK(ack.msgId);
-	Event* evt = new Event();
-	evt->setClientSendEvent(client, snPacket);
-	_gateway->getClientSendQue()->post(evt);
+    Ack ack;
+    packet->getAck(&ack);
+    MQTTSNPacket* snPacket = new MQTTSNPacket();
+    snPacket->setUNSUBACK(ack.msgId);
+    Event* evt = new Event();
+    evt->setClientSendEvent(client, snPacket);
+    _gateway->getClientSendQue()->post(evt);
 }
 
-void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client, MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client,
+        MQTTGWPacket* packet)
 {
-	uint16_t msgId = packet->getMsgId();
-	uint16_t clientMsgId = 0;
-	Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
-	if (  newClient != nullptr )
-	{
-		packet->setMsgId((int)clientMsgId);
-		handleSuback(newClient, packet);
-	}
+    uint16_t msgId = packet->getMsgId();
+    uint16_t clientMsgId = 0;
+    Client* newClient =
+            _gateway->getAdapterManager()->getAggregater()->convertClient(msgId,
+                    &clientMsgId);
+    if (newClient != nullptr)
+    {
+        packet->setMsgId((int) clientMsgId);
+        handleSuback(newClient, packet);
+    }
 }
 
-void MQTTGWSubscribeHandler::handleAggregateUnsuback(Client* client, MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleAggregateUnsuback(Client* client,
+        MQTTGWPacket* packet)
 {
-	uint16_t msgId = packet->getMsgId();
-	uint16_t clientMsgId = 0;
-	Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
-	if (  newClient != nullptr )
-	{
-		packet->setMsgId((int)clientMsgId);
-		handleUnsuback(newClient, packet);
-	}
+    uint16_t msgId = packet->getMsgId();
+    uint16_t clientMsgId = 0;
+    Client* newClient =
+            _gateway->getAdapterManager()->getAggregater()->convertClient(msgId,
+                    &clientMsgId);
+    if (newClient != nullptr)
+    {
+        packet->setMsgId((int) clientMsgId);
+        handleUnsuback(newClient, packet);
+    }
 }
-
 

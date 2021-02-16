@@ -46,8 +46,8 @@ namespace MQTTSNGW
 
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
-#define LEFTARROWB   "<==="
-#define RIGHTARROWB  "===>"
+#define LEFTARROWB  "<==="
+#define RIGHTARROWB "===>"
 
 #define FORMAT_Y_G_G_NL        "\n%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
 #define FORMAT_Y_G_G             "%s   \033[0m\033[0;33m%-18s\033[0m\033[0;32m%-6s%-34.32s \033[0m\033[0;34m%s\033[0m\033[0;37m\n"
@@ -68,53 +68,53 @@ namespace MQTTSNGW
 #define FORMAT_BL_NL           "\n%s   \033[0m\033[0;34m%-18s%-6s%-34.32s %s\033[0m\033[0;37m\n"
 #define FORMAT_W_NL            "\n%s   %-18s%-6s%-34.32s %s\n"
 
-#define ERRMSG_HEADER            "\033[0m\033[0;31mError:"
-#define ERRMSG_FOOTER            "\033[0m\033[0;37m"
+#define ERRMSG_HEADER                 "\033[0m\033[0;31mError:"
+#define ERRMSG_FOOTER                 "\033[0m\033[0;37m"
 
 /*=====================================
-         Class Event
-  ====================================*/
+ Class Event
+ ====================================*/
 class Client;
 
-enum EventType{
-	Et_NA = 0,
-	EtStop,
-	EtTimeout,
-	EtBrokerRecv,
-	EtBrokerSend,
-	EtClientRecv,
-	EtClientSend,
-	EtBroadcast,
-	EtSensornetSend
+enum EventType
+{
+    Et_NA = 0,
+    EtStop,
+    EtTimeout,
+    EtBrokerRecv,
+    EtBrokerSend,
+    EtClientRecv,
+    EtClientSend,
+    EtBroadcast,
+    EtSensornetSend
 };
 
-
-class Event{
+class Event
+{
 public:
-	Event();
-	~Event();
-	EventType getEventType(void);
-	void setClientRecvEvent(Client*, MQTTSNPacket*);
-	void setClientSendEvent(Client*, MQTTSNPacket*);
-	void setBrokerRecvEvent(Client*, MQTTGWPacket*);
-	void setBrokerSendEvent(Client*, MQTTGWPacket*);
-	void setBrodcastEvent(MQTTSNPacket*);  // ADVERTISE and GWINFO
-	void setTimeout(void);                 // Required by EventQue<Event>.timedwait()
-	void setStop(void);
-	void setClientSendEvent(SensorNetAddress*, MQTTSNPacket*);
-	Client* getClient(void);
-	SensorNetAddress* getSensorNetAddress(void);
-	MQTTSNPacket* getMQTTSNPacket(void);
-	MQTTGWPacket* getMQTTGWPacket(void);
+    Event();
+    ~Event();
+    EventType getEventType(void);
+    void setClientRecvEvent(Client*, MQTTSNPacket*);
+    void setClientSendEvent(Client*, MQTTSNPacket*);
+    void setBrokerRecvEvent(Client*, MQTTGWPacket*);
+    void setBrokerSendEvent(Client*, MQTTGWPacket*);
+    void setBrodcastEvent(MQTTSNPacket*);  // ADVERTISE and GWINFO
+    void setTimeout(void);                // Required by EventQue<Event>.timedwait()
+    void setStop(void);
+    void setClientSendEvent(SensorNetAddress*, MQTTSNPacket*);
+    Client* getClient(void);
+    SensorNetAddress* getSensorNetAddress(void);
+    MQTTSNPacket* getMQTTSNPacket(void);
+    MQTTGWPacket* getMQTTGWPacket(void);
 
 private:
-	EventType   _eventType {Et_NA};
-	Client*     _client {nullptr};
-	SensorNetAddress* _sensorNetAddr {nullptr};
-	MQTTSNPacket* _mqttSNPacket {nullptr};
-	MQTTGWPacket* _mqttGWPacket {nullptr};
+    EventType _eventType { Et_NA };
+    Client* _client { nullptr };
+    SensorNetAddress* _sensorNetAddr { nullptr };
+    MQTTSNPacket* _mqttSNPacket { nullptr };
+    MQTTGWPacket* _mqttGWPacket { nullptr };
 };
-
 
 /*=====================================
  Class EventQue
@@ -122,21 +122,19 @@ private:
 class EventQue
 {
 public:
-	EventQue();
-	~EventQue();
-	Event* wait(void);
-	Event* timedwait(uint16_t millsec);
-	void setMaxSize(uint16_t maxSize);
-	void post(Event*);
-	int  size();
+    EventQue();
+    ~EventQue();
+    Event* wait(void);
+    Event* timedwait(uint16_t millsec);
+    void setMaxSize(uint16_t maxSize);
+    void post(Event*);
+    int size();
 
 private:
-	Que<Event> _que;
-	Mutex      _mutex;
-	Semaphore  _sem;
+    Que<Event> _que;
+    Mutex _mutex;
+    Semaphore _sem;
 };
-
-
 
 /*=====================================
  Class GatewayParams
@@ -144,74 +142,73 @@ private:
 class GatewayParams
 {
 public:
-     string configDir;
-	char* configName {nullptr};
-	char* clientListName {nullptr};
-	char* loginId {nullptr};
-	char* password {nullptr};
-	uint16_t keepAlive {0};
-	uint8_t  gatewayId {0};
-	uint8_t  mqttVersion {0};
-	uint16_t maxInflightMsgs {0};
-	char* gatewayName {nullptr};
-	char* brokerName {nullptr};
-	char* port {nullptr};
-	char* portSecure {nullptr};
-	char* rootCApath {nullptr};
-	char* rootCAfile {nullptr};
-	char* certKey {nullptr};
-	char* predefinedTopicFileName {nullptr};
-	char* privateKey {nullptr};
-	char* qosMinusClientListName {nullptr};
-	bool  clientAuthentication {false};
-	bool  predefinedTopic  {false};
-	bool  aggregatingGw   {false};
-	bool  qosMinus1   {false};
-	bool  forwarder   {false};
+    string configDir;
+    char* configName { nullptr };
+    char* clientListName { nullptr };
+    char* loginId { nullptr };
+    char* password { nullptr };
+    uint16_t keepAlive { 0 };
+    uint8_t gatewayId { 0 };
+    uint8_t mqttVersion { 0 };
+    uint16_t maxInflightMsgs { 0 };
+    char* gatewayName { nullptr };
+    char* brokerName { nullptr };
+    char* port { nullptr };
+    char* portSecure{ nullptr };
+    char* rootCApath { nullptr };
+    char* rootCAfile { nullptr };
+    char* certKey { nullptr };
+    char* predefinedTopicFileName { nullptr };
+    char* privateKey { nullptr };
+    char* qosMinusClientListName { nullptr };
+    bool clientAuthentication { false };
+    bool predefinedTopic { false };
+    bool aggregatingGw { false };
+    bool qosMinus1 { false };
+    bool forwarder { false };
 };
 
-
-
 /*=====================================
-     Class Gateway
+ Class Gateway
  =====================================*/
 class AdapterManager;
 class ClientList;
 
-class Gateway: public MultiTaskProcess{
+class Gateway: public MultiTaskProcess
+{
 public:
     Gateway(void);
-	~Gateway();
-	virtual void initialize(int argc, char** argv);
-	void run(void);
+    ~Gateway();
+    virtual void initialize(int argc, char** argv);
+    void run(void);
 
-	EventQue* getPacketEventQue(void);
-	EventQue* getClientSendQue(void);
-	EventQue* getBrokerSendQue(void);
-	ClientList* getClientList(void);
-	SensorNetwork* getSensorNetwork(void);
-	LightIndicator* getLightIndicator(void);
-	GatewayParams* getGWParams(void);
-	AdapterManager* getAdapterManager(void);
-	int getParam(const char* parameter, char* value);
-	char* getClientListFileName(void);
-	char* getPredefinedTopicFileName(void);
+    EventQue* getPacketEventQue(void);
+    EventQue* getClientSendQue(void);
+    EventQue* getBrokerSendQue(void);
+    ClientList* getClientList(void);
+    SensorNetwork* getSensorNetwork(void);
+    LightIndicator* getLightIndicator(void);
+    GatewayParams* getGWParams(void);
+    AdapterManager* getAdapterManager(void);
+    int getParam(const char* parameter, char* value);
+    char* getClientListFileName(void);
+    char* getPredefinedTopicFileName(void);
 
-	bool hasSecureConnection(void);
-	Topics* getTopics(void);
-	bool IsStopping(void);
+    bool hasSecureConnection(void);
+    Topics* getTopics(void);
+    bool IsStopping(void);
 
 private:
-	GatewayParams  _params;
-	ClientList* _clientList {nullptr};
-	EventQue   _packetEventQue;
-	EventQue   _brokerSendQue;
-	EventQue   _clientSendQue;
-	LightIndicator _lightIndicator;
-	SensorNetwork  _sensorNetwork;
-	AdapterManager* _adapterManager {nullptr};
-	Topics* _topics;
-	bool _stopFlg;
+    GatewayParams _params;
+    ClientList* _clientList { nullptr };
+    EventQue _packetEventQue;
+    EventQue _brokerSendQue;
+    EventQue _clientSendQue;
+    LightIndicator _lightIndicator;
+    SensorNetwork _sensorNetwork;
+    AdapterManager* _adapterManager { nullptr };
+    Topics* _topics;
+    bool _stopFlg;
 };
 
 }

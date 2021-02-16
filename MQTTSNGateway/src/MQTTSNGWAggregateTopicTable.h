@@ -35,24 +35,24 @@ class Mutex;
 class AggregateTopicTable
 {
 public:
-	AggregateTopicTable();
-	~AggregateTopicTable();
+    AggregateTopicTable();
+    ~AggregateTopicTable();
 
-	AggregateTopicElement* add(Topic* topic, Client* client);
-	AggregateTopicElement* getAggregateTopicElement(Topic* topic);
-	ClientTopicElement* getClientElement(Topic* topic);
-	void erase(Topic* topic, Client* client);
-	void clear(void);
+    AggregateTopicElement* add(Topic* topic, Client* client);
+    AggregateTopicElement* getAggregateTopicElement(Topic* topic);
+    ClientTopicElement* getClientElement(Topic* topic);
+    void erase(Topic* topic, Client* client);
+    void clear(void);
 
-	void print(void);
+    void print(void);
 
 private:
-	void erase(AggregateTopicElement* elmTopic);
-	Mutex _mutex;
-	AggregateTopicElement* _head {nullptr};
-	AggregateTopicElement* _tail {nullptr};
-	int _cnt {0};
-	int _maxSize {MAX_MESSAGEID_TABLE_SIZE};
+    void erase(AggregateTopicElement* elmTopic);
+    Mutex _mutex;
+    AggregateTopicElement* _head { nullptr };
+    AggregateTopicElement* _tail { nullptr };
+    int _cnt { 0 };
+    int _maxSize { MAX_MESSAGEID_TABLE_SIZE };
 };
 
 /*=====================================
@@ -68,17 +68,18 @@ public:
 
     ClientTopicElement* add(Client* client);
     ClientTopicElement* getFirstClientTopicElement(void);
-    ClientTopicElement* getNextClientTopicElement(ClientTopicElement* elmClient);
+    ClientTopicElement* getNextClientTopicElement(
+            ClientTopicElement* elmClient);
     void eraseClient(Client* client);
     ClientTopicElement* find(Client* client);
 
 private:
     Mutex _mutex;
-    Topic* _topic {nullptr};
-    AggregateTopicElement* _next {nullptr};
-    AggregateTopicElement* _prev {nullptr};
-    ClientTopicElement* _head {nullptr};
-    ClientTopicElement* _tail {nullptr};
+    Topic* _topic { nullptr };
+    AggregateTopicElement* _next { nullptr };
+    AggregateTopicElement* _prev { nullptr };
+    ClientTopicElement* _head { nullptr };
+    ClientTopicElement* _tail { nullptr };
 };
 
 /*=====================================
@@ -96,13 +97,11 @@ public:
     Client* getClient(void);
 
 private:
-    Client* _client {nullptr};
-    ClientTopicElement* _next {nullptr};
-    ClientTopicElement* _prev {nullptr};
+    Client* _client { nullptr };
+    ClientTopicElement* _next { nullptr };
+    ClientTopicElement* _prev { nullptr };
 };
 
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWAGGREGATETOPICTABLE_H_ */

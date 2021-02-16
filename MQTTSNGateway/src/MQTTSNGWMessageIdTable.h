@@ -34,22 +34,23 @@ class Aggregater;
 class MessageIdTable
 {
 public:
-	MessageIdTable();
-	~MessageIdTable();
+    MessageIdTable();
+    ~MessageIdTable();
 
-	MessageIdElement* add(Aggregater* aggregater, Client* client, uint16_t clientMsgId);
-	Client* getClientMsgId(uint16_t msgId, uint16_t* clientMsgId);
-	uint16_t getMsgId(Client* client, uint16_t clientMsgId);
-	void erase(uint16_t msgId);
-	void clear(MessageIdElement* elm);
+    MessageIdElement* add(Aggregater* aggregater, Client* client,
+            uint16_t clientMsgId);
+    Client* getClientMsgId(uint16_t msgId, uint16_t* clientMsgId);
+    uint16_t getMsgId(Client* client, uint16_t clientMsgId);
+    void erase(uint16_t msgId);
+    void clear(MessageIdElement* elm);
 private:
-	MessageIdElement* find(uint16_t msgId);
-	MessageIdElement* find(Client* client, uint16_t clientMsgId);
-	MessageIdElement* _head {nullptr};
-	MessageIdElement* _tail {nullptr};
-	int _cnt {0};
-	int _maxSize {MAX_MESSAGEID_TABLE_SIZE};
-	Mutex _mutex;
+    MessageIdElement* find(uint16_t msgId);
+    MessageIdElement* find(Client* client, uint16_t clientMsgId);
+    MessageIdElement* _head { nullptr };
+    MessageIdElement* _tail{ nullptr };
+    int _cnt { 0 };
+    int _maxSize { MAX_MESSAGEID_TABLE_SIZE };
+    Mutex _mutex;
 };
 
 /*=====================================
@@ -67,11 +68,10 @@ public:
 private:
     uint16_t _msgId;
     uint16_t _clientMsgId;
-    Client*  _client;
+    Client* _client;
     MessageIdElement* _next;
     MessageIdElement* _prev;
 };
-
 
 }
 

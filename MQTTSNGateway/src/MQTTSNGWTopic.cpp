@@ -27,35 +27,35 @@ using namespace MQTTSNGW;
 Topic::Topic()
 {
     _type = MQTTSN_TOPIC_TYPE_NORMAL;
-	_topicName = nullptr;
-	_topicId = 0;
-	_next = nullptr;
+    _topicName = nullptr;
+    _topicId = 0;
+    _next = nullptr;
 }
 
 Topic::Topic(string* topic, MQTTSN_topicTypes type)
 {
     _type = type;
-	_topicName = topic;
-	_topicId = 0;
-	_next = nullptr;
+    _topicName = topic;
+    _topicId = 0;
+    _next = nullptr;
 }
 
 Topic::~Topic()
 {
-	if ( _topicName )
-	{
-		delete _topicName;
-	}
+    if (_topicName)
+    {
+        delete _topicName;
+    }
 }
 
 string* Topic::getTopicName(void)
 {
-	return _topicName;
+    return _topicName;
 }
 
 uint16_t Topic::getTopicId(void)
 {
-	return _topicId;
+    return _topicId;
 }
 
 MQTTSN_topicTypes Topic::getType(void)
@@ -65,108 +65,109 @@ MQTTSN_topicTypes Topic::getType(void)
 
 Topic* Topic::duplicate(void)
 {
-	Topic* newTopic = new Topic();
-	newTopic->_type = _type;
-	newTopic->_topicId = _topicId;
-	newTopic->_topicName = new string(_topicName->c_str());
-	return newTopic;
+    Topic* newTopic = new Topic();
+    newTopic->_type = _type;
+    newTopic->_topicId = _topicId;
+    newTopic->_topicName = new string(_topicName->c_str());
+    return newTopic;
 }
 
 bool Topic::isMatch(string* topicName)
 {
-	string::size_type tlen = _topicName->size();
+    string::size_type tlen = _topicName->size();
 
-	string::size_type tpos = 0;
-	string::size_type tloc = 0;
-	string::size_type pos = 0;
-	string::size_type loc = 0;
-	string wildcard = "#";
-	string wildcards = "+";
+    string::size_type tpos = 0;
+    string::size_type tloc = 0;
+    string::size_type pos = 0;
+    string::size_type loc = 0;
+    string wildcard = "#";
+    string wildcards = "+";
 
-	while(true)
-	{
-		loc = topicName->find('/', pos);
-		tloc = _topicName->find('/', tpos);
+    while (true)
+    {
+        loc = topicName->find('/', pos);
+        tloc = _topicName->find('/', tpos);
 
-		if ( loc != string::npos && tloc != string::npos )
-		{
-			string subtopic = topicName->substr(pos, loc - pos);
-			string subtopict = _topicName->substr(tpos, tloc - tpos);
-			if (subtopict == wildcard)
-			{
-				return true;
-			}
-			else if (subtopict == wildcards)
-			{
-				if ( (tpos = tloc + 1 ) > tlen )
-				{
-					pos = loc + 1;
-					loc = topicName->find('/', pos);
-					if ( loc == string::npos )
-					{
-						return true;
-					}
-					else
-					{
-						return false;
-					}
-				}
-				pos = loc + 1;
-			}
-			else if ( subtopic != subtopict )
-			{
-				return false;
-			}
-			else
-			{
-				if ( (tpos = tloc + 1) > tlen )
-				{
-					return false;
-				}
+        if (loc != string::npos && tloc != string::npos)
+        {
+            string subtopic = topicName->substr(pos, loc - pos);
+            string subtopict = _topicName->substr(tpos, tloc - tpos);
+            if (subtopict == wildcard)
+            {
+                return true;
+            }
+            else if (subtopict == wildcards)
+            {
+                if ((tpos = tloc + 1) > tlen)
+                {
+                    pos = loc + 1;
+                    loc = topicName->find('/', pos);
+                    if (loc == string::npos)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                pos = loc + 1;
+            }
+            else if (subtopic != subtopict)
+            {
+                return false;
+            }
+            else
+            {
+                if ((tpos = tloc + 1) > tlen)
+                {
+                    return false;
+                }
 
-				pos = loc + 1;
-			}
-		}
-		else if ( loc == string::npos && tloc == string::npos )
-		{
-			string subtopic = topicName->substr(pos);
-			string subtopict = _topicName->substr(tpos);
-			if ( subtopict == wildcard || subtopict == wildcards)
-			{
-				return true;
-			}
-			else if ( subtopic == subtopict )
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else if ( loc == string::npos && tloc != string::npos )
-		{
-			string subtopic = topicName->substr(pos);
-			string subtopict = _topicName->substr(tpos, tloc - tpos);
-			if ( subtopic != subtopict)
-			{
-				return false;
-			}
+                pos = loc + 1;
+            }
+        }
+        else if (loc == string::npos && tloc == string::npos)
+        {
+            string subtopic = topicName->substr(pos);
+            string subtopict = _topicName->substr(tpos);
+            if (subtopict == wildcard || subtopict == wildcards)
+            {
+                return true;
+            }
+            else if (subtopic == subtopict)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (loc == string::npos && tloc != string::npos)
+        {
+            string subtopic = topicName->substr(pos);
+            string subtopict = _topicName->substr(tpos, tloc - tpos);
+            if (subtopic != subtopict)
+            {
+                return false;
+            }
 
-			tpos = tloc + 1;
+            tpos = tloc + 1;
 
-			return _topicName->substr(tpos) == wildcard;
-		}
-		else if ( loc != string::npos && tloc == string::npos )
-		{
-			return _topicName->substr(tpos) == wildcard;
-		}
-	}
+            return _topicName->substr(tpos) == wildcard;
+        }
+        else if (loc != string::npos && tloc == string::npos)
+        {
+            return _topicName->substr(tpos) == wildcard;
+        }
+    }
 }
 
 void Topic::print(void)
 {
-    WRITELOG("TopicName=%s  ID=%d  Type=%d\n", _topicName->c_str(), _topicId, _type);
+    WRITELOG("TopicName=%s  ID=%d  Type=%d\n", _topicName->c_str(), _topicId,
+            _type);
 }
 
 /*=====================================
@@ -198,11 +199,11 @@ Topic* Topics::getTopicByName(const MQTTSN_topicid* topicid)
     string sname = string(ch, ch + topicid->data.long_.len);
     while (p)
     {
-         if (  p->_topicName->compare(sname) == 0 )
-         {
-             return p;
-         }
-         p = p->_next;
+        if (p->_topicName->compare(sname) == 0)
+        {
+            return p;
+        }
+        p = p->_next;
     }
     return 0;
 }
@@ -213,7 +214,7 @@ Topic* Topics::getTopicById(const MQTTSN_topicid* topicid)
 
     while (p)
     {
-        if ( p->_type == topicid->type && p->_topicId == topicid->data.id )
+        if (p->_type == topicid->type && p->_topicId == topicid->data.id)
         {
             return p;
         }
@@ -225,14 +226,14 @@ Topic* Topics::getTopicById(const MQTTSN_topicid* topicid)
 // For MQTTSN_TOPIC_TYPE_NORMAL */
 Topic* Topics::add(const MQTTSN_topicid* topicid)
 {
-    if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL )
+    if (topicid->type != MQTTSN_TOPIC_TYPE_NORMAL)
     {
         return 0;
     }
 
     Topic* topic = getTopicByName(topicid);
 
-    if ( topic )
+    if (topic)
     {
         return topic;
     }
@@ -244,18 +245,17 @@ Topic* Topics::add(const char* topicName, uint16_t id)
 {
     MQTTSN_topicid topicId;
 
-    if (  _cnt >= MAX_TOPIC_PAR_CLIENT )
+    if (_cnt >= MAX_TOPIC_PAR_CLIENT)
     {
         return 0;
     }
 
-    topicId.data.long_.name = (char*)const_cast<char*>(topicName);
+    topicId.data.long_.name = (char*) const_cast<char*>(topicName);
     topicId.data.long_.len = strlen(topicName);
-
 
     Topic* topic = getTopicByName(&topicId);
 
-    if ( topic )
+    if (topic)
     {
         return topic;
     }
@@ -270,7 +270,7 @@ Topic* Topics::add(const char* topicName, uint16_t id)
     string* name = new string(topicName);
     topic->_topicName = name;
 
-    if ( id == 0 )
+    if (id == 0)
     {
         topic->_type = MQTTSN_TOPIC_TYPE_NORMAL;
         topic->_topicId = getNextTopicId();
@@ -278,12 +278,12 @@ Topic* Topics::add(const char* topicName, uint16_t id)
     else
     {
         topic->_type = MQTTSN_TOPIC_TYPE_PREDEFINED;
-        topic->_topicId  = id;
+        topic->_topicId = id;
     }
 
     _cnt++;
 
-    if ( _first == nullptr)
+    if (_first == nullptr)
     {
         _first = topic;
     }
@@ -331,7 +331,6 @@ Topic* Topics::match(const MQTTSN_topicid* topicid)
     return 0;
 }
 
-
 void Topics::eraseNormal(void)
 {
     Topic* topic = _first;
@@ -340,14 +339,14 @@ void Topics::eraseNormal(void)
 
     while (topic)
     {
-        if ( topic->_type == MQTTSN_TOPIC_TYPE_NORMAL )
+        if (topic->_type == MQTTSN_TOPIC_TYPE_NORMAL)
         {
             next = topic->_next;
-            if ( _first == topic )
+            if (_first == topic)
             {
                 _first = next;
             }
-            if ( prev  )
+            if (prev)
             {
                 prev->_next = next;
             }
@@ -365,18 +364,18 @@ void Topics::eraseNormal(void)
 
 Topic* Topics::getFirstTopic(void)
 {
-	return _first;
+    return _first;
 }
 
 Topic* Topics::getNextTopic(Topic* topic)
 {
-	return topic->_next;
+    return topic->_next;
 }
 
 void Topics::print(void)
 {
     Topic* topic = _first;
-    if (topic == nullptr )
+    if (topic == nullptr)
     {
         WRITELOG("No Topic.\n");
     }
@@ -398,7 +397,8 @@ uint8_t Topics::getCount(void)
 /*=====================================
  Class TopicIdMap
  =====================================*/
-TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
+TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId,
+        MQTTSN_topicTypes type)
 {
     _msgId = msgId;
     _topicId = topicId;
@@ -419,7 +419,7 @@ MQTTSN_topicTypes TopicIdMapElement::getTopicType(void)
 
 uint16_t TopicIdMapElement::getTopicId(void)
 {
-    return  _topicId;
+    return _topicId;
 }
 
 TopicIdMap::TopicIdMap()
@@ -434,7 +434,7 @@ TopicIdMap::TopicIdMap()
 TopicIdMap::~TopicIdMap()
 {
     TopicIdMapElement* p = _first;
-    while ( p )
+    while (p)
     {
         TopicIdMapElement* q = p->_next;
         delete p;
@@ -445,9 +445,9 @@ TopicIdMap::~TopicIdMap()
 TopicIdMapElement* TopicIdMap::getElement(uint16_t msgId)
 {
     TopicIdMapElement* p = _first;
-    while ( p )
+    while (p)
     {
-        if ( p->_msgId == msgId )
+        if (p->_msgId == msgId)
         {
             return p;
         }
@@ -456,23 +456,25 @@ TopicIdMapElement* TopicIdMap::getElement(uint16_t msgId)
     return 0;
 }
 
-TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type)
+TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId,
+        MQTTSN_topicTypes type)
 {
-    if ( _cnt > _maxInflight * 2 || ( topicId == 0 && type != MQTTSN_TOPIC_TYPE_SHORT ) )
+    if (_cnt > _maxInflight * 2
+            || (topicId == 0 && type != MQTTSN_TOPIC_TYPE_SHORT))
     {
         return 0;
     }
-    if ( getElement(msgId) )
+    if (getElement(msgId))
     {
         erase(msgId);
     }
 
     TopicIdMapElement* elm = new TopicIdMapElement(msgId, topicId, type);
-    if ( elm == 0 )
+    if (elm == 0)
     {
         return 0;
     }
-    if ( _first == nullptr )
+    if (_first == nullptr)
     {
         _first = elm;
         _end = elm;
@@ -490,11 +492,11 @@ TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topi
 void TopicIdMap::erase(uint16_t msgId)
 {
     TopicIdMapElement* p = _first;
-    while ( p )
+    while (p)
     {
-        if ( p->_msgId == msgId )
+        if (p->_msgId == msgId)
         {
-            if ( p->_prev == nullptr )
+            if (p->_prev == nullptr)
             {
                 _first = p->_next;
             }
@@ -503,7 +505,7 @@ void TopicIdMap::erase(uint16_t msgId)
                 p->_prev->_next = p->_next;
             }
 
-            if ( p->_next == nullptr )
+            if (p->_next == nullptr)
             {
                 _end = p->_prev;
             }
@@ -523,7 +525,7 @@ void TopicIdMap::erase(uint16_t msgId)
 void TopicIdMap::clear(void)
 {
     TopicIdMapElement* p = _first;
-    while ( p )
+    while (p)
     {
         TopicIdMapElement* q = p->_next;
         delete p;
@@ -533,6 +535,4 @@ void TopicIdMap::clear(void)
     _end = nullptr;
     _cnt = 0;
 }
-
-
 

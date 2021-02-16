@@ -31,17 +31,18 @@ class EventQue;
 class Timer;
 
 /* When you add a new type, Client::setAdapterType() and Client::isAdapter() functions must be modified. */
-typedef enum{
-	Atype_QoSm1Proxy, Atype_Aggregater
-}AdapterType;
+typedef enum
+{
+    Atype_QoSm1Proxy, Atype_Aggregater
+} AdapterType;
 
 /*=====================================
-     Class Adapter
+ Class Adapter
  =====================================*/
 class Adapter
 {
 public:
-	Adapter(Gateway* gw);
+    Adapter(Gateway* gw);
     ~Adapter(void);
 
     void setup(const char* adpterName, AdapterType adapterType);
@@ -60,18 +61,17 @@ public:
     void savePacket(Client* client, MQTTSNPacket* packet);
 
 private:
-    Gateway* _gateway {nullptr};
-    Proxy* _proxy {nullptr};
-    Proxy* _proxySecure {nullptr};
-    Client* _client {nullptr};
-    Client* _clientSecure {nullptr};
-    bool _isActive {false};
-    bool _isSecure{false};
+    Gateway* _gateway { nullptr };
+    Proxy* _proxy { nullptr };
+    Proxy* _proxySecure { nullptr };
+    Client* _client { nullptr };
+    Client* _clientSecure { nullptr };
+    bool _isActive { false };
+    bool _isSecure { false };
 };
 
-
 /*=====================================
-     Class Proxy
+ Class Proxy
  =====================================*/
 class Proxy
 {
@@ -88,11 +88,12 @@ public:
 private:
     void sendSuspendedPacket(void);
     Gateway* _gateway;
-    EventQue* _suspendedPacketEventQue {nullptr};
-    Timer  _keepAliveTimer;
-    Timer  _responseTimer;
-    bool   _isWaitingResp {false};
-    int _retryCnt {0};
+    EventQue* _suspendedPacketEventQue
+    { nullptr };
+    Timer _keepAliveTimer;
+    Timer _responseTimer;
+    bool _isWaitingResp { false };
+    int _retryCnt { 0 };
 };
 
 }

@@ -22,7 +22,7 @@ using namespace MQTTSNGW;
 using namespace std;
 
 /*=====================================
-     Class ForwarderList
+ Class ForwarderList
  =====================================*/
 
 ForwarderList::ForwarderList()
@@ -32,10 +32,10 @@ ForwarderList::ForwarderList()
 
 ForwarderList::~ForwarderList()
 {
-    if ( _head )
+    if (_head)
     {
         Forwarder* p = _head;
-        while ( p )
+        while (p)
         {
             Forwarder* next = p->_next;
             delete p;
@@ -44,20 +44,18 @@ ForwarderList::~ForwarderList()
     }
 }
 
-
 void ForwarderList::initialize(Gateway* gw)
 {
-	/* Create Fowarders from clients.conf */
-	gw->getClientList()->setClientList(FORWARDER_TYPE);
+    /* Create Fowarders from clients.conf */
+    gw->getClientList()->setClientList(FORWARDER_TYPE);
 }
-
 
 Forwarder* ForwarderList::getForwarder(SensorNetAddress* addr)
 {
     Forwarder* p = _head;
-    while ( p )
+    while (p)
     {
-        if ( p->_sensorNetAddr.isMatch(addr) )
+        if (p->_sensorNetAddr.isMatch(addr))
         {
             break;
         }
@@ -66,19 +64,20 @@ Forwarder* ForwarderList::getForwarder(SensorNetAddress* addr)
     return p;
 }
 
-Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId)
+Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,
+        MQTTSNString* forwarderId)
 {
     Forwarder* fdr = new Forwarder(addr, forwarderId);
-    if ( _head == nullptr )
+    if (_head == nullptr)
     {
         _head = fdr;
     }
     else
     {
         Forwarder* p = _head;
-        while ( p )
+        while (p)
         {
-            if ( p->_next == nullptr )
+            if (p->_next == nullptr)
             {
                 p->_next = fdr;
                 break;
@@ -99,10 +98,10 @@ Forwarder::Forwarder()
 }
 
 /*=====================================
-     Class ForwarderList
+ Class ForwarderList
  =====================================*/
 
-Forwarder::Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId)
+Forwarder::Forwarder(SensorNetAddress* addr, MQTTSNString* forwarderId)
 {
     _forwarderName = string(forwarderId->cstring);
     _sensorNetAddr = *addr;
@@ -112,10 +111,10 @@ Forwarder::Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId)
 
 Forwarder::~Forwarder(void)
 {
-    if ( _headClient )
+    if (_headClient)
     {
         ForwarderElement* p = _headClient;
-        while ( p )
+        while (p)
         {
             ForwarderElement* next = p->_next;
             delete p;
@@ -136,11 +135,11 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
 
     client->setForwarder(this);
 
-    if ( p != nullptr )
+    if (p != nullptr)
     {
-        while ( p )
+        while (p)
         {
-            if ( p->_client == client )
+            if (p->_client == client)
             {
                 client->setForwarder(this);
                 p->setWirelessNodeId(id);
@@ -156,7 +155,7 @@ void Forwarder::addClient(Client* client, WirelessNodeId* id)
     fclient->setClient(client);
     fclient->setWirelessNodeId(id);
 
-    if ( prev )
+    if (prev)
     {
         prev->_next = fclient;
     }
@@ -171,9 +170,9 @@ Client* Forwarder::getClient(WirelessNodeId* id)
     Client* cl = nullptr;
     _mutex.lock();
     ForwarderElement* p = _headClient;
-    while ( p )
+    while (p)
     {
-        if ( *(p->_wirelessNodeId) == *id )
+        if (*(p->_wirelessNodeId) == *id)
         {
             cl = p->_client;
             break;
@@ -197,9 +196,9 @@ WirelessNodeId* Forwarder::getWirelessNodeId(Client* client)
     WirelessNodeId* nodeId = nullptr;
     _mutex.lock();
     ForwarderElement* p = _headClient;
-    while ( p )
+    while (p)
     {
-        if ( p->_client == client )
+        if (p->_client == client)
         {
             nodeId = p->_wirelessNodeId;
             break;
@@ -219,11 +218,11 @@ void Forwarder::eraseClient(Client* client)
     _mutex.lock();
     ForwarderElement* p = _headClient;
 
-    while ( p )
+    while (p)
     {
-        if ( p->_client == client )
+        if (p->_client == client)
         {
-            if ( prev )
+            if (prev)
             {
                 prev->_next = p->_next;
             }
@@ -251,10 +250,11 @@ SensorNetAddress* Forwarder::getSensorNetAddr(void)
  *    Class ForwardedClient
  */
 
-ForwarderElement::ForwarderElement()
-    : _client{0}
-    , _wirelessNodeId{0}
-    , _next{0}
+ForwarderElement::ForwarderElement() :
+        _client
+        { 0 }, _wirelessNodeId
+        { 0 }, _next
+        { 0 }
 {
 }
 
@@ -273,7 +273,7 @@ void ForwarderElement::setClient(Client* client)
 
 void ForwarderElement::setWirelessNodeId(WirelessNodeId* id)
 {
-    if ( _wirelessNodeId == nullptr )
+    if (_wirelessNodeId == nullptr)
     {
         _wirelessNodeId = new WirelessNodeId();
     }

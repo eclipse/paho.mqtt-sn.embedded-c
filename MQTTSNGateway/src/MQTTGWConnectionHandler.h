@@ -26,13 +26,13 @@ namespace MQTTSNGW
 class MQTTGWConnectionHandler
 {
 public:
-	MQTTGWConnectionHandler(Gateway* gateway);
-	~MQTTGWConnectionHandler();
-	void handleConnack(Client* client, MQTTGWPacket* packet);
-	void handlePingresp(Client* client, MQTTGWPacket* packet);
-	void handleDisconnect(Client* client, MQTTGWPacket* packet);
+    MQTTGWConnectionHandler(Gateway* gateway);
+    ~MQTTGWConnectionHandler();
+    void handleConnack(Client* client, MQTTGWPacket* packet);
+    void handlePingresp(Client* client, MQTTGWPacket* packet);
+    void handleDisconnect(Client* client, MQTTGWPacket* packet);
 private:
-	Gateway* _gateway;
+    Gateway* _gateway;
 };
 
 }

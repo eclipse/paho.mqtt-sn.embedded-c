@@ -26,11 +26,11 @@ using namespace MQTTSNGW;
  *  Gateway Application
  */
 Gateway gateway;
-PacketHandleTask  task1(&gateway);
-ClientRecvTask    task2(&gateway);
-ClientSendTask    task3(&gateway);
-BrokerRecvTask    task4(&gateway);
-BrokerSendTask    task5(&gateway);
+PacketHandleTask task1(&gateway);
+ClientRecvTask task2(&gateway);
+ClientSendTask task3(&gateway);
+BrokerRecvTask task4(&gateway);
+BrokerSendTask task5(&gateway);
 
 int main(int argc, char** argv)
 {
@@ -38,13 +38,12 @@ int main(int argc, char** argv)
     gateway.run();
     try
     {
-      gateway.initialize(argc, argv);
-		  gateway.run();
-	  }
-    catch (const std::exception &ex)
+        gateway.initialize(argc, argv);
+        gateway.run();
+    } catch (const std::exception &ex)
     {
-		  WRITELOG("\nEclipse Paho MQTT-SN Gateway exception: %s\n", ex.what());
-		  WRITELOG("MQTT-SNGateway [-f Config file name]\n");
-	  }
-	return 0;
+        WRITELOG("\nEclipse Paho MQTT-SN Gateway exception: %s\n", ex.what());
+        WRITELOG("MQTT-SNGateway [-f Config file name]\n");
+    }
+    return 0;
 }

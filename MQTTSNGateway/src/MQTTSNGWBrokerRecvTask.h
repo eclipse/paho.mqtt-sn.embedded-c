@@ -28,21 +28,20 @@ namespace MQTTSNGW
 class BrokerRecvTask: public Thread
 {
 MAGIC_WORD_FOR_THREAD;
-	;
+
 public:
-	BrokerRecvTask(Gateway* gateway);
-	~BrokerRecvTask();
-	void initialize(int argc, char** argv);
-	void run(void);
+    BrokerRecvTask(Gateway* gateway);
+    ~BrokerRecvTask();
+    void initialize(int argc, char** argv);
+    void run(void);
 
 private:
-	int log(Client*, MQTTGWPacket*);
+    int log(Client*, MQTTGWPacket*);
 
-	Gateway* _gateway;
-	LightIndicator* _light;
+    Gateway* _gateway;
+    LightIndicator* _light;
 };
 
 }
-
 
 #endif /* MQTTSNGWBROKERRECVTASK_H_ */

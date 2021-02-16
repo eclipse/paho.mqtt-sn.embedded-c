@@ -25,22 +25,22 @@ namespace MQTTSNGW
 class Adapter;
 
 /*=====================================
-     Class BrokerSendTask
+ Class BrokerSendTask
  =====================================*/
-class BrokerSendTask : public Thread
+class BrokerSendTask: public Thread
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend AdapterManager;
+MAGIC_WORD_FOR_THREAD;
+    friend AdapterManager;
 public:
-	BrokerSendTask(Gateway* gateway);
-	~BrokerSendTask();
-	void initialize(int argc, char** argv);
-	void run();
+    BrokerSendTask(Gateway* gateway);
+    ~BrokerSendTask();
+    void initialize(int argc, char** argv);
+    void run();
 private:
-	void log(Client*, MQTTGWPacket*);
-	Gateway* _gateway;
-	GatewayParams* _gwparams;
-	LightIndicator* _light;
+    void log(Client*, MQTTGWPacket*);
+    Gateway* _gateway;
+    GatewayParams* _gwparams;
+    LightIndicator* _light;
 };
 
 }

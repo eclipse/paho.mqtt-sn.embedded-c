@@ -22,7 +22,6 @@
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include "SensorNetwork.h"
 
-
 namespace MQTTSNGW
 {
 class Gateway;
@@ -30,7 +29,7 @@ class Client;
 class WirelessNodeId;
 
 /*=====================================
-     Class ForwarderElement
+ Class ForwarderElement
  =====================================*/
 class ForwarderElement
 {
@@ -48,14 +47,14 @@ private:
 };
 
 /*=====================================
-     Class Forwarder
+ Class Forwarder
  =====================================*/
 class Forwarder
 {
     friend class ForwarderList;
 public:
     Forwarder(void);
-    Forwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
+    Forwarder(SensorNetAddress* addr, MQTTSNString* forwarderId);
     ~Forwarder();
 
     void initialize(void);
@@ -70,13 +69,13 @@ public:
 private:
     string _forwarderName;
     SensorNetAddress _sensorNetAddr;
-    ForwarderElement* _headClient{nullptr};
-    Forwarder* _next {nullptr};
+    ForwarderElement* _headClient { nullptr };
+    Forwarder* _next { nullptr };
     Mutex _mutex;
 };
 
 /*=====================================
-     Class ForwarderList
+ Class ForwarderList
  =====================================*/
 class ForwarderList
 {
@@ -86,14 +85,12 @@ public:
 
     void initialize(Gateway* gw);
     Forwarder* getForwarder(SensorNetAddress* addr);
-    Forwarder* addForwarder(SensorNetAddress* addr,  MQTTSNString* forwarderId);
+    Forwarder* addForwarder(SensorNetAddress* addr, MQTTSNString* forwarderId);
 
 private:
     Forwarder* _head;
 };
 
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWFORWARDER_H_ */

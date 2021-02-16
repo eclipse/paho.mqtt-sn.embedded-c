@@ -43,8 +43,10 @@ public:
     void setClientList(int type);
     void setPredefinedTopics(bool aggregate);
     void erase(Client*&);
-    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId,int type);
-    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId, bool unstableLine, bool secure, int type);
+    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId,
+            int type);
+    Client* createClient(SensorNetAddress* addr, MQTTSNString* clientId,
+            bool unstableLine, bool secure, int type);
     bool createList(const char* fileName, int type);
     Client* getClient(SensorNetAddress* addr);
     Client* getClient(MQTTSNString* clientId);
@@ -55,18 +57,16 @@ public:
 
 private:
     bool readPredefinedList(const char* fileName, bool _aggregate);
-    Gateway* _gateway {nullptr};
-    Client* createPredefinedTopic( MQTTSNString* clientId, string topicName, uint16_t toipcId, bool _aggregate);
+    Gateway* _gateway { nullptr };
+    Client* createPredefinedTopic(MQTTSNString* clientId, string topicName,
+            uint16_t toipcId, bool _aggregate);
     Client* _firstClient;
     Client* _endClient;
     Mutex _mutex;
     uint16_t _clientCnt;
-    bool _authorize {false};
+    bool _authorize { false };
 };
 
-
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWCLIENTLIST_H_ */

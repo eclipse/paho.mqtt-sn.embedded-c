@@ -29,9 +29,9 @@ char* currentDateTime(void);
  =====================================*/
 BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
 {
-	_gateway = gateway;
-	_gateway->attach((Thread*)this);
-	_light = nullptr;
+    _gateway = gateway;
+    _gateway->attach((Thread*) this);
+    _light = nullptr;
 }
 
 BrokerRecvTask::~BrokerRecvTask()
@@ -44,7 +44,7 @@ BrokerRecvTask::~BrokerRecvTask()
  */
 void BrokerRecvTask::initialize(int argc, char** argv)
 {
-	_light = _gateway->getLightIndicator();
+    _light = _gateway->getLightIndicator();
 }
 
 /**
@@ -52,133 +52,147 @@ void BrokerRecvTask::initialize(int argc, char** argv)
  */
 void BrokerRecvTask::run(void)
 {
-	struct timeval timeout;
-	MQTTGWPacket* packet = nullptr;
-	int rc;
-	Event* ev = nullptr;
-	fd_set rset;
-	fd_set wset;
+    struct timeval timeout;
+    MQTTGWPacket* packet = nullptr;
+    int rc;
+    Event* ev = nullptr;
+    fd_set rset;
+    fd_set wset;
 
-	while (true)
-	{
-		_light->blueLight(false);
-		if (CHK_SIGINT)
-		{
-			WRITELOG("\n%s BrokerRecvTask   stopped.", currentDateTime());
-			return;
-		}
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 500000;    // 500 msec
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		int maxSock = 0;
-		int sockfd = 0;
+    while (true)
+    {
+        _light->blueLight(false);
+        if (CHK_SIGINT)
+        {
+            WRITELOG("\n%s BrokerRecvTask   stopped.", currentDateTime());
+            return;
+        }
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 500000;    // 500 msec
+        FD_ZERO(&rset);
+        FD_ZERO(&wset);
+        int maxSock = 0;
+        int sockfd = 0;
 
-		/* Prepare sockets list to read */
-		Client* client = _gateway->getClientList()->getClient(0);
+        /* Prepare sockets list to read */
+        Client* client = _gateway->getClientList()->getClient(0);
 
-		while ( client )
-		{
-			if (client->getNetwork()->isValid())
-			{
-				sockfd = client->getNetwork()->getSock();
-				FD_SET(sockfd, &rset);
-				FD_SET(sockfd, &wset);
-				if (sockfd > maxSock)
-				{
-					maxSock = sockfd;
-				}
-			}
-			client = client->getNextClient();
-		}
+        while (client)
+        {
+            if (client->getNetwork()->isValid())
+            {
+                sockfd = client->getNetwork()->getSock();
+                FD_SET(sockfd, &rset);
+                FD_SET(sockfd, &wset);
+                if (sockfd > maxSock)
+                {
+                    maxSock = sockfd;
+                }
+            }
+            client = client->getNextClient();
+        }
 
-		if (maxSock == 0)
-		{
-			usleep(500 * 1000);
-		}
-		else
-		{
-			/* Check sockets is ready to read */
-			int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
-			if (activity > 0)
-			{
-				client = _gateway->getClientList()->getClient(0);
+        if (maxSock == 0)
+        {
+            usleep(500 * 1000);
+        }
+        else
+        {
+            /* Check sockets is ready to read */
+            int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
+            if (activity > 0)
+            {
+                client = _gateway->getClientList()->getClient(0);
 
-				while ( client )
-				{
-					_light->blueLight(false);
-					if (client->getNetwork()->isValid())
-					{
-						int sockfd = client->getNetwork()->getSock();
-						if (FD_ISSET(sockfd, &rset))
-						{
-							packet = new MQTTGWPacket();
-							rc = 0;
-							/* read sockets */
-							_light->blueLight(true);
-							rc = packet->recv(client->getNetwork());
-							if ( rc > 0 )
-							{
-								if ( log(client, packet) == -1 )
-								{
-									delete packet;
-									goto nextClient;
-								}
+                while (client)
+                {
+                    _light->blueLight(false);
+                    if (client->getNetwork()->isValid())
+                    {
+                        int sockfd = client->getNetwork()->getSock();
+                        if (FD_ISSET(sockfd, &rset))
+                        {
+                            packet = new MQTTGWPacket();
+                            rc = 0;
+                            /* read sockets */
+                            _light->blueLight(true);
+                            rc = packet->recv(client->getNetwork());
+                            if (rc > 0)
+                            {
+                                if (log(client, packet) == -1)
+                                {
+                                    delete packet;
+                                    goto nextClient;
+                                }
 
-								/* post a BrokerRecvEvent */
-								ev = new Event();
-								ev->setBrokerRecvEvent(client, packet);
-								_gateway->getPacketEventQue()->post(ev);
-							}
-							else
-							{
-								if ( rc == 0 )  // Disconnected
-								{
-									client->getNetwork()->close();
-									delete packet;
+                                /* post a BrokerRecvEvent */
+                                ev = new Event();
+                                ev->setBrokerRecvEvent(client, packet);
+                                _gateway->getPacketEventQue()->post(ev);
+                            }
+                            else
+                            {
+                                if (rc == 0)  // Disconnected
+                                {
+                                    client->getNetwork()->close();
+                                    delete packet;
 
-									/* delete client when the client is not authorized & session is clean */
-									_gateway->getClientList()->erase(client);
+                                    /* delete client when the client is not authorized & session is clean */
+                                    _gateway->getClientList()->erase(client);
 
-									if ( client )
-									{
-										client = client->getNextClient();
-									}
-									continue;
-								}
-								else if (rc == -1)
-								{
-									WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n", ERRMSG_HEADER, errno, client->getClientId(), ERRMSG_FOOTER);
-								}
-								else if ( rc == -2 )
-								{
-									WRITELOG("%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s %s\n", ERRMSG_HEADER, client->getClientId(),ERRMSG_FOOTER);
-								}
-								else if ( rc == -3 )
-								{
-									WRITELOG("%s BrokerRecvTask can't get memories for the packet %s%s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
-								}
+                                    if (client)
+                                    {
+                                        client = client->getNextClient();
+                                    }
+                                    continue;
+                                }
+                                else if (rc == -1)
+                                {
+                                    WRITELOG(
+                                            "%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n",
+                                            ERRMSG_HEADER, errno,
+                                            client->getClientId(),
+                                            ERRMSG_FOOTER);
+                                }
+                                else if (rc == -2)
+                                {
+                                    WRITELOG(
+                                            "%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s %s\n",
+                                            ERRMSG_HEADER,
+                                            client->getClientId(),
+                                            ERRMSG_FOOTER);
+                                }
+                                else if (rc == -3)
+                                {
+                                    WRITELOG(
+                                            "%s BrokerRecvTask can't get memories for the packet %s%s\n",
+                                            ERRMSG_HEADER,
+                                            client->getClientId(),
+                                            ERRMSG_FOOTER);
+                                }
 
-								delete packet;
+                                delete packet;
 
-								if ( (rc == -1 || rc == -2) && ( client->isActive()  || client->isSleep() || client->isAwake() ))
-								{
-									/* disconnect the client */
-									packet = new MQTTGWPacket();
-									packet->setHeader(DISCONNECT);
-									ev = new Event();
-									ev->setBrokerRecvEvent(client, packet);
-									_gateway->getPacketEventQue()->post(ev);
-								}
-							}
-						}
-					}
-					nextClient:
-					client = client->getNextClient();
-				}
-			}
-		}
-	}
+                                if ((rc == -1 || rc == -2)
+                                        && (client->isActive()
+                                                || client->isSleep()
+                                                || client->isAwake()))
+                                {
+                                    /* disconnect the client */
+                                    packet = new MQTTGWPacket();
+                                    packet->setHeader(DISCONNECT);
+                                    ev = new Event();
+                                    ev->setBrokerRecvEvent(client, packet);
+                                    _gateway->getPacketEventQue()->post(ev);
+                                }
+                            }
+                        }
+                    }
+                    nextClient: client = client->getNextClient();
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -186,35 +200,43 @@ void BrokerRecvTask::run(void)
  */
 int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
 {
-	char pbuf[(SIZE_OF_LOG_PACKET + 5 )* 3];
-	char msgId[6];
-	int rc = 0;
+    char pbuf[(SIZE_OF_LOG_PACKET + 5) * 3];
+    char msgId[6];
+    int rc = 0;
 
-	switch (packet->getType())
-	{
-	case CONNACK:
-		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB, client->getClientId(), packet->print(pbuf));
-		break;
-	case PUBLISH:
-		WRITELOG(FORMAT_W_MSGID_Y_W_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB, client->getClientId(), packet->print(pbuf));
-		break;
-	case PUBACK:
-	case PUBREC:
-	case PUBREL:
-	case PUBCOMP:
-		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB, client->getClientId(), packet->print(pbuf));
-		break;
-	case SUBACK:
-	case UNSUBACK:
-		WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB, client->getClientId(), packet->print(pbuf));
-		break;
-	case PINGRESP:
-		WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB, client->getClientId(), packet->print(pbuf));
-		break;
-	default:
-		WRITELOG("Type=%x\n", packet->getType());
-		rc = -1;
-		break;
-	}
-	return rc;
+    switch (packet->getType())
+    {
+    case CONNACK:
+        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB,
+                client->getClientId(), packet->print(pbuf));
+        break;
+    case PUBLISH:
+        WRITELOG(FORMAT_W_MSGID_Y_W_NL, currentDateTime(), packet->getName(),
+                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
+                packet->print(pbuf));
+        break;
+    case PUBACK:
+    case PUBREC:
+    case PUBREL:
+    case PUBCOMP:
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
+                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
+                packet->print(pbuf));
+        break;
+    case SUBACK:
+    case UNSUBACK:
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
+                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
+                packet->print(pbuf));
+        break;
+    case PINGRESP:
+        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB,
+                client->getClientId(), packet->print(pbuf));
+        break;
+    default:
+        WRITELOG("Type=%x\n", packet->getType());
+        rc = -1;
+        break;
+    }
+    return rc;
 }

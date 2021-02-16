@@ -21,13 +21,13 @@
 #include <string>
 #include <string.h>
 
-
 using namespace MQTTSNGW;
 
 /*=====================================
-     Class QoSm1Proxy
+ Class QoSm1Proxy
  =====================================*/
-QoSm1Proxy:: QoSm1Proxy(Gateway* gw) : Adapter(gw)
+QoSm1Proxy::QoSm1Proxy(Gateway* gw) :
+        Adapter(gw)
 {
     _gateway = gw;
 }
@@ -37,23 +37,21 @@ QoSm1Proxy::~QoSm1Proxy(void)
 
 }
 
-
 void QoSm1Proxy::initialize(char* gwName)
 {
-    if ( _gateway->hasSecureConnection() )
+    if (_gateway->hasSecureConnection())
     {
-		_isSecure = true;
+        _isSecure = true;
     }
 
-	/*  Create QoS-1 Clients from clients.conf */
-	_gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
+    /*  Create QoS-1 Clients from clients.conf */
+    _gateway->getClientList()->setClientList(QOSM1PROXY_TYPE);
 
-	/* Create a client for  QoS-1 proxy */
-	string name = string(gwName) + string("_QoS-1");
-	setup(name.c_str(), Atype_QoSm1Proxy);
-   _isActive = true;
+    /* Create a client for  QoS-1 proxy */
+    string name = string(gwName) + string("_QoS-1");
+    setup(name.c_str(), Atype_QoSm1Proxy);
+    _isActive = true;
 }
-
 
 bool QoSm1Proxy::isActive(void)
 {

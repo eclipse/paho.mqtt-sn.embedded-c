@@ -24,7 +24,6 @@
 namespace MQTTSNGW
 {
 
-
 /*=====================================
  Class Topic
  ======================================*/
@@ -46,7 +45,7 @@ public:
 private:
     MQTTSN_topicTypes _type;
     uint16_t _topicId;
-    string*  _topicName;
+    string* _topicName;
     Topic* _next;
 };
 
@@ -72,7 +71,7 @@ public:
 private:
     uint16_t _nextTopicId;
     Topic* _first;
-    uint8_t  _cnt;
+    uint8_t _cnt;
 };
 
 /*=====================================
@@ -101,7 +100,8 @@ public:
     TopicIdMap();
     ~TopicIdMap();
     TopicIdMapElement* getElement(uint16_t msgId);
-    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId,
+            MQTTSN_topicTypes type);
     void erase(uint16_t msgId);
     void clear(void);
 private:
@@ -112,9 +112,6 @@ private:
     int _maxInflight;
 };
 
-
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWTOPIC_H_ */
