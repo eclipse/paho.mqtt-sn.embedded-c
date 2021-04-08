@@ -29,7 +29,6 @@
 using namespace std;
 using namespace MQTTSNGW;
 
-#define ARGV    "./Build/testPFW"
 #define CONFDIR "./"
 #define CONF    "gateway.conf"
 
@@ -63,7 +62,6 @@ void TestProcess::run(void)
 	/* Test command line parameter */
 
 	assert(1 == getArgc() || 3 == getArgc() );
-	assert(0 == strcmp(ARGV, *getArgv()));
 	getParam("BrokerName", value);
 	assert(0 == strcmp("mqtt.eclipse.org", value));
 

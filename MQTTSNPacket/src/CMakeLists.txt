@@ -22,3 +22,6 @@ ADD_LIBRARY(MQTTSNPacketClient SHARED MQTTSNConnectClient.c MQTTSNPacket.c MQTTS
 
 ADD_LIBRARY(MQTTSNPacketServer SHARED MQTTSNConnectServer.c MQTTSNPacket.c MQTTSNSearchServer.c MQTTSNSubscribeServer.c
             MQTTSNUnsubscribeServer.c MQTTSNSerializePublish.c MQTTSNDeserializePublish.c)
+
+TARGET_INCLUDE_DIRECTORIES(MQTTSNPacketClient PUBLIC .)
+TARGET_INCLUDE_DIRECTORIES(MQTTSNPacketServer PUBLIC .)
