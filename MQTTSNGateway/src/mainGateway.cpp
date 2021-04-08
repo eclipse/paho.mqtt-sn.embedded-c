@@ -34,8 +34,6 @@ BrokerSendTask    task5(&gateway);
 
 int main(int argc, char** argv)
 {
-    gateway.initialize(argc, argv);
-    gateway.run();
     try
     {
       gateway.initialize(argc, argv);
