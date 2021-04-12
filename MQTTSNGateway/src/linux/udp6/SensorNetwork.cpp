@@ -83,7 +83,7 @@ int SensorNetAddress::setAddress(string* data)
 		{
 			_portNo = htons(portNo);
 
-			string ip = data->substr(1,pos - 1);
+			string ip = data->substr(0,pos);
 			const char *cstr = ip.c_str();
 
 			if (inet_pton(AF_INET6, cstr, &(_IpAddr.sin6_addr)) == 1 )
