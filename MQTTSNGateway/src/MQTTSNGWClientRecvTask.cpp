@@ -32,6 +32,7 @@ ClientRecvTask::ClientRecvTask(Gateway* gateway)
     _gateway = gateway;
     _gateway->attach((Thread*) this);
     _sensorNetwork = _gateway->getSensorNetwork();
+    setTaskName("ClientRecvTask");
 }
 
 ClientRecvTask::~ClientRecvTask()
@@ -78,7 +79,7 @@ void ClientRecvTask::run()
 
         if (CHK_SIGINT)
         {
-            WRITELOG("\n%s ClientRecvTask   stopped.", currentDateTime());
+            WRITELOG("\n%s %s stopped.", currentDateTime(), getTaskName());
             delete packet;
             return;
         }

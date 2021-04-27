@@ -37,11 +37,11 @@ BrokerSendTask::BrokerSendTask(Gateway* gateway)
     _gateway->attach((Thread*) this);
     _gwparams = nullptr;
     _light = nullptr;
+    setTaskName("BrokerSendTask");
 }
 
 BrokerSendTask::~BrokerSendTask()
 {
-//	WRITELOG("BrokerSendTask is deleted normally.\r\n");
 }
 
 /**
@@ -70,7 +70,7 @@ void BrokerSendTask::run()
 
         if (ev->getEventType() == EtStop)
         {
-            WRITELOG("\n%s BrokerSendTask   stopped.", currentDateTime());
+            WRITELOG("\n%s %s stopped.", currentDateTime(), getTaskName());
             delete ev;
             return;
         }

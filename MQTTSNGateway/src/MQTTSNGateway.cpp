@@ -315,7 +315,7 @@ void Gateway::run(void)
 
     _stopFlg = false;
 
-    /* Run Tasks until CTRL+C entred */
+    /* Run Tasks until CTRL+C entered or Exception occurred */
     MultiTaskProcess::run();
 
     _stopFlg = true;

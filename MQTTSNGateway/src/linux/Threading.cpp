@@ -135,7 +135,7 @@ void Mutex::lock(void)
 			}
 		} catch (char* errmsg)
 		{
-			throw Exception( -1, "The same thread can't aquire a mutex twice.");
+			throw Exception( -1, "The same thread can't acquire a mutex twice.");
 		}
 	}
 }
@@ -263,11 +263,6 @@ void NamedSemaphore::timedwait(uint16_t millsec)
 /*=========================================
  Class RingBuffer
  =========================================*/
-RingBuffer::RingBuffer()
-{
-	RingBuffer(MQTTSNGW_KEY_DIRECTORY);
-}
-
 RingBuffer::RingBuffer(const char* keyDirectory)
 {
 	int fp = 0;
@@ -506,6 +501,7 @@ void RingBuffer::reset()
 Thread::Thread()
 {
 	_threadID = 0;
+	_taskName = nullptr;
 }
 
 Thread::~Thread()
@@ -539,11 +535,6 @@ int Thread::start(void)
 	return pthread_create(&_threadID, 0, _run, runnable);
 }
 
-void Thread::stopProcess(void)
-{
-	theMultiTaskProcess->threadStopped();
-}
-
 void Thread::stop(void)
 {
 	if ( _threadID )
@@ -551,4 +542,14 @@ void Thread::stop(void)
 		pthread_join(_threadID, NULL);
 		_threadID = 0;
 	}
+}
+
+void Thread::setTaskName(const char* name)
+{
+    _taskName = name;
+}
+
+const char* Thread::getTaskName(void)
+{
+    return _taskName;
 }

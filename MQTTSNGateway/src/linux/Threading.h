@@ -92,8 +92,7 @@ private:
 class RingBuffer
 {
 public:
-	RingBuffer();
-	RingBuffer(const char* keyDirctory);
+	RingBuffer(const char* keyDirctory = MQTTSNGW_KEY_DIRECTORY);
 	~RingBuffer();
 	void put(char* buffer);
 	int get(char* buffer, int bufferLength);
@@ -124,15 +123,17 @@ public:
 #define MAGIC_WORD_FOR_THREAD \
 public: void EXECRUN() \
 { \
-	try \
-	{ \
-		run(); \
-		stopProcess(); \
-	} \
-	catch(...) \
-	{ \
-		throw; \
-	} \
+    try \
+    { \
+      run(); \
+      theMultiTaskProcess->threadStopped(); \
+    } \
+    catch ( Exception &ex ) \
+    { \
+        theMultiTaskProcess->threadStopped(); \
+        WRITELOG("%s catch exception\n", getTaskName()); \
+        ex.writeMessage(); \
+    } \
 }
 
 /*=====================================
@@ -146,12 +147,14 @@ public:
 	static pthread_t getID();
 	static bool equals(pthread_t*, pthread_t*);
 	virtual void initialize(int argc, char** argv);
-	void stopProcess(void);
 	void waitStop(void);
 	void stop(void);
+	const char* getTaskName(void);
+	void setTaskName(const char* name);
 private:
 	static void* _run(void*);
 	pthread_t _threadID;
+	const char* _taskName;
 };
 
 }

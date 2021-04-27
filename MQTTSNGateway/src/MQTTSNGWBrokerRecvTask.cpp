@@ -32,11 +32,11 @@ BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
     _gateway = gateway;
     _gateway->attach((Thread*) this);
     _light = nullptr;
+    setTaskName("BrokerRecvTask");
 }
 
 BrokerRecvTask::~BrokerRecvTask()
 {
-
 }
 
 /**
@@ -64,7 +64,7 @@ void BrokerRecvTask::run(void)
         _light->blueLight(false);
         if (CHK_SIGINT)
         {
-            WRITELOG("\n%s BrokerRecvTask   stopped.", currentDateTime());
+            WRITELOG("\n%s %s stopped.", currentDateTime(), getTaskName());
             return;
         }
         timeout.tv_sec = 0;

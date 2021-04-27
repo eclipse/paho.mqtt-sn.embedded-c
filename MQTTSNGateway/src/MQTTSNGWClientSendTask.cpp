@@ -31,11 +31,11 @@ ClientSendTask::ClientSendTask(Gateway* gateway)
     _gateway = gateway;
     _gateway->attach((Thread*) this);
     _sensorNetwork = _gateway->getSensorNetwork();
+    setTaskName("ClientSendTask");
 }
 
 ClientSendTask::~ClientSendTask()
 {
-//	WRITELOG("ClientSendTask is deleted normally.\r\n");
 }
 
 void ClientSendTask::run()
@@ -51,7 +51,7 @@ void ClientSendTask::run()
 
         if (ev->getEventType() == EtStop || _gateway->IsStopping())
         {
-            WRITELOG("\n%s ClientSendTask   stopped.", currentDateTime());
+            WRITELOG("\n%s %s stopped.", currentDateTime(), getTaskName());
             delete ev;
             break;
         }

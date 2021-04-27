@@ -57,6 +57,8 @@ Process::Process()
     _configDir = CONFIG_DIRECTORY;
     _configFile = CONFIG_FILE;
     _log = 0;
+    _rbsem = NULL;
+    _rb = NULL;
 }
 
 Process::~Process()
@@ -99,7 +101,6 @@ void Process::initialize(int argc, char** argv)
             else
             {
                 _configFile = config.substr(pos + 1, config.size() - pos - 1);
-                ;
                 _configDir = config.substr(0, pos + 1);
             }
         }
@@ -278,22 +279,17 @@ void MultiTaskProcess::run(void)
         _threadList[i]->start();
     }
 
-    try
+    while (true)
     {
-        while (true)
+        if (theProcess->checkSignal() == SIGINT )
         {
-            if (theProcess->checkSignal() == SIGINT)
-            {
-                return;
-            }
-            sleep(1);
+            return;
         }
-    } catch (Exception* ex)
-    {
-        ex->writeMessage();
-    } catch (...)
-    {
-        throw;
+        else if (_stopCount > 0)
+        {
+            throw Exception(0,"Abort",__FILE__, __func__, __LINE__);
+        }
+        sleep(1);
     }
 }
 
@@ -334,10 +330,6 @@ int MultiTaskProcess::getParam(const char* parameter, char* value)
     _mutex.lock();
     int rc = Process::getParam(parameter, value);
     _mutex.unlock();
-    if (rc == -1)
-    {
-        throw Exception("No config file.");
-    }
     return rc;
 }
 
@@ -348,8 +340,8 @@ Exception::Exception(const string& message)
 {
     _message = message;
     _exNo = 0;
-    _fileName = 0;
-    _functionName = 0;
+    _fileName = nullptr;
+    _functionName = nullptr;
     _line = 0;
 }
 

@@ -54,6 +54,7 @@ PacketHandleTask::PacketHandleTask(Gateway* gateway)
     _mqttsnSubscribe = new MQTTSNSubscribeHandler(_gateway);
 
     _mqttsnAggrConnection = new MQTTSNAggregateConnectionHandler(_gateway);
+    setTaskName("PacketHandleTask");
 }
 
 /**
@@ -113,7 +114,7 @@ void PacketHandleTask::run()
 
         if (ev->getEventType() == EtStop)
         {
-            WRITELOG("\n%s PacketHandleTask stopped.", currentDateTime());
+            WRITELOG("\n%s %s stopped.", currentDateTime(), getTaskName());
             delete ev;
             return;
         }
