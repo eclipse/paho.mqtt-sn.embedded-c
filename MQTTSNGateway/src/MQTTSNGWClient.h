@@ -163,7 +163,7 @@ typedef enum
 
 typedef enum
 {
-    Ctype_Regular = 0,
+    Ctype_Normal = 0,
     Ctype_Forwarded,
     Ctype_QoS_1,
     Ctype_Aggregated,

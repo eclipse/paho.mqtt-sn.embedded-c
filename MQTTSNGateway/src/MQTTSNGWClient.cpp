@@ -59,7 +59,7 @@ Client::Client(bool secure)
     _hasPredefTopic = false;
     _holdPingRequest = false;
     _forwarder = nullptr;
-    _clientType = Ctype_Regular;
+    _clientType = Ctype_Normal;
 }
 
 Client::~Client()
