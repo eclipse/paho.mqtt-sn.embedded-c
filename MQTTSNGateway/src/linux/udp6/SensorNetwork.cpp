@@ -66,7 +66,7 @@ void SensorNetAddress::setAddress(struct sockaddr_in6 *IpAddr, uint16_t port)
 
 /**
  *  convert Text data to SensorNetAddress
- *  @param  data is a IP_Address:PortNo format string
+ *  @param  data is a IPV6_Address:PortNo format string
  *  @return success = 0,  Invalid format = -1
  */
 int SensorNetAddress::setAddress(string* data)
