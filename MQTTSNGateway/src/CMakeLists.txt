@@ -13,11 +13,17 @@
 #  Contributors:
 #     a1lu - initial version
 #*******************************************************************************/
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../Build)
+PROJECT(mqtt-sn-gateway CXX)
+
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Build)
 set(CMAKE_CXX_STANDARD 11)
 
 SET(OS linux)
-SET(SENSORNET udp)
+
+if(NOT DEFINED SENSORNET)
+    set(SENSORNET udp)
+endif()
+message(STATUS "SENSORNET: " ${SENSORNET})
 
 ADD_LIBRARY(mqtt-sngateway_common
        MQTTGWConnectionHandler.cpp
@@ -58,7 +64,6 @@ ADD_LIBRARY(mqtt-sngateway_common
        ${OS}/Threading.h
        )
 
-include_directories(../../MQTTSNPacket/src)
 link_directories("/usr/local/lib")
 link_directories("/usr/local/opt/openssl/lib")
 
@@ -68,12 +73,12 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        .
        ${OS}
        ${OS}/${SENSORNET}
+       ../../MQTTSNPacket/src
        )
 
 TARGET_LINK_LIBRARIES(mqtt-sngateway_common
        PRIVATE
-       MQTTSNPacketClient
-       MQTTSNPacketServer
+       MQTTSNPacket
        pthread
        ssl
        crypto)
