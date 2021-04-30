@@ -15,6 +15,6 @@ cmake .. -DSENSORNET=udp6
 make MQTT-SNGateway
 cmake .. -DSENSORNET=loralink
 make MQTT-SNGateway
-cd ../MQTTSMGateway/GatewayTester
+cd ../MQTTSNGateway/GatewayTester
 make
 
