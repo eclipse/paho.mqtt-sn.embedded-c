@@ -5,27 +5,21 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 
 ### **step1. Build the gateway**   
 ````
-$ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c   
-$ cd paho.mqtt-sn.embedded-c/MQTTSNGateway       
-$ make [SENSORNET={udp6|xbee|loralink}] 
-$ make install   
-$ make clean    
+$ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c         
+$ cmake .. [-DSENSORNET={udp|udp6|xbee|loralink}] 
+$ make   
+    
 ````      
 By default, a gateway for UDP is built.    
-In order to create a gateway for UDP6, XBee or LoRaLink, SENSORNET argument is required.  
+In order to create a gateway for UDP6, XBee or LoRaLink, -DSENSORNET argument is required.  
  
-MQTT-SNGateway, MQTT-SNLogmonitor and *.conf files are copied into ../ directory.    
-If you want to install the gateway into specific directories, enter a command line as follows:
-````
-$ make install INSTALL_DIR=/path/to/your_directory CONFIG_DIR=/path/to/your_directory
-````
-
+MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in the Build directory.
     
 ### **step2. Execute the Gateway.**     
 
 ````    
-$ cd ../../   
-$ ./MQTT-SNGateway [-f Config file name]
+ 
+$ ./Build/MQTT-SNGateway -f ./MQTTSNGateway/gateway.conf    
 ````   
 If you get the error message as follows:
 ````    
@@ -34,13 +28,12 @@ Aborted (core dumped)
 ````
 You have to start using sudo command only once for the first time.    
 ````
-$ sudo ./MQTT-SNGateway [-f Config file name]
+$ sudo ./Build/MQTT-SNGateway -f ./MQTTSNGateway/gateway.conf    
 ````
 
 ### **How to Change the configuration of the gateway**    
-**../gateway.conf**   Contents are follows: 
+**gateway.conf**   Contents are follows: 
    
-<pre><dev>    
 
 # config file of MQTT-SN Gateway
 #
@@ -102,7 +95,7 @@ DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 # LOG
 ShearedMemory=NO;
 
-</dev></pre>    
+
 
 **BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
 **MulticastIP** and **MulticastPortNo** is a multicast address for GWSEARCH messages. Gateway is waiting GWSEARCH  and when receiving it send GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom().

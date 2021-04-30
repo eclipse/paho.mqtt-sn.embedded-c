@@ -22,7 +22,7 @@ MQTT project, but it's not yet complete.
 
 ## Build requirements / compilation
 
-CMake builds for MQTTSNPacket with a Makefile for MQTTSNGateway have been introduced, along with Travis-CI configuration for automated build & testing.
+CMake builds have been introduced, along with Travis-CI configuration for automated build & testing.
 
 The travis-build.sh file has the full build and test sequence for Linux.
 

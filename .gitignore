@@ -10,3 +10,8 @@
 /Release/
 /Debug/
 /core
+Build
+*.a
+CMakeFiles/
+*.cmake
+CMakeCache.txt
