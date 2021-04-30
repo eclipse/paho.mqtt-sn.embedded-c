@@ -164,7 +164,7 @@ int Process::getParam(const char* parameter, char* value)
 
     if ((fp = fopen(configPath.c_str(), "r")) == NULL)
     {
-        throw Exception("No config file:[" + configPath + "]\n");
+        throw Exception("No config file:[" + configPath + "]\n\nUsage: Command -f path/config_file_name\n");
     }
 
     while (true)
@@ -287,7 +287,7 @@ void MultiTaskProcess::run(void)
         }
         else if (_stopCount > 0)
         {
-            throw Exception(0,"Abort",__FILE__, __func__, __LINE__);
+            throw Exception("Task stopped !!\n\n");
         }
         sleep(1);
     }
