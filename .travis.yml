@@ -16,16 +16,6 @@ addons:
     
 script: 
   - ./travis-build.sh
-
-  - cd MQTTSNGateway
-  - make SENSORNET="xbee"
-  - make SENSORNET="udp"  
-  - make SENSORNET="udp6"
-  
-  - make test
-    
-  - cd GatewayTester
-  - make 
   
 notifications:
   emails:
