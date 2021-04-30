@@ -34,7 +34,7 @@ $ sudo ./Build/MQTT-SNGateway -f ./MQTTSNGateway/gateway.conf
 ### **How to Change the configuration of the gateway**    
 **gateway.conf**   Contents are follows: 
    
-
+<pre><dev>
 # config file of MQTT-SN Gateway
 #
 
@@ -95,7 +95,7 @@ DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 # LOG
 ShearedMemory=NO;
 
-
+</dev></pre>
 
 **BrokerName** to specify a domain name of the Broker, and **BrokerPortNo** is a port No of the Broker. **BrokerSecurePortNo** is for TLS connection.       
 **MulticastIP** and **MulticastPortNo** is a multicast address for GWSEARCH messages. Gateway is waiting GWSEARCH  and when receiving it send GWINFO message via MulticastIP address. Clients can get the gateway address (Gateway IP address and **GatewayPortNo**) from GWINFO message by means of std::recvfrom().
