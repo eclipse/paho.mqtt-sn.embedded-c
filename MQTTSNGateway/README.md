@@ -5,9 +5,9 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 
 ### **step1. Build the gateway**   
 ````
-$ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c         
-$ cmake .. [-DSENSORNET={udp|udp6|xbee|loralink}] 
-$ make   
+$ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c  
+$ cd paho.mqtt-sn.embedded-c/MQTTSNGateway      
+$ ./build.sh {udp|udp6|xbee|loralink}]  
     
 ````      
 By default, a gateway for UDP is built.    
@@ -19,7 +19,7 @@ MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in the Buil
 
 ````    
  
-$ ./Build/MQTT-SNGateway -f ./MQTTSNGateway/gateway.conf    
+$ ./bin/MQTT-SNGateway -f gateway.conf    
 ````   
 If you get the error message as follows:
 ````    
@@ -28,7 +28,7 @@ Aborted (core dumped)
 ````
 You have to start using sudo command only once for the first time.    
 ````
-$ sudo ./Build/MQTT-SNGateway -f ./MQTTSNGateway/gateway.conf    
+$ sudo ./bin/MQTT-SNGateway -f gateway.conf    
 ````
 
 ### **How to Change the configuration of the gateway**    
@@ -119,7 +119,7 @@ Restart the gateway with sudo only once to create shared memories.
 
 open ssh terminal and execute LogMonitor.
 
-`$ ./MQTT-SNLogmonitor`    
+`$ ./bin/MQTT-SNLogmonitor`    
 
 Now you can get the Log on your terminal.
 

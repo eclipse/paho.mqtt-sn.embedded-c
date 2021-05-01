@@ -10,8 +10,10 @@
 /Release/
 /Debug/
 /core
-Build
+Build/
 *.a
 CMakeFiles/
 *.cmake
 CMakeCache.txt
+bin/
+/build.gateway/

@@ -11,19 +11,20 @@
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 #
 #  Contributors:
-#     a1lu - initial version
+#     a1lu  - initial version
+#     ty4tw - modify
 #*******************************************************************************/
 PROJECT(mqtt-sn-gateway CXX)
 
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Build)
-set(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../bin)
+SET(CMAKE_CXX_STANDARD 11)
 
 SET(OS linux)
 
-if(NOT DEFINED SENSORNET)
-    set(SENSORNET udp)
-endif()
-message(STATUS "SENSORNET: " ${SENSORNET})
+IF(NOT DEFINED SENSORNET)
+    SET(SENSORNET udp)
+ENDIF()
+MESSAGE(STATUS "SENSORNET: " ${SENSORNET})
 
 ADD_LIBRARY(mqtt-sngateway_common
        MQTTGWConnectionHandler.cpp
