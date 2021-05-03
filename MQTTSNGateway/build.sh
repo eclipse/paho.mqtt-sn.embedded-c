@@ -11,7 +11,7 @@ else
     mkdir build.gateway
     cd build.gateway
     cmake .. -DSENSORNET=$1
-    make MQTTSNPacke
+    make MQTTSNPacket
     make MQTT-SNGateway
     make MQTT-SNLogmonitor
 fi

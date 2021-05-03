@@ -1,4 +1,4 @@
-# MQTT-SN Transparent / Aggregating Gateway
+ MQTT-SN Transparent / Aggregating Gateway
 
 **MQTT-SN** requires a MQTT-SN Gateway which acts as a protocol converter to convert **MQTT-SN messages to MQTT messages**. MQTT-SN client over SensorNetwork can not communicate directly with MQTT broker(TCP/IP).   
 This Gateway can run as a transparent or aggregating Gateway by specifying the gateway.conf.    
@@ -7,11 +7,10 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 ````
 $ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c  
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway      
-$ ./build.sh {udp|udp6|xbee|loralink}]  
+$ ./build.sh {udp|udp6|xbee|loralink}  
     
-````      
-By default, a gateway for UDP is built.    
-In order to create a gateway for UDP6, XBee or LoRaLink, -DSENSORNET argument is required.  
+````       
+In order to build a gateway, an argument is required.  
  
 MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in the Build directory.
     
@@ -19,16 +18,16 @@ MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in the Buil
 
 ````    
  
-$ ./bin/MQTT-SNGateway -f gateway.conf    
+$ ./bin/MQTT-SNGateway    
 ````   
 If you get the error message as follows:
 ````    
-what(): RingBuffer can't create a shared memory.
-Aborted (core dumped)
+RingBuffer can't create a shared memory.
+ABORT Gateway!!!    
 ````
 You have to start using sudo command only once for the first time.    
 ````
-$ sudo ./bin/MQTT-SNGateway -f gateway.conf    
+$ sudo ./bin/MQTT-SNGateway    
 ````
 
 ### **How to Change the configuration of the gateway**    
@@ -133,6 +132,3 @@ Uncomment the line 62, 63 in MQTTSNDefines.h then you can get more precise logs.
 //#define DEBUG          // print out log for debug
 //#define DEBUG_NWSTACK  // print out SensorNetwork log
 ```
-
-
-

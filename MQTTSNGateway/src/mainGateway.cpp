@@ -43,6 +43,5 @@ int main(int argc, char** argv)
     {
         ex.writeMessage();
         WRITELOG("ABORT Gateway!!!\n\n\n");
-        abort();
     }
 }

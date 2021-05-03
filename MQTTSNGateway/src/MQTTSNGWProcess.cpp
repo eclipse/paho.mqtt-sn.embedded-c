@@ -13,12 +13,13 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <Timer.h>
 #include <exception>
 #include <getopt.h>
@@ -252,13 +253,17 @@ MultiTaskProcess::MultiTaskProcess()
     theMultiTaskProcess = this;
     _threadCount = 0;
     _stopCount = 0;
+    _abortThreadNo = -1;
 }
 
 MultiTaskProcess::~MultiTaskProcess()
 {
     for (int i = 0; i < _threadCount; i++)
     {
-        _threadList[i]->stop();
+    	if ( i != _abortThreadNo)
+    	{
+    		_threadList[i]->stop();
+    	}
     }
 }
 
@@ -281,13 +286,9 @@ void MultiTaskProcess::run(void)
 
     while (true)
     {
-        if (theProcess->checkSignal() == SIGINT )
+        if (theProcess->checkSignal() == SIGINT || _abortThreadNo > -1)
         {
             return;
-        }
-        else if (_stopCount > 0)
-        {
-            throw Exception("Task stopped !!\n\n");
         }
         sleep(1);
     }
@@ -295,6 +296,10 @@ void MultiTaskProcess::run(void)
 
 void MultiTaskProcess::waitStop(void)
 {
+	/* Let threads exit from Select() */
+	pid_t pid = getpid();
+    kill(pid, SIGINT);
+
     while (_stopCount < _threadCount)
     {
         sleep(1);
@@ -309,11 +314,19 @@ void MultiTaskProcess::threadStopped(void)
 
 }
 
-void MultiTaskProcess::attach(Thread* thread)
+void MultiTaskProcess::abort(int threadNo)
 {
+	_abortThreadNo = threadNo;
+	threadStopped();
+}
+
+int MultiTaskProcess::attach(Thread* thread)
+{
+	int indexNo = 0;
     _mutex.lock();
     if (_threadCount < MQTTSNGW_MAX_TASK)
     {
+    	indexNo = _threadCount;
         _threadList[_threadCount] = thread;
         _threadCount++;
     }
@@ -323,6 +336,7 @@ void MultiTaskProcess::attach(Thread* thread)
         throw Exception("Full of Threads");
     }
     _mutex.unlock();
+    return indexNo;
 }
 
 int MultiTaskProcess::getParam(const char* parameter, char* value)

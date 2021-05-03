@@ -85,13 +85,15 @@ public:
     void run(void);
     void waitStop(void);
     void threadStopped(void);
-    void attach(Thread* thread);
+    int attach(Thread* thread);
+    void abort(int threadNo);
 
 private:
     Thread* _threadList[MQTTSNGW_MAX_TASK];
     Mutex _mutex;
     int _threadCount;
     int _stopCount;
+    int _abortThreadNo;
 };
 
 /*=====================================

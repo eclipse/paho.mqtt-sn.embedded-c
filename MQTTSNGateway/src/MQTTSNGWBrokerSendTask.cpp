@@ -34,7 +34,7 @@ char* currentDateTime();
 BrokerSendTask::BrokerSendTask(Gateway* gateway)
 {
     _gateway = gateway;
-    _gateway->attach((Thread*) this);
+    Runnable::threadNo =_gateway->attach((Thread*) this);
     _gwparams = nullptr;
     _light = nullptr;
     setTaskName("BrokerSendTask");

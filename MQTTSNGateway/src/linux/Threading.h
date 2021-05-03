@@ -118,6 +118,7 @@ public:
 	Runnable(){}
 	virtual ~Runnable(){}
 	virtual void EXECRUN(){}
+	int threadNo {0};
 };
 
 #define MAGIC_WORD_FOR_THREAD \
@@ -130,9 +131,9 @@ public: void EXECRUN() \
     } \
     catch ( Exception &ex ) \
     { \
-        theMultiTaskProcess->threadStopped(); \
         WRITELOG("%s catch exception\n", getTaskName()); \
         ex.writeMessage(); \
+        theMultiTaskProcess->abort(threadNo); \
     } \
 }
 
@@ -151,6 +152,7 @@ public:
 	void stop(void);
 	const char* getTaskName(void);
 	void setTaskName(const char* name);
+	void abort(int threadNo);
 private:
 	static void* _run(void*);
 	pthread_t _threadID;
