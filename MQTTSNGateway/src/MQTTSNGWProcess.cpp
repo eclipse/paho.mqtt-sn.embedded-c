@@ -18,8 +18,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <Timer.h>
 #include <exception>
 #include <getopt.h>
@@ -165,7 +163,7 @@ int Process::getParam(const char* parameter, char* value)
 
     if ((fp = fopen(configPath.c_str(), "r")) == NULL)
     {
-        throw Exception("No config file:[" + configPath + "]\n\nUsage: Command -f path/config_file_name\n");
+        throw Exception("No config file:\n\nUsage: Command -f path/config_file_name\n", 0);
     }
 
     while (true)
@@ -253,17 +251,13 @@ MultiTaskProcess::MultiTaskProcess()
     theMultiTaskProcess = this;
     _threadCount = 0;
     _stopCount = 0;
-    _abortThreadNo = -1;
 }
 
 MultiTaskProcess::~MultiTaskProcess()
 {
     for (int i = 0; i < _threadCount; i++)
     {
-    	if ( i != _abortThreadNo)
-    	{
-    		_threadList[i]->stop();
-    	}
+		_threadList[i]->stop();
     }
 }
 
@@ -286,7 +280,7 @@ void MultiTaskProcess::run(void)
 
     while (true)
     {
-        if (theProcess->checkSignal() == SIGINT || _abortThreadNo > -1)
+        if (theProcess->checkSignal() == SIGINT)
         {
             return;
         }
@@ -296,10 +290,6 @@ void MultiTaskProcess::run(void)
 
 void MultiTaskProcess::waitStop(void)
 {
-	/* Let threads exit from Select() */
-	pid_t pid = getpid();
-    kill(pid, SIGINT);
-
     while (_stopCount < _threadCount)
     {
         sleep(1);
@@ -314,29 +304,25 @@ void MultiTaskProcess::threadStopped(void)
 
 }
 
-void MultiTaskProcess::abort(int threadNo)
+void MultiTaskProcess::abort(void)
 {
-	_abortThreadNo = threadNo;
-	threadStopped();
+    signalHandler(SIGINT);
 }
 
-int MultiTaskProcess::attach(Thread* thread)
+void MultiTaskProcess::attach(Thread* thread)
 {
-	int indexNo = 0;
     _mutex.lock();
     if (_threadCount < MQTTSNGW_MAX_TASK)
     {
-    	indexNo = _threadCount;
         _threadList[_threadCount] = thread;
         _threadCount++;
     }
     else
     {
         _mutex.unlock();
-        throw Exception("Full of Threads");
+        throw Exception("The maximum number of threads has been exceeded.", -1);
     }
     _mutex.unlock();
-    return indexNo;
 }
 
 int MultiTaskProcess::getParam(const char* parameter, char* value)
@@ -350,30 +336,20 @@ int MultiTaskProcess::getParam(const char* parameter, char* value)
 /*=====================================
  Class Exception
  ======================================*/
-Exception::Exception(const string& message)
+Exception::Exception(const char* message, const int exNo)
 {
-    _message = message;
-    _exNo = 0;
-    _fileName = nullptr;
-    _functionName = nullptr;
-    _line = 0;
-}
-
-Exception::Exception(const int exNo, const string& message)
-{
-    _message = message;
+	_message = message;
     _exNo = exNo;
     _fileName = nullptr;
     _functionName = nullptr;
     _line = 0;
 }
-
-Exception::Exception(const int exNo, const string& message, const char* file,
+Exception::Exception(const char* message, const int exNo, const char* file,
         const char* function, const int line)
 {
-    _message = message;
+	_message = message;
     _exNo = exNo;
-    _fileName = file;
+    _fileName = getFileName(file);;
     _functionName = function;
     _line = line;
 }
@@ -385,7 +361,7 @@ Exception::~Exception() throw ()
 
 const char* Exception::what() const throw ()
 {
-    return _message.c_str();
+    return _message;
 }
 
 const char* Exception::getFileName()
@@ -410,14 +386,42 @@ const int Exception::getExceptionNo()
 
 void Exception::writeMessage()
 {
-    if (getExceptionNo() == 0)
+    if (_fileName == nullptr)
     {
-        WRITELOG("%s %s\n", currentDateTime(), what());
+    	if (_exNo == 0)
+    	{
+    		WRITELOG("%s %s\n", currentDateTime(), _message);
+    	}
+    	else
+    	{
+
+    		WRITELOG("%s %s  ExNo: %d\n", currentDateTime(), _message, _exNo);
+    	}
     }
     else
     {
-        WRITELOG("%s:%-6d   %s  line %-4d %s() : %s\n", currentDateTime(),
-                getExceptionNo(), getFileName(), getLineNo(), getFunctionName(),
-                what());
+    	if (_exNo == 0)
+    	{
+    		WRITELOG("%s %s  line %-4d %s() : %s\n",
+    		    		    currentDateTime(), _fileName, _line, _functionName, _message);
+    	}
+    	else
+    	{
+    		WRITELOG("%s %s  line %-4d %s() : %s  ExNo: %d\n",
+        		currentDateTime(), _fileName, _line, _functionName, _message, _exNo);
+    	}
     }
 }
+
+const char* Exception::getFileName(const char* file)
+{
+	for ( int len = strlen(file); len > 0; len-- )
+	{
+		if (*(file + len) == '/')
+		{
+			return file + len + 1;
+		}
+	}
+	return file;
+}
+

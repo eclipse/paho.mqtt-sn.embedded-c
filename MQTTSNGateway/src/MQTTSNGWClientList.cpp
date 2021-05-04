@@ -72,8 +72,8 @@ void ClientList::setClientList(int type)
 {
     if (!createList(theGateway->getGWParams()->clientListName, type))
     {
-        throw Exception(
-                "ClientList::setClientList No client list defined by config file.");
+        throw EXCEPTION(
+                "ClientList::setClientList No client list defined by config file.", 0);
     }
 }
 
@@ -82,8 +82,8 @@ void ClientList::setPredefinedTopics(bool aggrecate)
     if (!readPredefinedList(theGateway->getGWParams()->predefinedTopicFileName,
             aggrecate))
     {
-        throw Exception(
-                "ClientList::setPredefinedTopics No predefindTopi list defined by config file.");
+        throw EXCEPTION(
+                "ClientList::setPredefinedTopics No predefindTopi list defined by config file.",0);
 
     }
 }

@@ -41,6 +41,8 @@ namespace MQTTSNGW
 #define WRITELOG theProcess->putLog
 #define CHK_SIGINT (theProcess->checkSignal() == SIGINT)
 #define UNUSED(x) ((void)(x))
+#define EXCEPTION(...)   Exception(__VA_ARGS__, __FILE__, __func__, __LINE__)
+
 /*=================================
  Class Process
  ==================================*/
@@ -85,15 +87,14 @@ public:
     void run(void);
     void waitStop(void);
     void threadStopped(void);
-    int attach(Thread* thread);
-    void abort(int threadNo);
+    void attach(Thread* thread);
+    void abort(void);
 
 private:
     Thread* _threadList[MQTTSNGW_MAX_TASK];
     Mutex _mutex;
     int _threadCount;
     int _stopCount;
-    int _abortThreadNo;
 };
 
 /*=====================================
@@ -102,10 +103,8 @@ private:
 class Exception: public exception
 {
 public:
-    Exception(const string& message);
-    Exception(const int exNo, const string& message);
-    Exception(const int exNo, const string& message, const char* file,
-            const char* func, const int line);
+    Exception(const char* message, const int exNo);
+    Exception(const char* message, const int exNo, const char* file, const char* func, int line);
     virtual ~Exception() throw ();
     const char* getFileName();
     const char* getFunctionName();
@@ -115,8 +114,9 @@ public:
     void writeMessage();
 
 private:
+    const char* getFileName(const char* file);
     int _exNo;
-    string _message;
+    const char* _message;
     const char* _fileName;
     const char* _functionName;
     int _line;

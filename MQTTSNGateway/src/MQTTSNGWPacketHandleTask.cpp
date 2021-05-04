@@ -45,7 +45,7 @@ char* currentDateTime(void);
 PacketHandleTask::PacketHandleTask(Gateway* gateway)
 {
     _gateway = gateway;
-    Runnable::threadNo =_gateway->attach((Thread*) this);
+    _gateway->attach((Thread*) this);
     _mqttConnection = new MQTTGWConnectionHandler(_gateway);
     _mqttPublish = new MQTTGWPublishHandler(_gateway);
     _mqttSubscribe = new MQTTGWSubscribeHandler(_gateway);

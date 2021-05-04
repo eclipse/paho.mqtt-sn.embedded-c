@@ -182,7 +182,7 @@ void Gateway::initialize(int argc, char** argv)
 
     if (_params.gatewayId == 0 || _params.gatewayId > 255)
     {
-        throw Exception("Gateway::initialize: invalid Gateway Id");
+        throw Exception("Gateway::initialize: invalid Gateway Id", 0);
     }
 
     if (getParam("GatewayName", param) == 0)
@@ -192,7 +192,7 @@ void Gateway::initialize(int argc, char** argv)
 
     if (_params.gatewayName == 0)
     {
-        throw Exception("Gateway::initialize: Gateway Name is missing.");
+        throw Exception("Gateway::initialize: Gateway Name is missing.", 0);
     }
 
     _params.mqttVersion = DEFAULT_MQTT_VERSION;

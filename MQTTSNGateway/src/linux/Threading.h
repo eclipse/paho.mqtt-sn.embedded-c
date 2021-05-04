@@ -118,7 +118,6 @@ public:
 	Runnable(){}
 	virtual ~Runnable(){}
 	virtual void EXECRUN(){}
-	int threadNo {0};
 };
 
 #define MAGIC_WORD_FOR_THREAD \
@@ -127,14 +126,15 @@ public: void EXECRUN() \
     try \
     { \
       run(); \
-      theMultiTaskProcess->threadStopped(); \
     } \
     catch ( Exception &ex ) \
     { \
-        WRITELOG("%s catch exception\n", getTaskName()); \
+    	WRITELOG("\033[0m\033[0;31m"); \
         ex.writeMessage(); \
-        theMultiTaskProcess->abort(threadNo); \
+        WRITELOG("\033[0m\033[0;37m%s caught an exception and stopped.\n", getTaskName()); \
+        theMultiTaskProcess->abort(); \
     } \
+    theMultiTaskProcess->threadStopped(); \
 }
 
 /*=====================================

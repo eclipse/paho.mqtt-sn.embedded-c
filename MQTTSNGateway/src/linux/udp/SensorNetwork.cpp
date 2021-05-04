@@ -246,6 +246,7 @@ UDPPort::UDPPort()
 	_disconReq = false;
 	_sockfdUnicast = -1;
 	_sockfdMulticast = -1;
+	_ttl = 0;
 }
 
 UDPPort::~UDPPort()

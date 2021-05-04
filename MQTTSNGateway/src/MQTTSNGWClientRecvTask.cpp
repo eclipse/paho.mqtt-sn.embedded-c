@@ -30,7 +30,7 @@ char* currentDateTime(void);
 ClientRecvTask::ClientRecvTask(Gateway* gateway)
 {
     _gateway = gateway;
-    Runnable::threadNo =_gateway->attach((Thread*) this);
+    _gateway->attach((Thread*) this);
     _sensorNetwork = _gateway->getSensorNetwork();
     setTaskName("ClientRecvTask");
 }
@@ -47,7 +47,7 @@ void ClientRecvTask::initialize(int argc, char** argv)
 {
     if (_sensorNetwork->initialize() < 0)
     {
-        throw Exception(" Can't open the sensor network.\n");
+        throw EXCEPTION(" Can't open the sensor network.\n", 0);
     }
 }
 

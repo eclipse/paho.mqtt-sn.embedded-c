@@ -29,7 +29,7 @@ char* currentDateTime(void);
 ClientSendTask::ClientSendTask(Gateway* gateway)
 {
     _gateway = gateway;
-    Runnable::threadNo =_gateway->attach((Thread*) this);
+    _gateway->attach((Thread*) this);
     _sensorNetwork = _gateway->getSensorNetwork();
     setTaskName("ClientSendTask");
 }

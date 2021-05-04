@@ -79,23 +79,23 @@ Mutex::Mutex(const char* fileName)
 
 	if ((_shmid = shmget(key, sizeof(pthread_mutex_t), IPC_CREAT | 0666)) < 0)
 	{
-		throw Exception( -1, "Mutex can't create a shared memory.");
+		throw Exception("Mutex can't create a shared memory.", -1);
 	}
 	_pmutex = (pthread_mutex_t*) shmat(_shmid, NULL, 0);
 	if (_pmutex == (void*) -1)
 	{
-		throw Exception( -1, "Mutex can't attach shared memory.");
+		throw Exception("Mutex can't attach shared memory.", -1);
 	}
 
 	pthread_mutexattr_init(&attr);
 
 	if (pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED) != 0)
 	{
-		throw Exception( -1, "Mutex can't set the process-shared flag");
+		throw Exception("Mutex can't set the process-shared flag", -1);
 	}
 	if (pthread_mutex_init(_pmutex, &attr) != 0)
 	{
-		throw Exception( -1, "Mutex can't initialize.");
+		throw Exception("Mutex can't initialize.", -1);
 	}
 }
 
@@ -135,7 +135,7 @@ void Mutex::lock(void)
 			}
 		} catch (char* errmsg)
 		{
-			throw Exception( -1, "The same thread can't acquire a mutex twice.");
+			throw Exception("The same thread can't acquire a mutex twice.", -1);
 		}
 	}
 }
@@ -157,7 +157,7 @@ void Mutex::unlock(void)
 			}
 		} catch (char* errmsg)
 		{
-			throw Exception( -1, "Mutex can't unlock.");
+			throw Exception("Mutex can't unlock.", -1);
 		}
 	}
 }
@@ -225,12 +225,12 @@ NamedSemaphore::NamedSemaphore(const char* name, unsigned int val)
 	_psem = sem_open(name, O_CREAT, 0666, val);
 	if (_psem == SEM_FAILED)
 	{
-		throw Exception( -1, "Semaphore can't be created.");
+		throw Exception("Semaphore can't be created.", -1);
 	}
 	_name = strdup(name);
 	if (_name == NULL)
 	{
-		throw Exception( -1, "Semaphore can't allocate memories.");
+		throw Exception("Semaphore can't allocate memories.", -1);
 	}
 }
 
@@ -298,7 +298,7 @@ RingBuffer::RingBuffer(const char* keyDirectory)
 		}
 		else
 		{
-			throw Exception(-1, "RingBuffer can't attach shared memory.");
+			throw Exception("RingBuffer can't attach shared memory.", -1);
 		}
 	}
 	else if ((_shmid = shmget(key, PROCESS_LOG_BUFFER_SIZE, IPC_CREAT | 0666)) != -1)
@@ -313,12 +313,12 @@ RingBuffer::RingBuffer(const char* keyDirectory)
 		}
 		else
 		{
-			throw Exception(-1, "RingBuffer can't create a shared memory.");
+			throw Exception("RingBuffer can't create a shared memory.", -1);
 		}
 	}
 	else
 	{
-		throw Exception(-1, "RingBuffer can't create a shared memory.");
+		throw Exception( "RingBuffer can't create a shared memory.", -1);
 	}
 
 	_pmx = new Mutex(MQTTSNGW_RB_MUTEX_KEY);
@@ -490,7 +490,7 @@ void RingBuffer::reset()
 	}
 	else
 	{
-		throw Exception(-1, "RingBuffer can't reset. need to clear shared memory.");
+		throw Exception("RingBuffer can't reset. need to clear shared memory.", -1);
 	}
 	_pmx->unlock();
 }

@@ -544,7 +544,7 @@ void Client::setAdapterType(AdapterType type)
         _clientType = Ctype_Aggregater;
         break;
     default:
-        throw Exception("Client::setAdapterType(): Invalid Type.");
+        throw EXCEPTION("Client::setAdapterType(): Invalid Type.", 0);
         break;
     }
 }

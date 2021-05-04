@@ -30,7 +30,7 @@ char* currentDateTime(void);
 BrokerRecvTask::BrokerRecvTask(Gateway* gateway)
 {
     _gateway = gateway;
-    Runnable::threadNo =_gateway->attach((Thread*) this);
+    _gateway->attach((Thread*) this);
     _light = nullptr;
     setTaskName("BrokerRecvTask");
 }

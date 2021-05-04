@@ -20,6 +20,7 @@
 #include "MQTTSNGWProcess.h"
 #include "MQTTSNPacket.h"
 #include "MQTTSNGWClient.h"
+#include "MQTTSNGWProcess.h"
 
 namespace MQTTSNGW
 {
