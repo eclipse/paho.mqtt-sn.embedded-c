@@ -126,7 +126,7 @@ public:
 	int unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendto);
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
-	int initialize(void);
+	void initialize(void);
 	const char* getDescription(void);
 	SensorNetAddress* getSenderAddress(void);
 

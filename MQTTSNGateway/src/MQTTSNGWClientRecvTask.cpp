@@ -45,10 +45,7 @@ ClientRecvTask::~ClientRecvTask()
  */
 void ClientRecvTask::initialize(int argc, char** argv)
 {
-    if (_sensorNetwork->initialize() < 0)
-    {
-        throw EXCEPTION(" Can't open the sensor network.\n", 0);
-    }
+    _sensorNetwork->initialize();
 }
 
 /*

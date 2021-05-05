@@ -119,7 +119,7 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return LoRaLink::recv(buf, bufLen, &_clientAddr);
 }
 
-int SensorNetwork::initialize(void)
+void SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint32_t baudrate = 115200;
@@ -135,15 +135,22 @@ int SensorNetwork::initialize(void)
 	theProcess->getParam("DeviceRxLoRaLink", param);
 	_description += ", SerialRx ";
 	_description += param;
+	errno = 0;
+
 	if ( LoRaLink::open(LORALINK_MODEM_RX, param, baudrate) < 0 )
 	{
-		return -1;
+		throw EXCEPTION("Can't open a LoRaLink", errno);
 	}
 
 	theProcess->getParam("DeviceTxLoRaLink", param);
 	_description += ", SerialTx ";
 	_description += param;
-	return LoRaLink::open(LORALINK_MODEM_TX, param, baudrate);
+	errno = 0;
+
+	if ( LoRaLink::open(LORALINK_MODEM_TX, param, baudrate) < 0 )
+	{
+		throw EXCEPTION("Can't open a LoRaLink", errno);
+	}
 }
 
 const char* SensorNetwork::getDescription(void)

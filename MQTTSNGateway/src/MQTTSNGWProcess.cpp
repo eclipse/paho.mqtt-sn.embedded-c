@@ -336,19 +336,19 @@ int MultiTaskProcess::getParam(const char* parameter, char* value)
 /*=====================================
  Class Exception
  ======================================*/
-Exception::Exception(const char* message, const int exNo)
+Exception::Exception(const char* message, const int errNo)
 {
 	_message = message;
-    _exNo = exNo;
+    _errNo = errNo;
     _fileName = nullptr;
     _functionName = nullptr;
     _line = 0;
 }
-Exception::Exception(const char* message, const int exNo, const char* file,
+Exception::Exception(const char* message, const int errNo, const char* file,
         const char* function, const int line)
 {
 	_message = message;
-    _exNo = exNo;
+    _errNo = errNo;
     _fileName = getFileName(file);;
     _functionName = function;
     _line = line;
@@ -379,36 +379,35 @@ const int Exception::getLineNo()
     return _line;
 }
 
-const int Exception::getExceptionNo()
+const int Exception::getErrNo()
 {
-    return _exNo;
+    return _errNo;
 }
 
 void Exception::writeMessage()
 {
     if (_fileName == nullptr)
     {
-    	if (_exNo == 0)
+    	if (_errNo == 0)
     	{
-    		WRITELOG("%s %s\n", currentDateTime(), _message);
+    		WRITELOG("%s%s %s%s\n", currentDateTime(), RED_HDR, _message, CLR_HDR);
     	}
     	else
     	{
-
-    		WRITELOG("%s %s  ExNo: %d\n", currentDateTime(), _message, _exNo);
+    		WRITELOG("%s%s %s.\n                    errno=%d : %s%s\n", currentDateTime(), RED_HDR,_message, _errNo, strerror(_errNo), CLR_HDR);
     	}
     }
     else
     {
-    	if (_exNo == 0)
+    	if (_errNo == 0)
     	{
-    		WRITELOG("%s %s  line %-4d %s() : %s\n",
-    		    		    currentDateTime(), _fileName, _line, _functionName, _message);
+    		WRITELOG("%s%s %s.  %s line %-4d %s()%s\n",
+    		    		    currentDateTime(), RED_HDR, _message, _fileName, _line, _functionName, CLR_HDR);
     	}
     	else
     	{
-    		WRITELOG("%s %s  line %-4d %s() : %s  ExNo: %d\n",
-        		currentDateTime(), _fileName, _line, _functionName, _message, _exNo);
+        		WRITELOG("%s%s %s.  %s line %-4d %s()\n                    errno=%d : %s%s\n",
+        		currentDateTime(), RED_HDR, _message, _fileName, _line, _functionName, _errNo, strerror(_errNo), CLR_HDR);
     	}
     }
 }

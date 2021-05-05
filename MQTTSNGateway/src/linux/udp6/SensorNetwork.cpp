@@ -169,7 +169,7 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return UDPPort6::recv(buf, bufLen, &_clientAddr);
 }
 
-int SensorNetwork::initialize(void)
+void SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint16_t unicastPortNo = 0;
@@ -209,7 +209,12 @@ int SensorNetwork::initialize(void)
 		_description += param;
 	}
 
-	return UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str(), hops);
+	errno = 0;
+
+	if ( UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str(), hops) < 0 )
+	{
+		throw EXCEPTION("Can't open a UDP6", errno);
+	}
 }
 
 const char* SensorNetwork::getDescription(void)

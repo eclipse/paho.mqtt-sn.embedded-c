@@ -103,19 +103,19 @@ private:
 class Exception: public exception
 {
 public:
-    Exception(const char* message, const int exNo);
-    Exception(const char* message, const int exNo, const char* file, const char* func, int line);
+    Exception(const char* message, const int errNo);
+    Exception(const char* message, const int errNo, const char* file, const char* func, int line);
     virtual ~Exception() throw ();
     const char* getFileName();
     const char* getFunctionName();
     const int getLineNo();
-    const int getExceptionNo();
+    const int getErrNo();
     virtual const char* what() const throw ();
     void writeMessage();
 
 private:
     const char* getFileName(const char* file);
-    int _exNo;
+    int _errNo;
     const char* _message;
     const char* _fileName;
     const char* _functionName;

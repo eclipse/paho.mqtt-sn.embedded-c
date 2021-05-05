@@ -118,7 +118,7 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return XBee::recv(buf, bufLen, &_clientAddr);
 }
 
-int SensorNetwork::initialize(void)
+void SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint32_t baudrate = 9600;
@@ -145,7 +145,12 @@ int SensorNetwork::initialize(void)
 	_description += ", SerialDevice ";
 	_description += param;
 
-	return XBee::open(param, baudrate);
+	errno =0;
+
+	if ( XBee::open(param, baudrate) < 0 )
+	{
+		throw EXCEPTION("Can't open a XBee", errno);
+	}
 }
 
 const char* SensorNetwork::getDescription(void)

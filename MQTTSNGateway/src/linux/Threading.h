@@ -31,6 +31,9 @@ namespace MQTTSNGW
 #define MQTTSNGW_RB_MUTEX_KEY     "rbmutex.key"
 #define MQTTSNGW_RB_SEMAPHOR_NAME "/rbsemaphor"
 
+#define RED_HDR  "\033[0m\033[0;31m"
+#define CLR_HDR  "\033[0m\033[0;37m"
+
 /*=====================================
          Class Mutex
   ====================================*/
@@ -129,9 +132,8 @@ public: void EXECRUN() \
     } \
     catch ( Exception &ex ) \
     { \
-    	WRITELOG("\033[0m\033[0;31m"); \
         ex.writeMessage(); \
-        WRITELOG("\033[0m\033[0;37m%s caught an exception and stopped.\n", getTaskName()); \
+        WRITELOG("%s%s caught an exception and stopped.%s\n", RED_HDR, getTaskName(), CLR_HDR); \
         theMultiTaskProcess->abort(); \
     } \
     theMultiTaskProcess->threadStopped(); \

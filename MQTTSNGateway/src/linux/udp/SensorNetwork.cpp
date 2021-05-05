@@ -177,9 +177,8 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
  *  Prepare UDP sockets and description of SensorNetwork like
  *   "UDP Multicast 225.1.1.1:1883 Gateway Port 10000".
  *   The description is for a start up prompt.
- *  @return success = 0, error = -1
  */
-int SensorNetwork::initialize(void)
+void SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint16_t multicastPortNo = 0;
@@ -224,7 +223,11 @@ int SensorNetwork::initialize(void)
 	}
 
 	/*  Prepare UDP sockets */
-	return UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo, ttl);
+	errno = 0;
+	if ( UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo, ttl) < 0 )
+	{
+		throw EXCEPTION("Can't open a UDP", errno);
+	}
 }
 
 const char* SensorNetwork::getDescription(void)
