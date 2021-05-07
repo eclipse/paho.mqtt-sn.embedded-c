@@ -37,7 +37,7 @@
                             							
                             <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.2137160061" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
                             							
-                            <builder buildPath="${workspace_loc:/MQTTSN-embedded-C}/Debug" id="cdt.managedbuild.target.gnu.builder.exe.debug.767762182" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
+                            <builder buildPath="${workspace_loc:/MQTTSN-embedded-C}/Debug" id="cdt.managedbuild.target.gnu.builder.exe.debug.767762182" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
                             							
                             <tool id="cdt.managedbuild.tool.gnu.archiver.base.602829827" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
                             							
@@ -301,13 +301,9 @@
     	
     <storageModule moduleId="refreshScope" versionNumber="2">
         		
-        <configuration configurationName="Release">
-            			
-            <resource resourceType="PROJECT" workspacePath="/MQTTSN-embedded-C"/>
-            		
-        </configuration>
+        <configuration configurationName="Debug"/>
         		
-        <configuration configurationName="Debug">
+        <configuration configurationName="Release">
             			
             <resource resourceType="PROJECT" workspacePath="/MQTTSN-embedded-C"/>
             		
