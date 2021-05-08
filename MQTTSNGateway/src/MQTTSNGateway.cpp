@@ -317,7 +317,7 @@ void Gateway::run(void)
 
     /* Run Tasks until CTRL+C entered or Exception occurred */
     MultiTaskProcess::run();
-
+    WRITELOG("\n");
     _stopFlg = true;
 
     /* stop Tasks */
@@ -334,7 +334,7 @@ void Gateway::run(void)
     /* wait until all Task stop */
     MultiTaskProcess::waitStop();
 
-    WRITELOG("\n\n%s MQTT-SN Gateway  stopped.\n\n", currentDateTime());
+    WRITELOG("\n%s MQTT-SN Gateway  stopped.\n\n", currentDateTime());
     _lightIndicator.allLightOff();
 }
 
