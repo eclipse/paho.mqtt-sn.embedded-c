@@ -376,6 +376,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 	hints.ai_family = AF_INET6;  // use IPv6
 	hints.ai_socktype = SOCK_DGRAM;
 
+	int err = 0;
 	int port = 0;
 	string portStr;
 	if(addr->getPortNo() != 0)
@@ -387,6 +388,8 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		portStr = to_string(port);
 	}
 
+	errno = 0;
+
 	if(strlen(_interfaceName) != 0)
 	{
 		strcpy(destStr, addr->getAddress());
@@ -394,22 +397,28 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 		strcat(destStr,_interfaceName);
 		if(IN6_IS_ADDR_LINKLOCAL(&addr->getIpAddress()->sin6_addr))
 		{
-			getaddrinfo(destStr, portStr.c_str(), &hints, &res);
+			err = getaddrinfo(destStr, portStr.c_str(), &hints, &res);
 		}
 		else
 		{
-			getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
+			err = getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
 		}
 	} else {
 		strcpy(destStr, addr->getAddress());
-		getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
+		err = getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
+	}
+
+	if ( err != 0)
+	{
+		WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(errno));
+		return err;
 	}
 
 	int status = ::sendto(_sockfdUnicast, buf, length, 0, res->ai_addr, res->ai_addrlen);
 
 	if (status < 0)
 	{
-		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(status));
+		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(errno));
 	}
 
 	return status;
@@ -425,7 +434,7 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	hint.ai_socktype = SOCK_DGRAM;
 	hint.ai_protocol = 0;
 
-
+	errno = 0;
 
 	if(strlen(_interfaceName) != 0)
 	{
@@ -447,15 +456,15 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 	}
 
 	if( err != 0 ) {
-	    WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(err));
+	    WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(errno));
 	    return err;
 	}
 
 	err = sendto(_sockfdMulticast, buf, length, 0, info->ai_addr, info->ai_addrlen );
 
 	if(err < 0 ) {
-	    WRITELOG("UDP6::broadcast - sendto: %s",strerror(err));
-	    return errno;
+	    WRITELOG("UDP6::broadcast - sendto: %s",strerror(errno));
+	    return err;
 	}
 
 	return 0;
