@@ -131,11 +131,11 @@ void Mutex::lock(void)
 		{
 			if (pthread_mutex_lock(&_mutex))
 			{
-				throw;
+				throw Exception("Mutex lock error", errno);
 			}
 		} catch (char* errmsg)
 		{
-			throw Exception("The same thread can't acquire a mutex twice.", -1);
+			throw Exception("The same thread can't acquire a mutex twice", errno);
 		}
 	}
 }
@@ -153,7 +153,7 @@ void Mutex::unlock(void)
 		{
 			if (pthread_mutex_unlock(&_mutex))
 			{
-				throw;
+				throw Exception("Mutex unlock error", errno);
 			}
 		} catch (char* errmsg)
 		{
