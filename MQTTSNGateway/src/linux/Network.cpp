@@ -279,6 +279,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 	char errmsg[256];
 	char peer_CN[256];
 	bool rc;
+	X509* peer = nullptr;
 
 	_mutex.lock();
 	try
@@ -385,7 +386,7 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 			throw false;
 		}
 
-		X509* peer = SSL_get_peer_certificate(_ssl);
+		peer = SSL_get_peer_certificate(_ssl);
 		X509_NAME_get_text_by_NID(X509_get_subject_name(peer), NID_commonName, peer_CN, 256);
 		char* pos = peer_CN;
 		if ( *pos == '*')
@@ -413,7 +414,12 @@ bool Network::connect(const char* host, const char* port, const char* caPath, co
 	{
 		rc = x;
 	}
+
 	_mutex.unlock();
+	if (peer != nullptr)
+	{
+		X509_free(peer);
+	}
 	return rc;
 }
 
