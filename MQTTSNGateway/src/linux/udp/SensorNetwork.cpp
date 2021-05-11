@@ -170,7 +170,7 @@ int SensorNetwork::broadcast(const uint8_t* payload, uint16_t payloadLength)
 
 int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 {
-	return UDPPort::recv(buf, bufLen, &_clientAddr);
+	return UDPPort::recv(buf, bufLen, &_senderAddr);
 }
 
 /**
@@ -237,7 +237,7 @@ const char* SensorNetwork::getDescription(void)
 
 SensorNetAddress* SensorNetwork::getSenderAddress(void)
 {
-	return &_clientAddr;
+	return &_senderAddr;
 }
 
 /*=========================================
@@ -283,8 +283,8 @@ int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortN
 	}
 
 	uint32_t ip = inet_addr(ipAddress);
-	_grpAddr.setAddress(ip, htons(multiPortNo));
-	_clientAddr.setAddress(ip, htons(uniPortNo));
+	_multicastAddr.setAddress(ip, htons(multiPortNo));
+	_unicastAddr.setAddress(ip, htons(uniPortNo));
 	_ttl = ttl;
 
 	/*------ Create unicast socket --------*/
@@ -327,7 +327,7 @@ int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortN
 
 	sockaddr_in addrm;
 	addrm.sin_family = AF_INET;
-	addrm.sin_port = _grpAddr.getPortNo();
+	addrm.sin_port = _multicastAddr.getPortNo();
 	addrm.sin_addr.s_addr = INADDR_ANY;
 
 	if (::bind(_sockfdMulticast, (sockaddr*) &addrm, sizeof(addrm)) < 0)
@@ -344,7 +344,7 @@ int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortN
 
 	ip_mreq mreq;
 	mreq.imr_interface.s_addr = INADDR_ANY;
-	mreq.imr_multiaddr.s_addr = _grpAddr.getIpAddress();
+	mreq.imr_multiaddr.s_addr = _multicastAddr.getIpAddress();
 
 	if (setsockopt(_sockfdMulticast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
 	{
@@ -387,7 +387,7 @@ int UDPPort::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr
 
 int UDPPort::broadcast(const uint8_t* buf, uint32_t length)
 {
-	return unicast(buf, length, &_grpAddr);
+	return unicast(buf, length, &_multicastAddr);
 }
 
 int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
@@ -420,7 +420,7 @@ int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 		}
 		else if (FD_ISSET(_sockfdMulticast, &recvfds))
 		{
-			rc = recvfrom(_sockfdMulticast, buf, len, 0, &_grpAddr);
+			rc = recvfrom(_sockfdMulticast, buf, len, 0, &_multicastAddr);
 		}
 	}
 	return rc;

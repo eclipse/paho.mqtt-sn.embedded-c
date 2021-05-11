@@ -73,8 +73,8 @@ private:
 	int _sockfdUnicast;
 	int _sockfdMulticast;
 
-	SensorNetAddress _grpAddr;
-	SensorNetAddress _clientAddr;
+	SensorNetAddress _multicastAddr;
+	SensorNetAddress _unicastAddr;
 	bool _disconReq;
 	unsigned int _ttl;
 };
@@ -96,7 +96,7 @@ public:
 	SensorNetAddress* getSenderAddress(void);
 
 private:
-	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.
+	SensorNetAddress _senderAddr;
 	string _description;
 };
 
