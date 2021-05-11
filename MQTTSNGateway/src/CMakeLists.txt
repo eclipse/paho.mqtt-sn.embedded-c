@@ -84,7 +84,7 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        ${OS}
        ${OS}/${SENSORNET}
        ../../MQTTSNPacket/src
-       /usr/local/opt/ssl/include
+       /usr/local/opt/openssl/include
        )
 
 TARGET_LINK_LIBRARIES(mqtt-sngateway_common
