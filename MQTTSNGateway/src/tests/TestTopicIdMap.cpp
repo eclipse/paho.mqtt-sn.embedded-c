@@ -32,13 +32,13 @@ TestTopicIdMap::~TestTopicIdMap()
 }
 
 
-bool TestTopicIdMap::testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicTypes type)
+bool TestTopicIdMap::testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicid* topic)
 {
     TopicIdMapElement* elm = _map->getElement((uint16_t)msgid );
     if ( elm )
     {
        //printf("msgid=%d id=%d type=%d\n", msgid, elm->getTopicId(), elm->getTopicType());
-       return elm->getTopicId() == id && elm->getTopicType() == type;
+       return elm->getTopicId() == id && elm->getTopicType() == topic->type;
     }
     //printf("msgid=%d\n", msgid);
     return false;
@@ -49,144 +49,161 @@ bool TestTopicIdMap::testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicTyp
 void TestTopicIdMap::test(void)
 {
 	uint16_t id[MAXID];
+	MQTTSN_topicid topicId;
+	topicId.data.long_.name = const_cast<char*>("topic/test");
+	topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 
 	for ( int i = 0; i < MAXID; i++ )
 	{
 		id[i] = i + 1;
-		_map->add(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL);
+
+		_map->add(id[i], id[i], &topicId);
 	}
 
 	for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
 	{
-		assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+		assert(testGetElement(id[i], id[i], &topicId));
 	}
 
 	for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
+	topicId.type = MQTTSN_TOPIC_TYPE_PREDEFINED;
     for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
 	for ( int i = 0; i < 5; i++ )
 	{
 		_map->erase(id[i]);
 	}
+
+	topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
 	for ( int i = 0; i < 5; i++ )
 	{
-	    assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+
+	    assert(!testGetElement(id[i], id[i],  &topicId));
 	}
 
 	for ( int i = 5; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+        assert(testGetElement(id[i], id[i],  &topicId));
     }
 
 	for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+        assert(!testGetElement(id[i], id[i],  &topicId));
     }
 
 	_map->clear();
 
     for ( int i = 0; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+        assert(!testGetElement(id[i], id[i],  &topicId));
     }
+
+    topicId.type = MQTTSN_TOPIC_TYPE_SHORT;
 
     for ( int i = 0; i < MAXID; i++ )
     {
-        _map->add(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT);
+        _map->add(id[i], id[i], &topicId);
     }
 
     for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
+    topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
     for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_NORMAL));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = 0; i < 5; i++ )
     {
         _map->erase(id[i]);
     }
+
+    topicId.type = MQTTSN_TOPIC_TYPE_SHORT;
     for ( int i = 0; i < 5; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = 5; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     _map->clear();
 
     for ( int i = 0; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
+    topicId.type = MQTTSN_TOPIC_TYPE_PREDEFINED;
     for ( int i = 0; i < MAXID; i++ )
     {
-        _map->add(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED);
+        _map->add(id[i], id[i], &topicId);
     }
 
     for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
+    topicId.type = MQTTSN_TOPIC_TYPE_SHORT;
     for ( int i = 0; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_SHORT));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = 0; i < 5; i++ )
     {
         _map->erase(id[i]);
     }
+
+    topicId.type = MQTTSN_TOPIC_TYPE_PREDEFINED;
     for ( int i = 0; i < 5; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = 5; i < MAX_INFLIGHTMESSAGES * 2 + 1; i++ )
     {
-        assert(testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(testGetElement(id[i], id[i], &topicId));
     }
 
     for ( int i = MAX_INFLIGHTMESSAGES * 2 + 1; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 
     _map->clear();
 
     for ( int i = 0; i < MAXID; i++ )
     {
-        assert(!testGetElement(id[i], id[i], MQTTSN_TOPIC_TYPE_PREDEFINED));
+        assert(!testGetElement(id[i], id[i], &topicId));
     }
 	printf("[ OK ]\n");
 }

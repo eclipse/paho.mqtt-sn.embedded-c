@@ -24,7 +24,7 @@ public:
 	TestTopicIdMap();
 	~TestTopicIdMap();
 	void test(void);
-	bool testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicTypes type);
+	bool testGetElement(uint16_t msgid, uint16_t id, MQTTSN_topicid* topic);
 
 private:
 	TopicIdMap* _map;
