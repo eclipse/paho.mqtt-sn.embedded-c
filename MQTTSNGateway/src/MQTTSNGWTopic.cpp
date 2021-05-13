@@ -408,7 +408,7 @@ TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_to
 
     if (_type == MQTTSN_TOPIC_TYPE_NORMAL)
     {
-    	if ( strchr(topic->data.long_.name, '*') != 0 || strchr(topic->data.long_.name, '+') != 0 )
+    	if ( strchr(topic->data.long_.name, '#') != 0 || strchr(topic->data.long_.name, '+') != 0 )
     	{
     		_wildcard = 1;
     	}
