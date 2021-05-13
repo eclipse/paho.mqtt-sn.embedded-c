@@ -68,6 +68,12 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
             {
                 topic = client->getTopics()->add(topic->getTopicName()->c_str(),
                         topic->getTopicId());
+                if (topic == nullptr)
+                {
+                	WRITELOG("%s Client(%s) can't add the Topic.%s\n",
+                	        ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+                    goto RespExit;
+                }
             }
             else
             {
@@ -90,7 +96,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
             {
                 WRITELOG("%s Client(%s) can't add the Topic.%s\n",
                         ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
-                return nullptr;
+                goto RespExit;
             }
         }
         topicId = topic->getTopicId();

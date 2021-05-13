@@ -127,8 +127,15 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
 
             /* add the Topic and get a TopicId */
             topic = client->getTopics()->add(&topicId);
-            id = topic->getTopicId();
+            if (topic == nullptr)
+            {
+                WRITELOG("%sMQTTGWPublishHandler Can't Add a Topic. MAX_TOPIC_PAR_CLIENT is exceeded.%s\n",
+                        ERRMSG_HEADER, ERRMSG_FOOTER);
+                delete snPacket;
+                return;
+            }
 
+            id = topic->getTopicId();
             if (id > 0)
             {
                 /* create REGISTER */
