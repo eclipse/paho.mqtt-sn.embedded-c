@@ -240,16 +240,25 @@ void MQTTSNPublishHandler::handleRegAck(Client* client, MQTTSNPacket* packet)
             return;
         }
 
+        /* get PUBLISH message */
         MQTTSNPacket* regAck = client->getWaitREGACKPacketList()->getPacket(
                 msgId);
 
         if (regAck != nullptr)
         {
             client->getWaitREGACKPacketList()->erase(msgId);
-            Event* ev = new Event();
-            ev->setClientSendEvent(client, regAck);
-            _gateway->getClientSendQue()->post(ev);
+            if (rc != MQTTSN_RC_ACCEPTED)
+			{
+				delete regAck;
+			}
+            else
+            {
+				Event* ev = new Event();
+				ev->setClientSendEvent(client, regAck);
+				_gateway->getClientSendQue()->post(ev);
+            }
         }
+
         if (client->isHoldPingReqest()
                 && client->getWaitREGACKPacketList()->getCount() == 0)
         {
