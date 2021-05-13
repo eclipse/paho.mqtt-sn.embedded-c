@@ -37,7 +37,7 @@ $ sudo ./bin/MQTT-SNGateway
 # config file of MQTT-SN Gateway
 #
 
-BrokerName=mqtt.eclipse.org
+BrokerName=mqtt.eclipseprojects.io
 BrokerPortNo=1883
 BrokerSecurePortNo=8883
 
