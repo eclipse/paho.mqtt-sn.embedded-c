@@ -111,7 +111,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
         subscribe->setSUBSCRIBE(topicstr, (uint8_t) qos, (uint16_t) msgId);
     }
 
-    client->setWaitedSubTopicId(msgId, topicId, topicFilter.type);
+    client->setWaitedSubTopicId(msgId, topicId, &topicFilter);
 
     if (!client->isAggregated())
     {

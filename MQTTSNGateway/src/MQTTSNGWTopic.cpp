@@ -397,14 +397,22 @@ uint8_t Topics::getCount(void)
 /*=====================================
  Class TopicIdMap
  =====================================*/
-TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId,
-        MQTTSN_topicTypes type)
+TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic)
 {
     _msgId = msgId;
     _topicId = topicId;
-    _type = type;
+    _type = topic->type;
+	_wildcard = 0;
     _next = nullptr;
     _prev = nullptr;
+
+    if (_type == MQTTSN_TOPIC_TYPE_NORMAL)
+    {
+    	if ( strchr(topic->data.long_.name, '*') != 0 || strchr(topic->data.long_.name, '+') != 0 )
+    	{
+    		_wildcard = 1;
+    	}
+    }
 }
 
 TopicIdMapElement::~TopicIdMapElement()
@@ -419,7 +427,14 @@ MQTTSN_topicTypes TopicIdMapElement::getTopicType(void)
 
 uint16_t TopicIdMapElement::getTopicId(void)
 {
-    return _topicId;
+	if (_wildcard > 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return _topicId;
+	}
 }
 
 TopicIdMap::TopicIdMap()
@@ -456,11 +471,10 @@ TopicIdMapElement* TopicIdMap::getElement(uint16_t msgId)
     return 0;
 }
 
-TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId,
-        MQTTSN_topicTypes type)
+TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic)
 {
     if (_cnt > _maxInflight * 2
-            || (topicId == 0 && type != MQTTSN_TOPIC_TYPE_SHORT))
+            || (topicId == 0 && topic->type != MQTTSN_TOPIC_TYPE_SHORT))
     {
         return 0;
     }
@@ -469,7 +483,7 @@ TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId,
         erase(msgId);
     }
 
-    TopicIdMapElement* elm = new TopicIdMapElement(msgId, topicId, type);
+    TopicIdMapElement* elm = new TopicIdMapElement(msgId, topicId, topic);
     if (elm == 0)
     {
         return 0;

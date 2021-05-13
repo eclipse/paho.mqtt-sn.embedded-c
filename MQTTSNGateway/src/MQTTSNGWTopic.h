@@ -81,7 +81,7 @@ class TopicIdMapElement
 {
     friend class TopicIdMap;
 public:
-    TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
     ~TopicIdMapElement();
     MQTTSN_topicTypes getTopicType(void);
     uint16_t getTopicId(void);
@@ -89,6 +89,7 @@ public:
 private:
     uint16_t _msgId;
     uint16_t _topicId;
+    uint8_t _wildcard;
     MQTTSN_topicTypes _type;
     TopicIdMapElement* _next;
     TopicIdMapElement* _prev;
@@ -100,8 +101,7 @@ public:
     TopicIdMap();
     ~TopicIdMap();
     TopicIdMapElement* getElement(uint16_t msgId);
-    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId,
-            MQTTSN_topicTypes type);
+    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId,  MQTTSN_topicid* topic);
     void erase(uint16_t msgId);
     void clear(void);
 private:

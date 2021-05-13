@@ -182,15 +182,14 @@ void Client::clearWaitedSubTopicId(void)
     _waitedSubTopicIdMap.clear();
 }
 
-void Client::setWaitedPubTopicId(uint16_t msgId, uint16_t topicId,
-        MQTTSN_topicTypes type)
+void Client::setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic)
 {
-    _waitedPubTopicIdMap.add(msgId, topicId, type);
+    _waitedPubTopicIdMap.add(msgId, topicId, topic);
 }
-void Client::setWaitedSubTopicId(uint16_t msgId, uint16_t topicId,
-        MQTTSN_topicTypes type)
+
+void Client::setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic)
 {
-    _waitedSubTopicIdMap.add(msgId, topicId, type);
+    _waitedSubTopicIdMap.add(msgId, topicId, topic);
 }
 
 bool Client::checkTimeover(void)

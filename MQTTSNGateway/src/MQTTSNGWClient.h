@@ -198,10 +198,8 @@ public:
 
     int setClientSleepPacket(MQTTGWPacket*);
     int setProxyPacket(MQTTSNPacket* packet);
-    void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId,
-            MQTTSN_topicTypes type);
-    void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId,
-            MQTTSN_topicTypes type);
+    void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
+    void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
 
     bool checkTimeover(void);
     void updateStatus(MQTTSNPacket*);

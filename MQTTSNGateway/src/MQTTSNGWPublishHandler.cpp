@@ -126,7 +126,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     /* Save a msgId & a TopicId pare for PUBACK */
     if (msgId && qos > 0 && qos < 3)
     {
-        client->setWaitedPubTopicId(msgId, topicid.data.id, topicid.type);
+        client->setWaitedPubTopicId(msgId, topicid.data.id, &topicid);
     }
 
     pub.payload = (char*) payload;
