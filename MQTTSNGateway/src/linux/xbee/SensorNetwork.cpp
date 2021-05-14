@@ -11,7 +11,7 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation 
+ *    Tomoaki Yamaguchi - initial API and implementation
  **************************************************************************************/
 
 #include <stdio.h>
@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/select.h>
