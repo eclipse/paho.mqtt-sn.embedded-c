@@ -166,10 +166,8 @@ void ClientRecvTask::run()
 
 			if (client->isDisconnect() && packet->getType() != MQTTSN_CONNECT)
 			{
-				WRITELOG(
-						"%s MQTTSNGWClientRecvTask %s is not connecting.%s\n",
-						ERRMSG_HEADER,
-						client->getClientId(), ERRMSG_FOOTER);
+				WRITELOG("%s MQTTSNGWClientRecvTask %s is not connecting.%s\n",
+				ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
 
 				/* send DISCONNECT to the client, if it is not connected */
 				MQTTSNPacket* snPacket = new MQTTSNPacket();
@@ -268,8 +266,8 @@ void ClientRecvTask::run()
 				{
 					WRITELOG(
 							"%s MQTTSNGWClientRecvTask  Client(%s) is not connecting. message has been discarded.%s\n",
-							ERRMSG_HEADER,
-							senderAddr->sprint(buf), ERRMSG_FOOTER);
+							ERRMSG_HEADER, senderAddr->sprint(buf),
+							ERRMSG_FOOTER);
 				}
 				delete packet;
 			}

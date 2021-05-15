@@ -142,19 +142,6 @@ void BrokerRecvTask::run(void)
 											ERRMSG_FOOTER);
 									client->getNetwork()->close();
 									client->disconnected();
-
-									/*
-                                    client->getNetwork()->close();
-                                    delete packet;
-
-
-                                    if (client)
-                                    {
-                                        client = client->getNextClient();
-                                    }
-                                    continue;
-									 */
-
                                 }
                                 else if (rc == -1)
                                 {
@@ -188,14 +175,6 @@ void BrokerRecvTask::run(void)
                                                 || client->isSleep()
                                                 || client->isAwake()))
                                 {
-                                    /* disconnect the client */
-									/*
-                                    packet = new MQTTGWPacket();
-                                    packet->setHeader(DISCONNECT);
-                                    ev = new Event();
-                                    ev->setBrokerRecvEvent(client, packet);
-                                    _gateway->getPacketEventQue()->post(ev);
-									 */
 									client->getNetwork()->close();
 									client->disconnected();
                                 }
