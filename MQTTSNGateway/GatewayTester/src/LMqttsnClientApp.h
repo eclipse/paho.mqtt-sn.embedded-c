@@ -92,6 +92,7 @@ typedef enum
 #define SUBSCRIBE(...)   theClient->subscribe(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theClient->unsubscribe(__VA_ARGS__)
 #define DISCONNECT(...)  theClient->disconnect(__VA_ARGS__)
+#define ONCONNECT() theClient->getSubscribeManager()->onConnect()
 
 #define TASK_LIST         TaskList theTaskList[]
 #define TASK(...)         {__VA_ARGS__, 0, 0}
@@ -104,8 +105,11 @@ typedef enum
 #define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
 #define UDPCONF  LUdpConfig theNetcon
 #define MQTTSNCONF LMqttsnConfig  theMqcon
+
 #define SetForwarderMode(...)  theClient->getGwProxy()->setForwarderMode(__VA_ARGS__)
 #define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)
+#define SetAutoConnectMode(...) theClient->setAutoConnectMode(__VA_ARGS__)
+#define SetAutoPingReqMode(...) theClient->getGwProxy()->setPingReqMode(__VA_ARGS__)
 
 #ifdef CLIENT_MODE
 #define DISPLAY(...)

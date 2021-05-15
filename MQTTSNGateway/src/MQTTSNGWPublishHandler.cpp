@@ -121,12 +121,14 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
         {
             pub.topic = (char*) topic->getTopicName()->data();
             pub.topiclen = topic->getTopicName()->length();
+			topicid.data.long_.name = pub.topic;
+			topicid.data.long_.len = pub.topiclen;
         }
     }
     /* Save a msgId & a TopicId pare for PUBACK */
     if (msgId && qos > 0 && qos < 3)
     {
-        client->setWaitedPubTopicId(msgId, topicid.data.id, &topicid);
+		client->setWaitedPubTopicId(msgId, topicid.data.id, &topicid);
     }
 
     pub.payload = (char*) payload;

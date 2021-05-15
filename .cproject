@@ -133,7 +133,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="MQTTSNGateway/src/linux/udp6|MQTTSNGateway/src/linux/loralink|MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples|MQTTSNClient|MQTTSNGateway/src/MQTTSNGWProxy.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+                        <entry excluding="MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples/ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/ClientSub|MQTTSNGateway/GatewayTester/samples/ClientPub|MQTTSNGateway/src/linux/udp6|MQTTSNGateway/src/linux/loralink|MQTTSNClient|MQTTSNGateway/src/MQTTSNGWProxy.cpp|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/src/linux/xbee|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src/tests|MQTTSNGateway/src/tests/mainTestProcessFramework.cpp|ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				
@@ -273,7 +273,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="MQTTSNGateway/src/tests/mainTestProcess.cpp|MQTTSNGateway/src/linux|MQTTSNPacket/src|MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples|MQTTSNClient|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|ClientPubQoS-1" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+                        <entry excluding="MQTTSNGateway/GatewayTester|MQTTSNGateway/GatewayTester/samples/ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/ClientSub|MQTTSNGateway/GatewayTester/samples/ClientPub|MQTTSNGateway/src/tests/mainTestProcess.cpp|MQTTSNGateway/src/linux|MQTTSNPacket/src|MQTTSNClient|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|ClientPubQoS-1" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
                         						
                         <entry excluding="udp6|xbee|loralink" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="MQTTSNGateway/src/linux"/>
                         						

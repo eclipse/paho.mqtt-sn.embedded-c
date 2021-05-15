@@ -51,25 +51,25 @@ extern LScreen* theScreen;
 /*------------------------------------------------------
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
-UDPCONF  = {
-	"GatewayTestClient", // ClientId
-	{225,1,1,1},         // Multicast group IP
-	1883,                // Multicast group Port
-	20020,               // Local PortNo
-};
+UDPCONF =
+{ "GatewayTestClient", // ClientId
+		{ 225, 1, 1, 1 },         // Multicast group IP
+		1883,                // Multicast group Port
+		20020,               // Local PortNo
+		};
 
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
-MQTTSNCONF = {
-	60,            //KeepAlive [seconds]
-	true,          //Clean session
-	300,           //Sleep duration [seconds]
-	"",            //WillTopic
-	"",            //WillMessage
-    0,             //WillQos
-    false          //WillRetain
-};
+MQTTSNCONF =
+{ 60,            //KeepAlive [seconds]
+		true,          //Clean session
+		300,           //Sleep duration [seconds]
+		"",            //WillTopic
+		"",            //WillMessage
+		0,             //WillQos
+		false          //WillRetain
+		};
 
 /*------------------------------------------------------
  *     Define Topics
@@ -83,32 +83,31 @@ const char* topic52 = "ty4tw/topic5/2";
 const char* topic53 = "ty4tw/topic5/3";
 const char* topic50 = "ty4tw/topic5/+";
 
-
 /*------------------------------------------------------
  *       Callback routines for Subscribed Topics
  *------------------------------------------------------*/
 int on_Topic01(uint8_t* pload, uint16_t ploadlen)
 {
 	DISPLAY("\n\nTopic1 recv.\n");
-	char c = pload[ploadlen-1];
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s%c<--\n\n",pload, c);
+	char c = pload[ploadlen - 1];
+	pload[ploadlen - 1] = 0;   // set null terminator
+	DISPLAY("Payload -->%s%c<--\n\n", pload, c);
 	return 0;
 }
 
 int on_Topic02(uint8_t* pload, uint16_t ploadlen)
 {
 	DISPLAY("\n\nTopic2 recv.\n");
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s　<--\n\n",pload);
+	pload[ploadlen - 1] = 0;   // set null terminator
+	DISPLAY("Payload -->%s　<--\n\n", pload);
 	return 0;
 }
 
 int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 {
 	DISPLAY("\n\nNew callback recv Topic3\n");
-	pload[ploadlen-1]= 0;   // set null terminator
-	DISPLAY("Payload -->%s　<--\n\n",pload);
+	pload[ploadlen - 1] = 0;   // set null terminator
+	DISPLAY("Payload -->%s　<--\n\n", pload);
 	return 0;
 }
 
@@ -116,26 +115,26 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
 
-SUBSCRIBE_LIST = {// e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
-				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
-				  SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
-				  END_OF_SUBSCRIBE_LIST
-				 };
-
+SUBSCRIBE_LIST =
+{   // e.g. SUB(TopicType, topicName, TopicId, callback, QoSx),
+	SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic1, 0, on_Topic01, QoS1),
+	SUB(MQTTSN_TOPIC_TYPE_NORMAL, topic2, 0, on_Topic02, QoS1),
+	END_OF_SUBSCRIBE_LIST
+};
 
 /*------------------------------------------------------
  *    Test functions
  *------------------------------------------------------*/
 void subscribePredefTopic1(void)
 {
-    SUBSCRIBE(1, on_Topic03, QoS1);
+	SUBSCRIBE(1, on_Topic03, QoS1);
 }
 
 void publishTopic1(void)
 {
 	char payload[300];
 	sprintf(payload, "publish \"ty4tw/Topic1\" \n");
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), QoS0);
+	PUBLISH(topic1, (uint8_t* )payload, strlen(payload), QoS0);
 }
 
 void subscribeTopic10(void)
@@ -147,10 +146,8 @@ void publishTopic2(void)
 {
 	char payload[300];
 	sprintf(payload, "publish \"ty4tw/topic2\" \n");
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), QoS1);
+	PUBLISH(topic2, (uint8_t* )payload, strlen(payload), QoS1);
 }
-
-
 
 void unsubscribe(void)
 {
@@ -167,7 +164,7 @@ void test3(void)
 	char payload[300];
 	sprintf(payload, "TEST3 ");
 	uint8_t qos = 0;
-	PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
+	PUBLISH(topic2, (uint8_t* )payload, strlen(payload), qos);
 }
 
 void disconnect(void)
@@ -180,48 +177,71 @@ void asleep(void)
 	DISCONNECT(theMqcon.sleepDuration);
 }
 
+void onconnect(void)
+{
+	ONCONNECT();
+}
+
+void connect(void)
+{
+	CONNECT();
+}
+
+
+void DisableAutoPingreq(void)
+{
+	SetAutoPingReqMode(false);
+}
+
 /*------------------------------------------------------
  *    A List of Test functions is valid in case of
  *    line 23 of LMqttsnClientApp.h is commented out.
  *    //#define CLIENT_MODE
  *------------------------------------------------------*/
 
-TEST_LIST = {// e.g. TEST( Label, Test),
-            TEST("Step0:Subscribe predef topic1",     subscribePredefTopic1),
-			 TEST("Step1:Publish topic1",     publishTopic1),
-			 TEST("Step2:Publish topic2",     publishTopic2),
-			 TEST("Step3:Subscribe PreDefined topic10. ID is not defined.",   subscribeTopic10),
-			 TEST("Step4:Publish topic2",     publishTopic2),
-			 TEST("Step5:Unsubscribe topic2", unsubscribe),
-			 TEST("Step6:Publish topic2",     publishTopic2),
-			 TEST("Step7:subscribe again",    subscribechangeCallback),
-			 TEST("Step8:Publish topic2",     publishTopic2),
-			 TEST("Step9:Sleep     ",         asleep),
-			 TEST("Step10:Publish topic1",    publishTopic1),
-			 TEST("Step11:Disconnect",        disconnect),
-			 END_OF_TEST_LIST
-			};
-
+TEST_LIST =
+{   // e.g. TEST( Label, Test),
+	TEST("Step0:Connect", connect),
+	TEST("Step1:Subscribe list", onconnect),
+	TEST("Step2:Subscribe predef topic1", subscribePredefTopic1),
+	TEST("Step3:Publish topic1", publishTopic1),
+	TEST("Step4:Publish topic2", publishTopic2),
+	TEST("Step5:Subscribe PreDefined topic10. ID is not defined.", subscribeTopic10),
+	TEST("Step6:Publish topic2", publishTopic2),
+	TEST("Step7:Unsubscribe topic2", unsubscribe),
+	TEST("Step8:Publish topic2", publishTopic2),
+	TEST("Step9:subscribe again", subscribechangeCallback),
+	TEST("Step10:Publish topic2", publishTopic2),
+	TEST("Step11:Sleep     ", asleep),
+	TEST("Step12:Publish topic1", publishTopic1),
+	TEST("Step13:Disconnect", disconnect),
+	TEST("Step14:Publish topic2", publishTopic1),
+	TEST("Step15:Connect", connect),
+	TEST("Step16:Publish topic2", publishTopic2),
+	TEST("Step17:Auto Pingreq mode off", DisableAutoPingreq),
+	TEST("Step18:Publish topic2", publishTopic1),
+	TEST("Step19:Disconnect", disconnect),
+	END_OF_TEST_LIST
+};
 
 /*------------------------------------------------------
  *    List of tasks is valid in case of line23 of
  *    LMqttsnClientApp.h is uncommented.
  *    #define CLIENT_MODE
  *------------------------------------------------------*/
-TASK_LIST = {// e.g. TASK( task, executing duration in second),
-			TASK(publishTopic1, 4),  // publishTopic1() is executed every 4 seconds
-			TASK(publishTopic2, 7),  // publishTopic2() is executed every 7 seconds
-             END_OF_TASK_LIST
-            };
-
+TASK_LIST =
+{   // e.g. TASK( task, executing duration in second),
+	TASK(publishTopic1, 4),// publishTopic1() is executed every 4 seconds
+	TASK(publishTopic2, 7),// publishTopic2() is executed every 7 seconds
+	END_OF_TASK_LIST
+};
 
 /*------------------------------------------------------
  *    Initialize function
  *------------------------------------------------------*/
 void setup(void)
 {
-    SetForwarderMode(false);
+	SetForwarderMode(false);
 }
-
 
 /*****************  END OF  PROGRAM ********************/

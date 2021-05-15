@@ -54,7 +54,7 @@ void BrokerRecvTask::run(void)
 {
     struct timeval timeout;
     MQTTGWPacket* packet = nullptr;
-    int rc;
+	int rc;
     Event* ev = nullptr;
     fd_set rset;
     fd_set wset;
@@ -100,6 +100,7 @@ void BrokerRecvTask::run(void)
         {
             /* Check sockets is ready to read */
             int activity = select(maxSock + 1, &rset, 0, 0, &timeout);
+
             if (activity > 0)
             {
                 client = _gateway->getClientList()->getClient(0);
@@ -134,17 +135,26 @@ void BrokerRecvTask::run(void)
                             {
                                 if (rc == 0)  // Disconnected
                                 {
+									WRITELOG(
+											"%s BrokerRecvTask %s is disconnected by the broker.%s\n",
+											ERRMSG_HEADER,
+											client->getClientId(),
+											ERRMSG_FOOTER);
+									client->getNetwork()->close();
+									client->disconnected();
+
+									/*
                                     client->getNetwork()->close();
                                     delete packet;
 
-                                    /* delete client when the client is not authorized & session is clean */
-                                    _gateway->getClientList()->erase(client);
 
                                     if (client)
                                     {
                                         client = client->getNextClient();
                                     }
                                     continue;
+									 */
+
                                 }
                                 else if (rc == -1)
                                 {
@@ -165,7 +175,7 @@ void BrokerRecvTask::run(void)
                                 else if (rc == -3)
                                 {
                                     WRITELOG(
-                                            "%s BrokerRecvTask can't get memories for the packet %s%s\n",
+											"%s BrokerRecvTask can't allocate memories for the packet %s%s\n",
                                             ERRMSG_HEADER,
                                             client->getClientId(),
                                             ERRMSG_FOOTER);
@@ -173,22 +183,26 @@ void BrokerRecvTask::run(void)
 
                                 delete packet;
 
-                                if ((rc == -1 || rc == -2)
+								if ((rc == -1 || rc == -2)
                                         && (client->isActive()
                                                 || client->isSleep()
                                                 || client->isAwake()))
                                 {
                                     /* disconnect the client */
+									/*
                                     packet = new MQTTGWPacket();
                                     packet->setHeader(DISCONNECT);
                                     ev = new Event();
                                     ev->setBrokerRecvEvent(client, packet);
                                     _gateway->getPacketEventQue()->post(ev);
+									 */
+									client->getNetwork()->close();
+									client->disconnected();
                                 }
                             }
                         }
-                    }
-                    nextClient: client = client->getNextClient();
+					}
+					nextClient: client = client->getNextClient();
                 }
             }
         }

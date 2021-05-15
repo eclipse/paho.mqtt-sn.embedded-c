@@ -70,6 +70,7 @@ public:
     void sendSuspend(const char* topicName, uint16_t topicId, uint8_t topicType);
     bool isDone(void);
     bool isMaxFlight(void);
+	void setAutoConnectMode(bool);
 private:
     PubElement* getElement(uint16_t msgId);
     PubElement* getElement(const char* topicName);
@@ -84,7 +85,8 @@ private:
 	PubElement* _last;
 	uint8_t     _elmCnt;
 	uint8_t     _publishedFlg;
+	uint8_t _autoConnectFlg;
 };
- 
+
 } /* tomyAsyncClient */
 #endif /* PUBLISHMANAGER_H_ */

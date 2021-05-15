@@ -63,6 +63,7 @@ public:
     void addTask(bool test);
     void setSleepDuration(uint32_t duration);
     void setSleepMode(uint32_t duration);
+	void setAutoConnectMode(uint8_t flg);
     void sleep(void);
 	const char* getClientId(void);
 	uint16_t getTopicId(const char* topicName);
@@ -78,6 +79,7 @@ private:
     LSubscribeManager _subMgr;
     LGwProxy          _gwProxy;
     uint32_t          _sleepDuration;
+	uint8_t _isAutoConnect;
 };
 
 

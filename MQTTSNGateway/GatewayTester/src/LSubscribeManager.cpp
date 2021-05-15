@@ -122,6 +122,7 @@ void LSubscribeManager::send(SubElement* elm)
     {
         return;
     }
+
     uint8_t msg[MQTTSN_MAX_MSG_LENGTH + 1];
     if (elm->topicType == MQTTSN_TOPIC_TYPE_PREDEFINED)
     {

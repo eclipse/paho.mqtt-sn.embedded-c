@@ -77,6 +77,8 @@ int main(int argc, char** argv)
 			break;
 		}
 	}
+	theClient->setAutoConnectMode(false);
+	theClient->getPublishManager()->setAutoConnectMode(false);
 #endif
 
 	setup();
@@ -98,7 +100,7 @@ int main(int argc, char** argv)
  ======================================*/
 LMqttsnClient::LMqttsnClient()
 {
-
+	_isAutoConnect = true;
 }
 
 LMqttsnClient::~LMqttsnClient()
@@ -205,8 +207,18 @@ void LMqttsnClient::disconnect(uint16_t sleepInSecs)
 
 void LMqttsnClient::run()
 {
-	_gwProxy.connect();
+	if (_isAutoConnect)
+	{
+		_gwProxy.connect();
+	}
 	_taskMgr.run();
+}
+
+void LMqttsnClient::setAutoConnectMode(uint8_t flg)
+{
+	_isAutoConnect = flg;
+	_pubMgr.setAutoConnectMode(flg);
+	_gwProxy.setAutoConnectMode(flg);
 }
 
 void LMqttsnClient::setSleepMode(uint32_t duration)
@@ -227,7 +239,10 @@ void LMqttsnClient::setSleepDuration(uint32_t duration)
 
 void LMqttsnClient::onConnect(void)
 {
+	if (_isAutoConnect)
+	{
         _subMgr.onConnect();
+	}
 }
 
 const char* LMqttsnClient::getClientId(void)

@@ -57,6 +57,8 @@ LGwProxy::LGwProxy()
     _initialized = 0;
     _isForwarderMode = false;
     _isQoSMinus1Mode = false;
+	_isPingReqMode = true;
+	_isAutoConnectMode = true;
 }
 
 LGwProxy::~LGwProxy()
@@ -231,9 +233,12 @@ int LGwProxy::getConnectResponce(void)
 
 void LGwProxy::reconnect(void)
 {
-    D_MQTTLOG("...Gateway reconnect\r\n");
-    _status = GW_DISCONNECTED;
-    connect();
+	if (_isAutoConnectMode)
+	{
+		D_MQTTLOG("...Gateway reconnect\r\n");
+		_status = GW_DISCONNECTED;
+		connect();
+	}
 }
 
 void LGwProxy::disconnect(uint16_t secs)
@@ -395,7 +400,7 @@ int LGwProxy::getMessage(void)
     }
     else if (_mqttsnMsg[0] == MQTTSN_TYPE_DISCONNECT)
     {
-        _status = GW_LOST;
+		_status = GW_DISCONNECTED;
         _gwAliveTimer.stop();
         _keepAliveTimer.stop();
     }
@@ -586,7 +591,7 @@ uint16_t LGwProxy::getNextMsgId(void)
 
 void LGwProxy::checkPingReq(void)
 {
-    if ( _isQoSMinus1Mode )
+	if (_isQoSMinus1Mode || _isPingReqMode == false)
     {
         return;
     }
@@ -670,4 +675,19 @@ void LGwProxy::setForwarderMode(bool valid)
 void LGwProxy::setQoSMinus1Mode(bool valid)
 {
     _isQoSMinus1Mode = valid;
+}
+
+void LGwProxy::setPingReqMode(bool valid)
+{
+	_isPingReqMode = valid;
+}
+
+void LGwProxy::setAutoConnectMode(bool valid)
+{
+	_isAutoConnectMode = valid;
+}
+
+uint8_t LGwProxy::getStatus(void)
+{
+	return _status;
 }
