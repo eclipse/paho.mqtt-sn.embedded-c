@@ -68,7 +68,8 @@ public:
     void     setForwarderMode(bool valid);
     void     setQoSMinus1Mode(bool valid);
 	void     setPingReqMode(bool valid);
-	void setAutoConnectMode(bool valid);
+	void     setAutoConnectMode(bool valid);
+	void     setCleanSession(bool valid);
     void     reconnect(void);
     int      writeMsg(const uint8_t* msg);
     void     setPingReqTimer(void);
@@ -112,10 +113,10 @@ private:
     LTimer       _keepAliveTimer;
     uint16_t    _tSleep;
     uint16_t    _tWake;
-    bool _isForwarderMode;
-    bool _isQoSMinus1Mode;
-	bool _isPingReqMode;
-	bool _isAutoConnectMode;
+    bool        _isForwarderMode;
+    bool        _isQoSMinus1Mode;
+	bool        _isPingReqMode;
+	bool        _isAutoConnectMode;
     char        _msg[MQTTSN_MAX_MSG_LENGTH + 1];
 };
 

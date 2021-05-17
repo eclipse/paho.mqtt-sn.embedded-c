@@ -110,7 +110,7 @@ typedef enum
 #define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)
 #define SetAutoConnectMode(...) theClient->setAutoConnectMode(__VA_ARGS__)
 #define SetAutoPingReqMode(...) theClient->getGwProxy()->setPingReqMode(__VA_ARGS__)
-
+#define SetCleanSessionMode(...) theClient->getGwProxy()->setCleanSession(__VA_ARGS__)
 #ifdef CLIENT_MODE
 #define DISPLAY(...)
 #define PROMPT(...)

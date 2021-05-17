@@ -78,6 +78,7 @@ const char* topic1 = "ty4tw/topic1";
 const char* topic2 = "ty4tw/topic2";
 const char* topic3 = "ty4tw/topic3";
 const char* topic4 = "ty4tw/topic4";
+const char* topic40 = "ty4tw/#";
 const char* topic51 = "ty4tw/topic5/1";
 const char* topic52 = "ty4tw/topic5/2";
 const char* topic53 = "ty4tw/topic5/3";
@@ -111,6 +112,14 @@ int on_Topic03(uint8_t* pload, uint16_t ploadlen)
 	return 0;
 }
 
+int on_TopicWildcard(uint8_t* pload, uint16_t ploadlen)
+{
+	DISPLAY("\n\nNew callback recv TopicWildcard\n");
+	pload[ploadlen - 1] = 0;   // set null terminator
+	DISPLAY("Payload -->%s　<--\n\n", pload);
+	return 0;
+}
+
 /*------------------------------------------------------
  *      A Link list of Callback routines and Topics
  *------------------------------------------------------*/
@@ -137,17 +146,30 @@ void publishTopic1(void)
 	PUBLISH(topic1, (uint8_t* )payload, strlen(payload), QoS0);
 }
 
-void subscribeTopic10(void)
-{
-	SUBSCRIBE(10, on_Topic02, QoS1);
-}
-
 void publishTopic2(void)
 {
 	char payload[300];
 	sprintf(payload, "publish \"ty4tw/topic2\" \n");
 	PUBLISH(topic2, (uint8_t* )payload, strlen(payload), QoS1);
 }
+
+void publishTopic4(void)
+{
+	char payload[300];
+	sprintf(payload, "publish \"ty4tw/topic40\" \n");
+	PUBLISH(topic4, (uint8_t* )payload, strlen(payload), QoS1);
+}
+
+void subscribeTopic10(void)
+{
+	SUBSCRIBE(10, on_Topic02, QoS1);
+}
+
+void subscribeWildcardTopic(void)
+{
+	SUBSCRIBE(topic40, on_Topic04, QoS1);
+}
+
 
 void unsubscribe(void)
 {
@@ -187,10 +209,14 @@ void connect(void)
 	CONNECT();
 }
 
-
 void DisableAutoPingreq(void)
 {
 	SetAutoPingReqMode(false);
+}
+
+void CleanSessionOff(void)
+{
+	SetCleanSession(false);
 }
 
 /*------------------------------------------------------
@@ -212,6 +238,12 @@ TEST_LIST =
 	TEST("Step8:Publish topic2", publishTopic2),
 	TEST("Step9:subscribe again", subscribechangeCallback),
 	TEST("Step10:Publish topic2", publishTopic2),
+
+	TEST("Step10:Reset Clean Session", CleanSessionOff),
+
+	// SUBSCRIBE wildcard topic topic4
+	TEST("Step9:subscribe wildcard topic", subscribechangeCallback),
+
 	TEST("Step11:Sleep     ", asleep),
 	TEST("Step12:Publish topic1", publishTopic1),
 	TEST("Step13:Disconnect", disconnect),

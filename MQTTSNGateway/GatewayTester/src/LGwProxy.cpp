@@ -687,6 +687,11 @@ void LGwProxy::setAutoConnectMode(bool valid)
 	_isAutoConnectMode = valid;
 }
 
+void LGwProxy::setCleanSession(bool valid)
+{
+	_cleanSession = valid;
+}
+
 uint8_t LGwProxy::getStatus(void)
 {
 	return _status;
