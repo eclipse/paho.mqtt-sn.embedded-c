@@ -56,7 +56,7 @@ public:
     ~LSubscribeManager();
     void onConnect(void);
     void subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos);
-    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
+	void subscribePredefinedId(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
     void unsubscribe(const char* topicName);
     void unsubscribe(uint16_t topicId);
     void responce(const uint8_t* msg);

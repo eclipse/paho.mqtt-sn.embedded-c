@@ -136,13 +136,13 @@ SUBSCRIBE_LIST =
  *------------------------------------------------------*/
 void subscribePredefTopic1(void)
 {
-	SUBSCRIBE(1, on_Topic03, QoS1);
+	SUBSCRIBE_PREDEF(1, on_Topic03, QoS1);
 }
 
 void publishTopic1(void)
 {
 	char payload[300];
-	sprintf(payload, "publish \"ty4tw/Topic1\" \n");
+	sprintf(payload, "publish \"ty4tw/topic1\" \n");
 	PUBLISH(topic1, (uint8_t* )payload, strlen(payload), QoS0);
 }
 
@@ -162,12 +162,12 @@ void publishTopic4(void)
 
 void subscribeTopic10(void)
 {
-	SUBSCRIBE(10, on_Topic02, QoS1);
+	SUBSCRIBE_PREDEF(10, on_Topic02, QoS1);
 }
 
 void subscribeWildcardTopic(void)
 {
-	SUBSCRIBE(topic40, on_Topic04, QoS1);
+	SUBSCRIBE(topic50, on_TopicWildcard, QoS1);
 }
 
 
@@ -239,10 +239,9 @@ TEST_LIST =
 	TEST("Step9:subscribe again", subscribechangeCallback),
 	TEST("Step10:Publish topic2", publishTopic2),
 
-	TEST("Step10:Reset Clean Session", CleanSessionOff),
+	//TEST("Step10:Reset Clean Session", CleanSessionOff),
 
-	// SUBSCRIBE wildcard topic topic4
-	TEST("Step9:subscribe wildcard topic", subscribechangeCallback),
+	//TEST("Step9:subscribe wildcard topic", subscribechangeCallback),
 
 	TEST("Step11:Sleep     ", asleep),
 	TEST("Step12:Publish topic1", publishTopic1),

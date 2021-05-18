@@ -90,6 +90,7 @@ typedef enum
 #define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)
 #define PUBLISH(...)     theClient->publish(__VA_ARGS__)
 #define SUBSCRIBE(...)   theClient->subscribe(__VA_ARGS__)
+#define SUBSCRIBE_PREDEF(...)   theClient->subscribePredefinedId(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theClient->unsubscribe(__VA_ARGS__)
 #define DISCONNECT(...)  theClient->disconnect(__VA_ARGS__)
 #define ONCONNECT() theClient->getSubscribeManager()->onConnect()
@@ -110,7 +111,7 @@ typedef enum
 #define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)
 #define SetAutoConnectMode(...) theClient->setAutoConnectMode(__VA_ARGS__)
 #define SetAutoPingReqMode(...) theClient->getGwProxy()->setPingReqMode(__VA_ARGS__)
-#define SetCleanSessionMode(...) theClient->getGwProxy()->setCleanSession(__VA_ARGS__)
+#define SetCleanSession(...) theClient->getGwProxy()->setSessionMode(__VA_ARGS__)
 #ifdef CLIENT_MODE
 #define DISPLAY(...)
 #define PROMPT(...)

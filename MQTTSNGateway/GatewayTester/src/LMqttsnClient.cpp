@@ -185,9 +185,10 @@ void LMqttsnClient::subscribe(const char* topicName, TopicCallback onPublish, ui
 	_subMgr.subscribe(topicName, onPublish, qos);
 }
 
-void LMqttsnClient::subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos)
+void LMqttsnClient::subscribePredefinedId(uint16_t topicId, TopicCallback onPublish,
+		uint8_t qos)
 {
-	_subMgr.subscribe(topicId, onPublish, qos);
+	_subMgr.subscribePredefinedId(topicId, onPublish, qos);
 }
 
 void LMqttsnClient::unsubscribe(const char* topicName)

@@ -67,7 +67,9 @@ void LSubscribeManager::onConnect(void)
         {
             if ( theOnPublishList[i].type == MQTTSN_TOPIC_TYPE_PREDEFINED)
             {
-                subscribe(theOnPublishList[i].id, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
+				subscribePredefinedId(theOnPublishList[i].id,
+						theOnPublishList[i].pubCallback,
+						theOnPublishList[i].qos);
             }
             else
             {
@@ -170,7 +172,7 @@ void LSubscribeManager::subscribe(const char* topicName, TopicCallback onPublish
     send(elm);
 }
 
-void LSubscribeManager::subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos)
+void LSubscribeManager::subscribePredefinedId(uint16_t topicId, TopicCallback onPublish, uint8_t qos)
 {
     SubElement* elm = add(MQTTSN_TYPE_SUBSCRIBE, 0, MQTTSN_TOPIC_TYPE_PREDEFINED, topicId,  qos, onPublish);
     send(elm);
@@ -263,7 +265,9 @@ void LSubscribeManager::responce(const uint8_t* msg)
         }
         else
         {
-            DISPLAY("\033[0m\033[0;31m UNSUBACK Invalid messageId. \033[0m\033[0;37m\n\n");
+			DISPLAY(
+					"\033[0m\033[0;31m UNSUBACK Invalid messageId=%04x. \033[0m\033[0;37m\n\n",
+					msgId);
         }
     }
 }

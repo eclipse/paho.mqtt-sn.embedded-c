@@ -117,7 +117,7 @@ void publishTopic57(void)
     char payload[300];
     sprintf(payload, "publish \"ty4tw/topic57\" \n");
     uint8_t qos = 0;
-    PUBLISH(topic2,(uint8_t*)payload, strlen(payload), qos);
+	PUBLISH(topic57, (uint8_t* )payload, strlen(payload), qos);
 }
 
 

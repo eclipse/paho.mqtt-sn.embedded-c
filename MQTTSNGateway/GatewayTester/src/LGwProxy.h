@@ -69,7 +69,7 @@ public:
     void     setQoSMinus1Mode(bool valid);
 	void     setPingReqMode(bool valid);
 	void     setAutoConnectMode(bool valid);
-	void     setCleanSession(bool valid);
+	void     setSessionMode(bool valid);
     void     reconnect(void);
     int      writeMsg(const uint8_t* msg);
     void     setPingReqTimer(void);
