@@ -254,6 +254,7 @@ public:
     bool isSecureNetwork(void);
     bool isSensorNetStable(void);
     bool isWaitWillMsg(void);
+	bool isCleanSession(void);
 
     void holdPingRequest(void);
     void resetPingRequest(void);

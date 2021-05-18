@@ -323,6 +323,11 @@ void Client::tryConnect(void)
     _status = Cstat_TryConnecting;
 }
 
+bool Client::isCleanSession(void)
+{
+	return _sessionStatus;
+}
+
 bool Client::isConnectSendable(void)
 {
     if (_status == Cstat_Lost || _status == Cstat_TryConnecting)

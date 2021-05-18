@@ -63,6 +63,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
 
         if (!topic)
         {
+			/* Search the topic in Client common topic table */
             topic = _gateway->getTopics()->getTopicById(&topicFilter);
             if (topic)
             {
@@ -133,7 +134,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
 
     RespExit: MQTTSNPacket* sSuback = new MQTTSNPacket();
     sSuback->setSUBACK(qos, topicFilter.data.id, msgId,
-            MQTTSN_RC_NOT_SUPPORTED);
+			MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
     evsuback = new Event();
     evsuback->setClientSendEvent(client, sSuback);
     _gateway->getClientSendQue()->post(evsuback);
