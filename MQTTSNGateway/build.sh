@@ -14,4 +14,6 @@ else
     make MQTTSNPacket
     make MQTT-SNGateway
     make MQTT-SNLogmonitor
+    cd  ../MQTTSNGateway
+    cp *.conf ./bin/
 fi
