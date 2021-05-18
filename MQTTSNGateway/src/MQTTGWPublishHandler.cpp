@@ -102,16 +102,18 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
             topicId.type = tp->getType();
             topicId.data.long_.len = pub.topiclen;
             topicId.data.long_.name = pub.topic;
-            topicId.data.id = tp->getTopicId();
         }
         else
         {
-            /* This message might be subscribed with wild card. */
+			/* This message might be subscribed with wild card or not cleanSession*/
             topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
             Topic* topic = client->getTopics()->match(&topicId);
-            if (topic == nullptr)
+
+			if (topic == nullptr && client->isCleanSession())
             {
-                WRITELOG(" Invalid Topic. PUBLISH message is canceled.\n");
+				WRITELOG(
+						"%sMQTTGWPublishHandler Invalid Topic. PUBLISH message is discarded.%s\n",
+						ERRMSG_HEADER, ERRMSG_FOOTER);
                 if (pub.header.bits.qos == 1)
                 {
                     replyACK(client, &pub, PUBACK);
@@ -125,16 +127,24 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
                 return;
             }
 
+			if (topic == nullptr)
+			{
+				topicId.type = MQTTSN_TOPIC_TYPE_NORMAL;
+				topicId.data.long_.len = pub.topiclen;
+				topicId.data.long_.name = pub.topic;
+				topicId.data.id = 0;
+			}
+
             /* add the Topic and get a TopicId */
             topic = client->getTopics()->add(&topicId);
             if (topic == nullptr)
             {
-                WRITELOG("%sMQTTGWPublishHandler Can't Add a Topic. MAX_TOPIC_PAR_CLIENT is exceeded.%s\n",
+				WRITELOG(
+						"%sMQTTGWPublishHandler Can't Add a Topic. MAX_TOPIC_PAR_CLIENT is exceeded. PUBLISH message is discarded.%s\n",
                         ERRMSG_HEADER, ERRMSG_FOOTER);
                 delete snPacket;
                 return;
             }
-
             id = topic->getTopicId();
             if (id > 0)
             {
@@ -165,7 +175,8 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
             }
             else
             {
-                WRITELOG("%sMQTTGWPublishHandler Can't create a Topic.%s\n",
+				WRITELOG(
+						"%sMQTTGWPublishHandler Can't create a Topic. PUBLISH message is discarded.%s\n",
                         ERRMSG_HEADER, ERRMSG_FOOTER);
                 delete snPacket;
                 return;
