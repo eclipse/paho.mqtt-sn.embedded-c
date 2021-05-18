@@ -42,6 +42,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     int qos;
     uint8_t retained;
     uint16_t msgId;
+	uint16_t tid;
     uint8_t* payload;
     MQTTSN_topicid topicid;
     int payloadlen;
@@ -69,6 +70,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     pub.header.bits.dup = dup;
     pub.header.bits.qos = (qos == 3 ? 0 : qos);
     pub.header.bits.retain = retained;
+	tid = topicid.data.id;
 
     Topic* topic = nullptr;
 
@@ -128,7 +130,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     /* Save a msgId & a TopicId pare for PUBACK */
     if (msgId && qos > 0 && qos < 3)
     {
-		client->setWaitedPubTopicId(msgId, topicid.data.id, &topicid);
+		client->setWaitedPubTopicId(msgId, tid, &topicid);
     }
 
     pub.payload = (char*) payload;
