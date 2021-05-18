@@ -239,10 +239,6 @@ TEST_LIST =
 	TEST("Step9:subscribe again", subscribechangeCallback),
 	TEST("Step10:Publish topic2", publishTopic2),
 
-	//TEST("Step10:Reset Clean Session", CleanSessionOff),
-
-	//TEST("Step9:subscribe wildcard topic", subscribechangeCallback),
-
 	TEST("Step11:Sleep     ", asleep),
 	TEST("Step12:Publish topic1", publishTopic1),
 	TEST("Step13:Disconnect", disconnect),
