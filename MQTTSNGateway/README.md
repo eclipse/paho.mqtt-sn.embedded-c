@@ -17,8 +17,8 @@ MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in the Buil
 ### **step2. Execute the Gateway.**     
 
 ````    
- 
-$ ./bin/MQTT-SNGateway    
+$ cd bin 
+$ ./MQTT-SNGateway    
 ````   
 If you get the error message as follows:
 ````    
@@ -27,7 +27,7 @@ ABORT Gateway!!!
 ````
 You have to start using sudo command only once for the first time.    
 ````
-$ sudo ./bin/MQTT-SNGateway    
+$ sudo ./MQTT-SNGateway    
 ````
 
 ### **How to Change the configuration of the gateway**    
@@ -117,8 +117,11 @@ ShearedMemory=YES;
 Restart the gateway with sudo only once to create shared memories.    
 
 open ssh terminal and execute LogMonitor.
-
-`$ ./bin/MQTT-SNLogmonitor`    
+ 
+```
+ $ cd bin
+ $ ./MQTT-SNLogmonitor
+```  
 
 Now you can get the Log on your terminal.
 
