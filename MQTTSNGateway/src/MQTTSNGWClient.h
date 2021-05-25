@@ -152,7 +152,8 @@ private:
  =====================================*/
 typedef enum
 {
-    Cstat_Disconnected = 0,
+	Cstat_Free = 0,
+	Cstat_Disconnected,
     Cstat_TryConnecting,
     Cstat_Connecting,
     Cstat_Active,
@@ -176,6 +177,7 @@ class Forwarder;
 class Client
 {
     friend class ClientList;
+    friend class ClientsPool;
 public:
     Client(bool secure = false);
     Client(uint8_t maxInflightMessages, bool secure);

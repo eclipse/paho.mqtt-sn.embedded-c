@@ -31,12 +31,30 @@ namespace MQTTSNGW
 class Client;
 
 /*=====================================
+ Class ClientsPool
+ =====================================*/
+class ClientsPool
+{
+public:
+	ClientsPool();
+	~ClientsPool();
+	void allocate(int maxClients);
+	Client* getClient(void);
+	void setClient(Client* client);
+
+private:
+	Client* _firstClient;
+	Client* _endClient;
+	int _clientCnt;
+};
+
+/*=====================================
  Class ClientList
  =====================================*/
 class ClientList
 {
 public:
-    ClientList();
+	ClientList(Gateway* gw);
     ~ClientList();
 
     void initialize(bool aggregate);
@@ -57,7 +75,8 @@ public:
 
 private:
     bool readPredefinedList(const char* fileName, bool _aggregate);
-    Gateway* _gateway { nullptr };
+	ClientsPool* _clientsPool;
+	Gateway* _gateway;
     Client* createPredefinedTopic(MQTTSNString* clientId, string topicName,
             uint16_t toipcId, bool _aggregate);
     Client* _firstClient;

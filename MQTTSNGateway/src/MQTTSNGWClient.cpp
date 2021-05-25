@@ -32,14 +32,15 @@ char* currentDateTime(void);
  Class Client
  =====================================*/
 static const char* theClientStatus[] =
-{ "Disconnected", "TryConnecting", "Connecting", "Active", "Asleep", "Awake",
+{ "InPool", "Disconnected", "TryConnecting", "Connecting", "Active", "Asleep",
+		"Awake",
         "Lost" };
 
 Client::Client(bool secure)
 {
     _packetId = 0;
     _snMsgId = 0;
-    _status = Cstat_Disconnected;
+	_status = Cstat_Free;
     _keepAliveMsec = 0;
     _topics = new Topics();
     _clientId = nullptr;

@@ -20,18 +20,20 @@
 #include <string>
 
 using namespace MQTTSNGW;
-extern Gateway* theGateway;
+char* currentDateTime(void);
 /*=====================================
  Class ClientList
  =====================================*/
 const char* common_topic = "*";
 
-ClientList::ClientList()
+ClientList::ClientList(Gateway* gw)
 {
     _clientCnt = 0;
     _authorize = false;
     _firstClient = nullptr;
     _endClient = nullptr;
+	_clientsPool = new ClientsPool();
+	_gateway = gw;
 }
 
 ClientList::~ClientList()
@@ -46,12 +48,19 @@ ClientList::~ClientList()
         delete cl;
         cl = ncl;
     };
+
+	if (_clientsPool)
+	{
+		delete _clientsPool;
+	}
     _mutex.unlock();
 }
 
 void ClientList::initialize(bool aggregate)
 {
-    if (theGateway->getGWParams()->clientAuthentication)
+	_clientsPool->allocate(_gateway->getGWParams()->maxClients);
+
+	if (_gateway->getGWParams()->clientAuthentication)
     {
         int type = TRANSPEARENT_TYPE;
         if (aggregate)
@@ -62,7 +71,7 @@ void ClientList::initialize(bool aggregate)
         _authorize = true;
     }
 
-    if (theGateway->getGWParams()->predefinedTopic)
+	if (_gateway->getGWParams()->predefinedTopic)
     {
         setPredefinedTopics(aggregate);
     }
@@ -70,20 +79,21 @@ void ClientList::initialize(bool aggregate)
 
 void ClientList::setClientList(int type)
 {
-    if (!createList(theGateway->getGWParams()->clientListName, type))
+	if (!createList(_gateway->getGWParams()->clientListName, type))
     {
         throw EXCEPTION(
-                "ClientList::setClientList No client list defined by config file.", 0);
+                "ClientList::setClientList Client list not found!", 0);
     }
 }
 
 void ClientList::setPredefinedTopics(bool aggrecate)
 {
-    if (!readPredefinedList(theGateway->getGWParams()->predefinedTopicFileName,
+	if (!readPredefinedList(_gateway->getGWParams()->predefinedTopicFileName,
             aggrecate))
     {
         throw EXCEPTION(
-                "ClientList::setPredefinedTopics No predefindTopi list defined by config file.",0);
+				"ClientList::setPredefinedTopics PredefindTopic list not found!",
+				0);
 
     }
 }
@@ -158,7 +168,7 @@ bool ClientList::createList(const char* fileName, int type)
                 }
                 else if (forwarder && type == FORWARDER_TYPE)
                 {
-                    theGateway->getAdapterManager()->getForwarderList()->addForwarder(
+					_gateway->getAdapterManager()->getForwarderList()->addForwarder(
                             &netAddr, &clientId);
                 }
                 else if (type == TRANSPEARENT_TYPE)
@@ -338,22 +348,23 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
         bool unstableLine, bool secure, int type)
 {
-    Client* client = nullptr;
-
-    /*  anonimous clients */
-    if (_clientCnt > MAX_CLIENTS)
-    {
-        return 0;  // full of clients
-    }
-
-    client = getClient(addr);
+    Client* client = getClient(addr);
     if (client)
     {
         return client;
     }
 
-    /* creat a new client */
-    client = new Client(secure);
+    /* acquire a free client */
+	client = _clientsPool->getClient();
+
+    if (!client)
+    {
+		WRITELOG("%s%sMax number of Clients%s\n", currentDateTime(),
+				ERRMSG_HEADER, ERRMSG_FOOTER);
+		return nullptr;
+    }
+
+	client->disconnected();
     if (addr)
     {
         client->setClientAddress(addr);
@@ -411,7 +422,7 @@ Client* ClientList::createPredefinedTopic(MQTTSNString* clientId,
 
     if (strcmp(clientId->cstring, common_topic) == 0)
     {
-        theGateway->getTopics()->add((const char*) topicName.c_str(), topicId);
+		_gateway->getTopics()->add((const char*) topicName.c_str(), topicId);
         return nullptr;
     }
     else
@@ -473,3 +484,69 @@ bool ClientList::isAuthorized()
     return _authorize;
 }
 
+/******************************
+ * Class ClientsPool
+ ******************************/
+
+ClientsPool::ClientsPool()
+{
+	_clientCnt = 0;
+	_firstClient = nullptr;
+	_endClient = nullptr;
+}
+
+ClientsPool::~ClientsPool()
+{
+	Client* cl = _firstClient;
+	Client* ncl;
+
+	while (cl != nullptr)
+	{
+		ncl = cl->_nextClient;
+		delete cl;
+		cl = ncl;
+	};
+}
+
+void ClientsPool::allocate(int maxClients)
+{
+	Client* cl = nullptr;
+
+	_firstClient = new Client();
+
+	for (int i = 0; i < maxClients; i++)
+	{
+		if ((cl = new Client()) == nullptr)
+		{
+			throw Exception(
+					"ClientsPool::Can't allocate max number of clients\n", 0);
+		}
+		cl->_nextClient = _firstClient;
+		_firstClient = cl;
+		_clientCnt++;
+	}
+
+}
+
+Client* ClientsPool::getClient(void)
+{
+	while (_firstClient != nullptr)
+	{
+		Client* cl = _firstClient;
+		_firstClient = cl->_nextClient;
+		cl->_nextClient = nullptr;
+		_clientCnt--;
+		return cl;
+	}
+	return nullptr;
+}
+
+void ClientsPool::setClient(Client* client)
+{
+	if (client)
+	{
+		client->_nextClient = _firstClient;
+		_firstClient = client;
+		_clientCnt++;
+	}
+}
