@@ -20,6 +20,7 @@ CPPSRCS :=  \
 $(SUBDIR)/LGwProxy.cpp \
 $(SUBDIR)/LMqttsnClient.cpp \
 $(SUBDIR)/LNetworkUdp.cpp \
+$(SUBDIR)/LNetworkBle.cpp \
 $(SUBDIR)/LPublishManager.cpp \
 $(SUBDIR)/LRegisterManager.cpp \
 $(SUBDIR)/LSubscribeManager.cpp \
@@ -41,7 +42,7 @@ DEFS :=
 LIBS +=
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := 
+LDADD := -lbluetooth
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGTEST)

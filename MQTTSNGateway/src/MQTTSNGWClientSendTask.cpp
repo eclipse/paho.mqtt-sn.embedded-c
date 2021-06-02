@@ -63,9 +63,8 @@ void ClientSendTask::run()
 
             if (packet->broadcast(_sensorNetwork) < 0)
             {
-                WRITELOG(
-                        "%s ClientSendTask can't multicast a packet Error=%d%s\n",
-                        ERRMSG_HEADER, errno, ERRMSG_FOOTER);
+                WRITELOG("%s ClientSendTask can't multicast a packet Error=%d%s\n",
+                ERRMSG_HEADER, errno, ERRMSG_FOOTER);
             }
         }
         else
@@ -85,12 +84,9 @@ void ClientSendTask::run()
 
             if (rc < 0)
             {
-                WRITELOG(
-                        "%s ClientSendTask can't send a packet to the client %s. Error=%d%s\n",
-                        ERRMSG_HEADER,
-                        (client ?
-                                (const char*) client->getClientId() : UNKNOWNCL),
-                        errno, ERRMSG_FOOTER);
+                WRITELOG("%s ClientSendTask can't send a packet to the client %s. Error=%d%s\n",
+                ERRMSG_HEADER, (client ? (const char*) client->getClientId() : UNKNOWNCL),
+                errno, ERRMSG_FOOTER);
             }
         }
         delete ev;
@@ -101,15 +97,14 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
 {
     char pbuf[SIZE_OF_LOG_PACKET * 3 + 1];
     char msgId[6];
-    const char* clientId =
-            client ? (const char*) client->getClientId() : UNKNOWNCL;
+    const char* clientId = client ? (const char*) client->getClientId() : UNKNOWNCL;
 
     switch (packet->getType())
     {
     case MQTTSN_ADVERTISE:
     case MQTTSN_GWINFO:
         WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW,
-                CLIENTS, packet->print(pbuf));
+        CLIENTS, packet->print(pbuf));
         break;
     case MQTTSN_CONNACK:
     case MQTTSN_DISCONNECT:
@@ -118,13 +113,11 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
     case MQTTSN_WILLTOPICRESP:
     case MQTTSN_WILLMSGRESP:
     case MQTTSN_PINGRESP:
-        WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW,
-                clientId, packet->print(pbuf));
+        WRITELOG(FORMAT_Y_W_G, currentDateTime(), packet->getName(), RIGHTARROW, clientId, packet->print(pbuf));
         break;
     case MQTTSN_REGISTER:
     case MQTTSN_PUBLISH:
-        WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), RIGHTARROW, clientId,
+        WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, clientId,
                 packet->print(pbuf));
         break;
     case MQTTSN_REGACK:
@@ -134,8 +127,7 @@ void ClientSendTask::log(Client* client, MQTTSNPacket* packet)
     case MQTTSN_PUBCOMP:
     case MQTTSN_SUBACK:
     case MQTTSN_UNSUBACK:
-        WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), RIGHTARROW, clientId,
+        WRITELOG(FORMAT_W_MSGID_W_G, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROW, clientId,
                 packet->print(pbuf));
         break;
     default:

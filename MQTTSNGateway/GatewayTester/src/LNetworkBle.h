@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2021, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -14,11 +14,11 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
-#ifndef NETWORKUDP_H_
-#define NETWORKUDP_H_
+#ifndef NETWORKBLE_H_
+#define NETWORKBLE_H_
 
 #include "LMqttsnClientApp.h"
-#ifdef UDP
+#ifdef BLE
 
 #include <sys/time.h>
 #include <iostream>
@@ -28,7 +28,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <string>
-#include <arpa/inet.h>
+#include <bluetooth/bluetooth.h>
 
 
 #define SOCKET_MAXHOSTNAME  200
@@ -41,71 +41,66 @@
 
 using namespace std;
 
-namespace linuxAsyncClient {
+namespace linuxAsyncClient
+{
 /*========================================
-       Class LUpdPort
+ Class LBlePort
  =======================================*/
-class LUdpPort{
+class LBlePort
+{
     friend class LNetwork;
 public:
-	LUdpPort();
-	virtual ~LUdpPort();
+    LBlePort();
+    virtual ~LBlePort();
 
-	bool open(LUdpConfig config);
+    bool open(LBleConfig config);
 
-	int unicast(const uint8_t* buf, uint32_t length, uint32_t ipaddress, uint16_t port  );
-	int multicast( const uint8_t* buf, uint32_t length );
-	int recv(uint8_t* buf, uint16_t len, bool nonblock, uint32_t* ipaddress, uint16_t* port );
-	int recv(uint8_t* buf, int flags);
-	bool checkRecvBuf();
-	bool isUnicast();
+    int unicast(const uint8_t* buf, uint32_t length);
+    int recv(uint8_t* buf, uint16_t len, bool nonblock);
+    bool checkRecvBuf();
+    bool isUnicast();
 
 private:
-	void close();
-	int recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipaddress, uint16_t* port );
+    void close();
 
-	int      _sockfdUcast;
-	int      _sockfdMcast;
-	uint16_t _gPortNo;
-	uint16_t _uPortNo;
-	uint32_t _gIpAddr;
-	uint8_t  _castStat;
-	bool   _disconReq;
+    int _sockBle;
+    uint8_t _devAddress[6];
+    uint8_t _gwAddress[6];
+    uint8_t _channel;
+    bool _disconReq;
 
 };
 
-#define NO_ERROR	0
+#define NO_ERROR    0
 #define PACKET_EXCEEDS_LENGTH  1
 /*===========================================
-               Class  Network
+ Class  Network
  ============================================*/
-class LNetwork : public LUdpPort {
+class LNetwork: public LBlePort
+{
 public:
     LNetwork();
     ~LNetwork();
 
-    int  broadcast(const uint8_t* payload, uint16_t payloadLen);
-    int  unicast(const uint8_t* payload, uint16_t payloadLen);
+    int broadcast(const uint8_t* payload, uint16_t payloadLen);
+    int unicast(const uint8_t* payload, uint16_t payloadLen);
     void setGwAddress(void);
     void resetGwAddress(void);
     void setFixedGwAddress(void);
-    bool initialize(LUdpConfig  config);
-    uint8_t*  getMessage(int* len);
-        bool isBroadcastable();
+    bool initialize(LBleConfig config);
+    uint8_t* getMessage(int* len);
+    bool isBroadcastable();
+
 private:
     void setSleep();
-    int  readApiFrame(void);
+    int readApiFrame(void);
 
-    uint32_t _gwIpAddress;
-	uint16_t _gwPortNo;
-	uint32_t _ipAddress;
-	uint16_t _portNo;
-    int     _returnCode;
+    int _returnCode;
     bool _sleepflg;
     uint8_t _rxDataBuf[MQTTSN_MAX_PACKET_SIZE + 1];  // defined in MqttsnClientApp.h
 
 };
 
-}    /* end of namespace */
-#endif /* UDP */
-#endif /* NETWORKUDP_H_ */
+} /* end of namespace */
+#endif /* BLE */
+#endif /* NETWORKBLE_H_ */

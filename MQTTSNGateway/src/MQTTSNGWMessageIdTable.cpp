@@ -45,8 +45,7 @@ MessageIdTable::~MessageIdTable()
     _mutex.unlock();
 }
 
-MessageIdElement* MessageIdTable::add(Aggregater* aggregater, Client* client,
-        uint16_t clientMsgId)
+MessageIdElement* MessageIdTable::add(Aggregater* aggregater, Client* client, uint16_t clientMsgId)
 {
     if (_cnt > _maxSize)
     {
@@ -194,18 +193,12 @@ uint16_t MessageIdTable::getMsgId(Client* client, uint16_t clientMsgId)
  * Class MessageIdElement
  ===============================*/
 MessageIdElement::MessageIdElement(void) :
-        _msgId
-        { 0 }, _clientMsgId
-        { 0 }, _client
-        { nullptr }, _next
-        { nullptr }, _prev
-        { nullptr }
+        _msgId { 0 }, _clientMsgId { 0 }, _client { nullptr }, _next { nullptr }, _prev { nullptr }
 {
 
 }
 
-MessageIdElement::MessageIdElement(uint16_t msgId, Client* client,
-        uint16_t clientMsgId) :
+MessageIdElement::MessageIdElement(uint16_t msgId, Client* client, uint16_t clientMsgId) :
         MessageIdElement()
 {
     _msgId = msgId;

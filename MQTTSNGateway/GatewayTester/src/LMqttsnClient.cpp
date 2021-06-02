@@ -29,7 +29,7 @@ extern TaskList      theTaskList[];
 extern TestList      theTestList[];
 extern OnPublishList theOnPublishList[];
 extern MQTTSNCONF;
-extern UDPCONF;
+extern SENSORNET_CONFIG_t theNetcon;
 extern void setup(void);
 
 /*=====================================
@@ -50,7 +50,14 @@ int main(int argc, char** argv)
 #ifndef CLIENT_MODE
 	char c = 0;
 	printf("\n%s", PAHO_COPYRIGHT4);
-	printf("\n%s\n", PAHO_COPYRIGHT0);
+    printf("\n%s", PAHO_COPYRIGHT0);
+#if defined(UDP)
+    printf("   UDP\n");
+#elif defined(BLE)
+    printf("   BLE\n");
+#else
+    printf("\n");
+#endif
 	printf("%s\n", PAHO_COPYRIGHT1);
 	printf("%s\n", PAHO_COPYRIGHT2);
 	printf(" *\n%s\n", PAHO_COPYRIGHT3);
@@ -108,7 +115,7 @@ LMqttsnClient::~LMqttsnClient()
 
 }
 
-void LMqttsnClient::initialize(LUdpConfig netconf, LMqttsnConfig mqconf)
+void LMqttsnClient::initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf)
 {
 	_gwProxy.initialize(netconf, mqconf);
 	setSleepDuration(mqconf.sleepDuration);

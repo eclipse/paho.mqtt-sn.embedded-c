@@ -39,8 +39,7 @@ AdapterManager::AdapterManager(Gateway* gw)
     _aggregater = new Aggregater(gw);
 }
 
-void AdapterManager::initialize(char* gwName, bool aggregate, bool forwarder,
-        bool qosM1)
+void AdapterManager::initialize(char* gwName, bool aggregate, bool forwarder, bool qosM1)
 {
     if (aggregate)
     {
@@ -91,8 +90,7 @@ Aggregater* AdapterManager::getAggregater(void)
 
 bool AdapterManager::isAggregatedClient(Client* client)
 {
-    if (!_aggregater->isActive() || client->isQoSm1() || client->isAggregater()
-            || client->isQoSm1Proxy())
+    if (!_aggregater->isActive() || client->isQoSm1() || client->isAggregater() || client->isQoSm1Proxy())
     {
         return false;
     }
@@ -128,8 +126,7 @@ Client* AdapterManager::getClient(Client* client)
     return newClient;
 }
 
-int AdapterManager::unicastToClient(Client* client, MQTTSNPacket* packet,
-        ClientSendTask* task)
+int AdapterManager::unicastToClient(Client* client, MQTTSNPacket* packet, ClientSendTask* task)
 {
     char pbuf[SIZE_OF_LOG_PACKET * 3];
     Forwarder* fwd = client->getForwarder();
@@ -141,10 +138,8 @@ int AdapterManager::unicastToClient(Client* client, MQTTSNPacket* packet,
         WirelessNodeId* wnId = fwd->getWirelessNodeId(client);
         encap.setWirelessNodeId(wnId);
         task->log(client, packet);
-        WRITELOG(FORMAT_Y_W_G, currentDateTime(), encap.getName(), RIGHTARROW,
-                fwd->getId(), encap.print(pbuf));
-        rc = encap.unicast(_gateway->getSensorNetwork(),
-                fwd->getSensorNetAddr());
+        WRITELOG(FORMAT_Y_W_G, currentDateTime(), encap.getName(), RIGHTARROW, fwd->getId(), encap.print(pbuf));
+        rc = encap.unicast(_gateway->getSensorNetwork(), fwd->getSensorNetAddr());
     }
     else
     {
@@ -159,8 +154,7 @@ int AdapterManager::unicastToClient(Client* client, MQTTSNPacket* packet,
         }
         else
         {
-            rc = packet->unicast(_gateway->getSensorNetwork(),
-                    client->getSensorNetAddress());
+            rc = packet->unicast(_gateway->getSensorNetwork(), client->getSensorNetAddress());
         }
     }
     return rc;

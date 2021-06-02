@@ -61,8 +61,7 @@ void MQTTGWSubscribeHandler::handleSuback(Client* client, MQTTGWPacket* packet)
     }
 }
 
-void MQTTGWSubscribeHandler::handleUnsuback(Client* client,
-        MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleUnsuback(Client* client, MQTTGWPacket* packet)
 {
     Ack ack;
     packet->getAck(&ack);
@@ -73,14 +72,11 @@ void MQTTGWSubscribeHandler::handleUnsuback(Client* client,
     _gateway->getClientSendQue()->post(evt);
 }
 
-void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client,
-        MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client, MQTTGWPacket* packet)
 {
     uint16_t msgId = packet->getMsgId();
     uint16_t clientMsgId = 0;
-    Client* newClient =
-            _gateway->getAdapterManager()->getAggregater()->convertClient(msgId,
-                    &clientMsgId);
+    Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
     if (newClient != nullptr)
     {
         packet->setMsgId((int) clientMsgId);
@@ -88,14 +84,11 @@ void MQTTGWSubscribeHandler::handleAggregateSuback(Client* client,
     }
 }
 
-void MQTTGWSubscribeHandler::handleAggregateUnsuback(Client* client,
-        MQTTGWPacket* packet)
+void MQTTGWSubscribeHandler::handleAggregateUnsuback(Client* client, MQTTGWPacket* packet)
 {
     uint16_t msgId = packet->getMsgId();
     uint16_t clientMsgId = 0;
-    Client* newClient =
-            _gateway->getAdapterManager()->getAggregater()->convertClient(msgId,
-                    &clientMsgId);
+    Client* newClient = _gateway->getAdapterManager()->getAggregater()->convertClient(msgId, &clientMsgId);
     if (newClient != nullptr)
     {
         packet->setMsgId((int) clientMsgId);

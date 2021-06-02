@@ -35,7 +35,7 @@ Gateway::Gateway(void)
     theMultiTaskProcess = this;
     theProcess = this;
     _packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
-    _clientList = new ClientList();
+    _clientList = new ClientList(this);
     _adapterManager = new AdapterManager(this);
     _topics = new Topics();
     _stopFlg = false;
@@ -101,6 +101,11 @@ Gateway::~Gateway()
         free(_params.qosMinusClientListName);
     }
 
+    if (_params.bleAddress)
+    {
+        free(_params.bleAddress);
+    }
+
     if (_adapterManager)
     {
         delete _adapterManager;
@@ -114,7 +119,6 @@ Gateway::~Gateway()
     {
         delete _topics;
     }
-//    WRITELOG("Gateway        is deleted normally.\r\n");
 }
 
 int Gateway::getParam(const char* parameter, char* value)
@@ -201,7 +205,7 @@ void Gateway::initialize(int argc, char** argv)
         _params.mqttVersion = atoi(param);
     }
 
-    _params.maxInflightMsgs = DEFAULT_MQTT_VERSION;
+    _params.maxInflightMsgs = MAX_INFLIGHTMESSAGES;
     if (getParam("MaxInflightMsgs", param) == 0)
     {
         _params.maxInflightMsgs = atoi(param);
@@ -272,12 +276,25 @@ void Gateway::initialize(int argc, char** argv)
         }
     }
 
+    _params.maxClients = MAX_CLIENTS;
+    if (getParam("MaxNumberOfClients", param) == 0)
+    {
+        _params.maxClients = atoi(param);
+    }
+
+    if (getParam("BleAddress", param) == 0)
+    {
+        _params.bleAddress = strdup(param);
+    }
+
     /*  Initialize adapters */
-    _adapterManager->initialize(_params.gatewayName, _params.aggregatingGw,
-            _params.forwarder, _params.qosMinus1);
+    _adapterManager->initialize(_params.gatewayName, _params.aggregatingGw, _params.forwarder, _params.qosMinus1);
 
     /*  Setup ClientList and Predefined topics  */
     _clientList->initialize(_params.aggregatingGw);
+
+    /*  SensorNetwork initialize */
+    _sensorNetwork.initialize();
 }
 
 void Gateway::run(void)
@@ -291,8 +308,7 @@ void Gateway::run(void)
     WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
     WRITELOG(" * Version: %s\n", PAHO_GATEWAY_VERSION);
     WRITELOG("%s\n", PAHO_COPYRIGHT4);
-    WRITELOG("\n%s %s has been started.\n\n", currentDateTime(),
-            _params.gatewayName);
+    WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
     WRITELOG(" ConfigFile: %s\n", _params.configName);
 
     if (_params.clientListName)
@@ -306,8 +322,8 @@ void Gateway::run(void)
     }
 
     WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
-    WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port,
-            _params.portSecure);
+    WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+    WRITELOG(" Max number of Clients: %d\n", _params.maxClients);
     WRITELOG(" RootCApath: %s\n", _params.rootCApath);
     WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
     WRITELOG(" CertKey:    %s\n", _params.certKey);
@@ -390,8 +406,7 @@ Topics* Gateway::getTopics(void)
 
 bool Gateway::hasSecureConnection(void)
 {
-    return (_params.certKey && _params.privateKey && _params.rootCApath
-            && _params.rootCAfile);
+    return (_params.certKey && _params.privateKey && _params.rootCApath && _params.rootCAfile);
 }
 /*=====================================
  Class EventQue

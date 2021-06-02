@@ -7,7 +7,7 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 ````
 $ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c  
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway      
-$ ./build.sh {udp|udp6|xbee|loralink}  
+$ ./build.sh [udp|udp6|xbee|loralink | ble]  
     
 ````       
 In order to build a gateway, an argument is required.  
@@ -50,6 +50,7 @@ ClientAuthentication=NO
 AggregatingGateway=NO
 QoS-1=NO
 Forwarder=NO
+MaxNumberOfClients=30;
 
 #ClientsList=/path/to/your_clients.conf
 
@@ -91,6 +92,9 @@ BaudrateLoRaLink=115200
 DeviceRxLoRaLink=/dev/ttyLoRaLinkRx
 DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 
+# BLE RFCOMM
+BleAddress=60:57:18:06:8B:72.*
+
 # LOG
 ShearedMemory=NO;
 
@@ -106,6 +110,7 @@ Format of the file is ClientId and SensorNetwork Address. e.g. IP address and Po
 When **QoS-1** is **YES**, QoS-1 PUBLISH is available. All clients which send QoS-1 PUBLISH must be specified by Client.conf file. 
 When **PredefinedTopic** is **YES**, **Pre-definedTopicId**s  specified by **PredefinedTopicList** are effective. This file defines Pre-definedTopics of the clients. In this file, ClientID,TopicName and TopicID are declared in CSV format.    
 When **Forwarder** is **YES**, Forwarder Encapsulation Message is available. Connectable Forwarders must be declared by a **ClientsList** file.     
+**MaxNumberOfClients** Maximum number of clients allocated.
  
 ### ** How to monitor the gateway from remote. **
 Change gateway.conf as follows:

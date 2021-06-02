@@ -1,7 +1,7 @@
-###Gateway Test Program.    
+# Gateway Test Program.    
 **sample/mainTest.cpp** is a Test sample coading.   
 Each test is described as one function. test1(), test2()...     
-````
+```
 /*------------------------------------------------------
  *    Test functions
  *
@@ -25,37 +25,51 @@ Each test is described as one function. test1(), test2()...
 
 void test1(void)
 {
-	char payload[300];
-	sprintf(payload, "ESP8266-08b133 ");
-	uint8_t qos = 0;
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
+    char payload[300];
+    sprintf(payload, "ESP8266-08b133 ");
+    uint8_t qos = 0;
+    PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
 }
 
 void test2(void)
 {
-	uint8_t qos = 1;
-	SUBSCRIBE(topic2, on_publish02, qos);
+    uint8_t qos = 1;
+    SUBSCRIBE(topic2, on_publish02, qos);
 }
-````
+```
 **TEST_LIST** is a test senario. Test functions are executed one by one. 
-```` 
+``` 
 /*------------------------------------------------------
  *    A List of Test Tasks
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-			 TEST("Publish topic1",     test1),
-			 TEST("Subscribe topic2",   test2),
-			 TEST("Publish topic2",     test3),
-			 TEST("Unsubscribe topic2", test4),
-			 TEST("Publish topic2",     test3),
-			 TEST("Disconnect",         test5),
-			 END_OF_TEST_LIST
-			};
-```` 
+             TEST("Publish topic1",     test1),
+             TEST("Subscribe topic2",   test2),
+             TEST("Publish topic2",     test3),
+             TEST("Unsubscribe topic2", test4),
+             TEST("Publish topic2",     test3),
+             TEST("Disconnect",         test5),
+             END_OF_TEST_LIST
+        };
+        
+``` 
+## step1. Define a sensor network 
 
-### **step1. Build **   
-````
+**UDP** or **Bluetooth** is available as a sensor network.
+Uncomment a line \#define UDP or BLE in LMqttsnClientApp.h file. 
+```
+
+/*======================================
+ *     Program mode Flag
+ ======================================*/
+//#define CLIENT_MODE
+#define UDP
+//#define BLE
+```
+
+## step2. Build    
+```
 $ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c 
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway/GatewayTester       
 $ make   
@@ -65,9 +79,9 @@ $ make clean
 MQTT-SNGatewayTester program is copied into ../../../ directory.
 
     
-### **step2. Execute Gateway Tester.**     
+## **step3. Execute Gateway Tester.**     
 
-````    
+```    
 $ cd ../../..   
 $ ./MQTT-SNGatewayTester
   
@@ -116,4 +130,4 @@ recved 192.168.11.17  :10000  08 13 20 00 01 00 01 00
 
 Execute Publish topic1 Test ? ( Y/N ) :  
 
-````    
+```    

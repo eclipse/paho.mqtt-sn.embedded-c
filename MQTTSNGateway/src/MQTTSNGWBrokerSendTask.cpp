@@ -94,28 +94,20 @@ void BrokerSendTask::run()
 
                 if (client->isSecureNetwork())
                 {
-                    rc = client->getNetwork()->connect(
-                            (const char*) _gwparams->brokerName,
-                            (const char*) _gwparams->portSecure,
-                            (const char*) _gwparams->rootCApath,
-                            (const char*) _gwparams->rootCAfile,
-                            (const char*) _gwparams->certKey,
-                            (const char*) _gwparams->privateKey);
+                    rc = client->getNetwork()->connect((const char*) _gwparams->brokerName, (const char*) _gwparams->portSecure,
+                            (const char*) _gwparams->rootCApath, (const char*) _gwparams->rootCAfile,
+                            (const char*) _gwparams->certKey, (const char*) _gwparams->privateKey);
                 }
                 else
                 {
-                    rc = client->getNetwork()->connect(
-                            (const char*) _gwparams->brokerName,
-                            (const char*) _gwparams->port);
+                    rc = client->getNetwork()->connect((const char*) _gwparams->brokerName, (const char*) _gwparams->port);
                 }
 
                 if (!rc)
                 {
                     /* disconnect the broker and the client */
-                    WRITELOG(
-                            "%s BrokerSendTask: %s can't connect to the broker. errno=%d %s %s\n",
-                            ERRMSG_HEADER, client->getClientId(), errno,
-                            strerror(errno), ERRMSG_FOOTER);
+                    WRITELOG("%s BrokerSendTask: %s can't connect to the broker. errno=%d %s %s\n",
+                    ERRMSG_HEADER, client->getClientId(), errno, strerror(errno), ERRMSG_FOOTER);
                     delete ev;
                     client->getNetwork()->close();
                     continue;
@@ -139,10 +131,8 @@ void BrokerSendTask::run()
             }
             else
             {
-                WRITELOG(
-                        "%s BrokerSendTask: %s can't send a packet to the broker. errno=%d %s %s\n",
-                        ERRMSG_HEADER, client->getClientId(),
-                        rc == -1 ? errno : 0, strerror(errno), ERRMSG_FOOTER);
+                WRITELOG("%s BrokerSendTask: %s can't send a packet to the broker. errno=%d %s %s\n",
+                ERRMSG_HEADER, client->getClientId(), rc == -1 ? errno : 0, strerror(errno), ERRMSG_FOOTER);
                 if ( errno != EBADF)
                 {
                     client->getNetwork()->close();
@@ -174,12 +164,11 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
     {
     case CONNECT:
         WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(),
-                RIGHTARROWB, client->getClientId(), packet->print(pbuf));
+        RIGHTARROWB, client->getClientId(), packet->print(pbuf));
         break;
     case PUBLISH:
-        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), RIGHTARROWB, client->getClientId(),
-                packet->print(pbuf));
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROWB,
+                client->getClientId(), packet->print(pbuf));
         break;
     case SUBSCRIBE:
     case UNSUBSCRIBE:
@@ -187,17 +176,16 @@ void BrokerSendTask::log(Client* client, MQTTGWPacket* packet)
     case PUBREC:
     case PUBREL:
     case PUBCOMP:
-        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), RIGHTARROWB, client->getClientId(),
-                packet->print(pbuf));
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), RIGHTARROWB,
+                client->getClientId(), packet->print(pbuf));
         break;
     case PINGREQ:
         WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(),
-                RIGHTARROWB, client->getClientId(), packet->print(pbuf));
+        RIGHTARROWB, client->getClientId(), packet->print(pbuf));
         break;
     case DISCONNECT:
         WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(),
-                RIGHTARROWB, client->getClientId(), packet->print(pbuf));
+        RIGHTARROWB, client->getClientId(), packet->print(pbuf));
         break;
     default:
         break;

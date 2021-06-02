@@ -142,7 +142,7 @@ char* SensorNetAddress::sprint(char* buf)
    In Gateway version 1.0
 
    getDescpription( )  is used by Gateway::initialize( )
-   initialize( )       is used by ClientSendTask::initialize( )
+ initialize( )       is used by Gateway::initialize( )
    getSenderAddress( ) is used by ClientRecvTask::run( )
    broadcast( )        is used by MQTTSNPacket::broadcast( )
    unicast( )          is used by MQTTSNPacket::unicast( )

@@ -21,11 +21,12 @@
  *     Program mode Flag
  ======================================*/
 //#define CLIENT_MODE
-
+#define UDP
+//#define BLE
 /*======================================
  *         Debug Flag
  ======================================*/
-//#define DEBUG_NW
+#define DEBUG_NW
 //#define DEBUG_MQTTSN
 
 /****************************************
@@ -55,7 +56,8 @@ typedef signed int     int32_t;
       Application config structures
 *****************************************/
 
-struct LMqttsnConfig{
+struct LMqttsnConfig
+{
 	uint16_t keepAlive;
 	bool     cleanSession;
 	uint32_t sleepDuration;
@@ -65,11 +67,19 @@ struct LMqttsnConfig{
     bool     willRetain;
 };
 
-struct LUdpConfig{
+struct LUdpConfig
+{
 	const char* clientId;
 	uint8_t  ipAddress[4];
 	uint16_t gPortNo;
 	uint16_t uPortNo;
+};
+
+struct LBleConfig
+{
+    const char* clientId;
+    uint8_t gwAddress[6];
+    uint8_t channel;
 };
 
 
@@ -85,7 +95,19 @@ typedef enum
       MACROs for Application
 =======================================*/
 #define MQTTSN_CONFIG    MqttsnConfig  theMqttsnConfig
+#define MQTTSNCONF LMqttsnConfig  theMqcon
+
+#ifdef UDP
 #define NETWORK_CONFIG   UdpConfig theNetworkConfig
+#define UDPCONF  LUdpConfig theNetcon
+#define BLECONF  LBleConfig theConf
+#define SENSORNET_CONFIG_t  LUdpConfig
+#else
+#define NETWORK_CONFIG   BleConfig theNetworkConfig
+#define BLECONF  LBleConfig theNetcon
+#define UDPCONF  LUdpConfig theConf
+#define SENSORNET_CONFIG_t  LBleConfig
+#endif
 
 #define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)
 #define PUBLISH(...)     theClient->publish(__VA_ARGS__)
@@ -104,8 +126,7 @@ typedef enum
 #define SUBSCRIBE_LIST    OnPublishList theOnPublishList[]
 #define SUB(...)          {__VA_ARGS__}
 #define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
-#define UDPCONF  LUdpConfig theNetcon
-#define MQTTSNCONF LMqttsnConfig  theMqcon
+
 
 #define SetForwarderMode(...)  theClient->getGwProxy()->setForwarderMode(__VA_ARGS__)
 #define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)

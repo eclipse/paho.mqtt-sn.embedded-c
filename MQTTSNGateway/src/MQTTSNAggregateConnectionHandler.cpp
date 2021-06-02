@@ -26,8 +26,7 @@ using namespace MQTTSNGW;
 /*=====================================
  Class MQTTSNAggregateConnectionHandler
  =====================================*/
-MQTTSNAggregateConnectionHandler::MQTTSNAggregateConnectionHandler(
-        Gateway* gateway)
+MQTTSNAggregateConnectionHandler::MQTTSNAggregateConnectionHandler(Gateway* gateway)
 {
     _gateway = gateway;
 }
@@ -40,8 +39,7 @@ MQTTSNAggregateConnectionHandler::~MQTTSNAggregateConnectionHandler()
 /*
  *  CONNECT
  */
-void MQTTSNAggregateConnectionHandler::handleConnect(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNAggregateConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet)
 {
     MQTTSNPacket_connectData data;
     if (packet->getCONNECT(&data) == 0)
@@ -86,8 +84,7 @@ void MQTTSNAggregateConnectionHandler::handleConnect(Client* client,
             {
                 if (tp->getType() == MQTTSN_TOPIC_TYPE_NORMAL)
                 {
-                    _gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(
-                            tp, client);
+                    _gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(tp, client);
                 }
                 tp = topics->getNextTopic(tp);
             }
@@ -124,8 +121,7 @@ void MQTTSNAggregateConnectionHandler::handleConnect(Client* client,
 /*
  *  WILLMSG
  */
-void MQTTSNAggregateConnectionHandler::handleWillmsg(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNAggregateConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet)
 {
     if (!client->isWaitWillMsg())
     {
@@ -160,8 +156,7 @@ void MQTTSNAggregateConnectionHandler::handleWillmsg(Client* client,
 /*
  *  DISCONNECT
  */
-void MQTTSNAggregateConnectionHandler::handleDisconnect(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNAggregateConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* packet)
 {
     MQTTSNPacket* snMsg = new MQTTSNPacket();
     snMsg->setDISCONNECT(0);
@@ -173,11 +168,9 @@ void MQTTSNAggregateConnectionHandler::handleDisconnect(Client* client,
 /*
  *  PINGREQ
  */
-void MQTTSNAggregateConnectionHandler::handlePingreq(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNAggregateConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet)
 {
-    if ((client->isSleep() || client->isAwake())
-            && client->getClientSleepPacket())
+    if ((client->isSleep() || client->isAwake()) && client->getClientSleepPacket())
     {
         sendStoredPublish(client);
         client->holdPingRequest();

@@ -167,6 +167,8 @@ public:
     bool aggregatingGw { false };
     bool qosMinus1 { false };
     bool forwarder { false };
+    int maxClients {0};
+    char* bleAddress { nullptr };
 };
 
 /*=====================================
@@ -174,6 +176,7 @@ public:
  =====================================*/
 class AdapterManager;
 class ClientList;
+class ClientsPool;
 
 class Gateway: public MultiTaskProcess
 {
@@ -201,13 +204,13 @@ public:
 
 private:
     GatewayParams _params;
-    ClientList* _clientList { nullptr };
+	ClientList* _clientList;
     EventQue _packetEventQue;
     EventQue _brokerSendQue;
     EventQue _clientSendQue;
     LightIndicator _lightIndicator;
     SensorNetwork _sensorNetwork;
-    AdapterManager* _adapterManager { nullptr };
+	AdapterManager* _adapterManager;
     Topics* _topics;
     bool _stopFlg;
 };

@@ -66,7 +66,7 @@ LGwProxy::~LGwProxy()
     _topicTbl.clearTopic();
 }
 
-void LGwProxy::initialize(LUdpConfig netconf, LMqttsnConfig mqconf)
+void LGwProxy::initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf)
 {
     _network.initialize(netconf);
     _clientId = netconf.clientId;
@@ -86,6 +86,12 @@ void LGwProxy::connect()
     while (_status != GW_CONNECTED)
     {
         pos = _msg;
+
+        if (!_network.isBroadcastable() && _status == GW_LOST)
+        {
+            _status = GW_CONNECTING;
+            continue;
+        }
 
         if (_status == GW_LOST)
         {

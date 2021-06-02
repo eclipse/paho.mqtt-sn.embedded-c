@@ -23,6 +23,7 @@
 
 #include "LMqttsnClientApp.h"
 #include "LNetworkUdp.h"
+#include "LNetworkBle.h"
 #include "LRegisterManager.h"
 #include "LTimer.h"
 #include "LTopicTable.h"
@@ -54,7 +55,7 @@ public:
     LGwProxy();
     ~LGwProxy();
 
-    void     initialize(LUdpConfig netconf, LMqttsnConfig mqconf);
+    void initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf);
     void     connect(void);
     void     disconnect(uint16_t sec = 0);
     int      getMessage(void);

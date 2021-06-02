@@ -101,7 +101,7 @@ public:
     TopicIdMap();
     ~TopicIdMap();
     TopicIdMapElement* getElement(uint16_t msgId);
-    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId,  MQTTSN_topicid* topic);
+    TopicIdMapElement* add(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
     void erase(uint16_t msgId);
     void clear(void);
 private:

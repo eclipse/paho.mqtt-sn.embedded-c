@@ -34,8 +34,7 @@ MQTTSNSubscribeHandler::~MQTTSNSubscribeHandler()
 
 }
 
-MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
-        MQTTSNPacket* packet)
+MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client, MQTTSNPacket* packet)
 {
     uint8_t dup;
     int qos;
@@ -63,16 +62,15 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
 
         if (!topic)
         {
-			/* Search the topic in Client common topic table */
+            /* Search the topic in Client common topic table */
             topic = _gateway->getTopics()->getTopicById(&topicFilter);
             if (topic)
             {
-                topic = client->getTopics()->add(topic->getTopicName()->c_str(),
-                        topic->getTopicId());
+                topic = client->getTopics()->add(topic->getTopicName()->c_str(), topic->getTopicId());
                 if (topic == nullptr)
                 {
-                	WRITELOG("%s Client(%s) can't add the Topic.%s\n",
-                	        ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+                    WRITELOG("%s Client(%s) can't add the Topic.%s\n",
+                    ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
                     goto RespExit;
                 }
             }
@@ -83,8 +81,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
         }
         topicId = topic->getTopicId();
         subscribe = new MQTTGWPacket();
-        subscribe->setSUBSCRIBE((char*) topic->getTopicName()->c_str(),
-                (uint8_t) qos, (uint16_t) msgId);
+        subscribe->setSUBSCRIBE((char*) topic->getTopicName()->c_str(), (uint8_t) qos, (uint16_t) msgId);
 
     }
     else if (topicFilter.type == MQTTSN_TOPIC_TYPE_NORMAL)
@@ -96,15 +93,14 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
             if (topic == nullptr)
             {
                 WRITELOG("%s Client(%s) can't add the Topic.%s\n",
-                        ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+                ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
                 goto RespExit;
             }
         }
         topicId = topic->getTopicId();
         subscribe = new MQTTGWPacket();
 
-        subscribe->setSUBSCRIBE((char*) topic->getTopicName()->c_str(),
-                (uint8_t) qos, (uint16_t) msgId);
+        subscribe->setSUBSCRIBE((char*) topic->getTopicName()->c_str(), (uint8_t) qos, (uint16_t) msgId);
     }
     else  //MQTTSN_TOPIC_TYPE_SHORT
     {
@@ -133,16 +129,14 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleSubscribe(Client* client,
     }
 
     RespExit: MQTTSNPacket* sSuback = new MQTTSNPacket();
-    sSuback->setSUBACK(qos, topicFilter.data.id, msgId,
-			MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
+    sSuback->setSUBACK(qos, topicFilter.data.id, msgId, MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
     evsuback = new Event();
     evsuback->setClientSendEvent(client, sSuback);
     _gateway->getClientSendQue()->post(evsuback);
     return nullptr;
 }
 
-MQTTGWPacket* MQTTSNSubscribeHandler::handleUnsubscribe(Client* client,
-        MQTTSNPacket* packet)
+MQTTGWPacket* MQTTSNSubscribeHandler::handleUnsubscribe(Client* client, MQTTSNPacket* packet)
 {
     uint16_t msgId;
     MQTTSN_topicid topicFilter;
@@ -209,8 +203,7 @@ MQTTGWPacket* MQTTSNSubscribeHandler::handleUnsubscribe(Client* client,
     }
 }
 
-void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client, MQTTSNPacket* packet)
 {
     MQTTGWPacket* subscribe = handleSubscribe(client, packet);
 
@@ -219,21 +212,17 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client,
         int msgId = 0;
         if (packet->isDuplicate())
         {
-            msgId = _gateway->getAdapterManager()->getAggregater()->getMsgId(
-                    client, packet->getMsgId());
+            msgId = _gateway->getAdapterManager()->getAggregater()->getMsgId(client, packet->getMsgId());
         }
         else
         {
-            msgId =
-                    _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(
-                            client, packet->getMsgId());
+            msgId = _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(client, packet->getMsgId());
         }
 
         if (msgId == 0)
         {
-            WRITELOG(
-                    "%s MQTTSNSubscribeHandler can't create MessageIdTableElement  %s%s\n",
-                    ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+            WRITELOG("%s MQTTSNSubscribeHandler can't create MessageIdTableElement  %s%s\n",
+            ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return;
         }
 
@@ -241,8 +230,7 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client,
         string* topicName = new string(str.data, str.len); // topicName is delete by topic
         Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
 
-        _gateway->getAdapterManager()->getAggregater()->addAggregateTopic(
-                &topic, client);
+        _gateway->getAdapterManager()->getAggregater()->addAggregateTopic(&topic, client);
 
         subscribe->setMsgId(msgId);
         Event* ev = new Event();
@@ -251,8 +239,7 @@ void MQTTSNSubscribeHandler::handleAggregateSubscribe(Client* client,
     }
 }
 
-void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client, MQTTSNPacket* packet)
 {
     MQTTGWPacket* unsubscribe = handleUnsubscribe(client, packet);
     if (unsubscribe != nullptr)
@@ -260,29 +247,24 @@ void MQTTSNSubscribeHandler::handleAggregateUnsubscribe(Client* client,
         int msgId = 0;
         if (packet->isDuplicate())
         {
-            msgId = _gateway->getAdapterManager()->getAggregater()->getMsgId(
-                    client, packet->getMsgId());
+            msgId = _gateway->getAdapterManager()->getAggregater()->getMsgId(client, packet->getMsgId());
         }
         else
         {
-            msgId =
-                    _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(
-                            client, packet->getMsgId());
+            msgId = _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(client, packet->getMsgId());
         }
 
         if (msgId == 0)
         {
-            WRITELOG(
-                    "%s MQTTSNUnsubscribeHandler can't create MessageIdTableElement  %s%s\n",
-                    ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+            WRITELOG("%s MQTTSNUnsubscribeHandler can't create MessageIdTableElement  %s%s\n",
+            ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return;
         }
 
         UTF8String str = unsubscribe->getTopic();
         string* topicName = new string(str.data, str.len); // topicName is delete by topic
         Topic topic = Topic(topicName, MQTTSN_TOPIC_TYPE_NORMAL);
-        _gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(
-                &topic, client);
+        _gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(&topic, client);
 
         unsubscribe->setMsgId(msgId);
         Event* ev = new Event();

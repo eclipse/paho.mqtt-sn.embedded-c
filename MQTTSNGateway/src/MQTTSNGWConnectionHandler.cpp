@@ -42,8 +42,7 @@ MQTTSNConnectionHandler::~MQTTSNConnectionHandler()
 void MQTTSNConnectionHandler::sendADVERTISE()
 {
     MQTTSNPacket* adv = new MQTTSNPacket();
-    adv->setADVERTISE(_gateway->getGWParams()->gatewayId,
-            _gateway->getGWParams()->keepAlive);
+    adv->setADVERTISE(_gateway->getGWParams()->gatewayId, _gateway->getGWParams()->keepAlive);
     Event* ev1 = new Event();
     ev1->setBrodcastEvent(adv);  //broadcast
     _gateway->getClientSendQue()->post(ev1);
@@ -67,8 +66,7 @@ void MQTTSNConnectionHandler::handleSearchgw(MQTTSNPacket* packet)
 /*
  *  CONNECT
  */
-void MQTTSNConnectionHandler::handleConnect(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet)
 {
     MQTTSNPacket_connectData data;
     if (packet->getCONNECT(&data) == 0)
@@ -149,8 +147,7 @@ void MQTTSNConnectionHandler::handleConnect(Client* client,
         /* CONNECT message was not qued in.
          * create CONNECT message & send it to the broker */
         MQTTGWPacket* mqMsg = new MQTTGWPacket();
-        mqMsg->setCONNECT(client->getConnectData(),
-                (unsigned char*) _gateway->getGWParams()->loginId,
+        mqMsg->setCONNECT(client->getConnectData(), (unsigned char*) _gateway->getGWParams()->loginId,
                 (unsigned char*) _gateway->getGWParams()->password);
         Event* ev1 = new Event();
         ev1->setBrokerSendEvent(client, mqMsg);
@@ -161,8 +158,7 @@ void MQTTSNConnectionHandler::handleConnect(Client* client,
 /*
  *  WILLTOPIC
  */
-void MQTTSNConnectionHandler::handleWilltopic(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleWilltopic(Client* client, MQTTSNPacket* packet)
 {
     int willQos;
     uint8_t willRetain;
@@ -192,8 +188,7 @@ void MQTTSNConnectionHandler::handleWilltopic(Client* client,
 /*
  *  WILLMSG
  */
-void MQTTSNConnectionHandler::handleWillmsg(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet)
 {
     if (!client->isWaitWillMsg())
     {
@@ -216,8 +211,7 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client,
         /* create CONNECT message */
         MQTTGWPacket* mqttPacket = new MQTTGWPacket();
         connectData->willMsg = client->getWillMsg();
-        mqttPacket->setCONNECT(connectData,
-                (unsigned char*) _gateway->getGWParams()->loginId,
+        mqttPacket->setCONNECT(connectData, (unsigned char*) _gateway->getGWParams()->loginId,
                 (unsigned char*) _gateway->getGWParams()->password);
 
         /* Send CONNECT to the broker */
@@ -231,8 +225,7 @@ void MQTTSNConnectionHandler::handleWillmsg(Client* client,
 /*
  *  DISCONNECT
  */
-void MQTTSNConnectionHandler::handleDisconnect(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleDisconnect(Client* client, MQTTSNPacket* packet)
 {
     uint16_t duration = 0;
 
@@ -258,8 +251,7 @@ void MQTTSNConnectionHandler::handleDisconnect(Client* client,
 /*
  *  WILLTOPICUPD
  */
-void MQTTSNConnectionHandler::handleWilltopicupd(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleWilltopicupd(Client* client, MQTTSNPacket* packet)
 {
     /* send NOT_SUPPORTED responce to the client */
     MQTTSNPacket* respMsg = new MQTTSNPacket();
@@ -272,8 +264,7 @@ void MQTTSNConnectionHandler::handleWilltopicupd(Client* client,
 /*
  *  WILLMSGUPD
  */
-void MQTTSNConnectionHandler::handleWillmsgupd(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handleWillmsgupd(Client* client, MQTTSNPacket* packet)
 {
     /* send NOT_SUPPORTED responce to the client */
     MQTTSNPacket* respMsg = new MQTTSNPacket();
@@ -286,11 +277,9 @@ void MQTTSNConnectionHandler::handleWillmsgupd(Client* client,
 /*
  *  PINGREQ
  */
-void MQTTSNConnectionHandler::handlePingreq(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet)
 {
-    if ((client->isSleep() || client->isAwake())
-            && client->getClientSleepPacket())
+    if ((client->isSleep() || client->isAwake()) && client->getClientSleepPacket())
     {
         sendStoredPublish(client);
         client->holdPingRequest();

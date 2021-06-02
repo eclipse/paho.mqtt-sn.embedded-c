@@ -63,13 +63,12 @@ void Adapter::setup(const char* adpterName, AdapterType adapterType)
     string nameSecure = string(adpterName) + "-S";
     idSecure.cstring = const_cast<char*>(nameSecure.c_str());
 
-    Client* client = _gateway->getClientList()->createClient(0, &id, true,
-            false, TRANSPEARENT_TYPE);
+    Client* client = _gateway->getClientList()->createClient(0, &id, true, false, TRANSPEARENT_TYPE);
     setClient(client, false);
     client->setAdapterType(adapterType);
 
     client = _gateway->getClientList()->createClient(0, &idSecure, true, true,
-            TRANSPEARENT_TYPE);
+    TRANSPEARENT_TYPE);
     setClient(client, true);
     client->setAdapterType(adapterType);
 }
@@ -173,9 +172,8 @@ void Adapter::send(MQTTSNPacket* packet, Client* client)
         }
         else
         {
-            WRITELOG(
-                    "%s %s  No Secure connections %s 's packet is discarded.%s\n",
-                    ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
+            WRITELOG("%s %s  No Secure connections %s 's packet is discarded.%s\n",
+            ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return;
         }
     }
@@ -243,8 +241,7 @@ Proxy::~Proxy(void)
 
 void Proxy::checkConnection(Client* client)
 {
-    if (client->isDisconnect()
-            || (client->isConnecting() && _responseTimer.isTimeup()))
+    if (client->isDisconnect() || (client->isConnecting() && _responseTimer.isTimeup()))
     {
         client->connectSended();
         _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
@@ -258,8 +255,7 @@ void Proxy::checkConnection(Client* client)
         ev->setClientRecvEvent(client, packet);
         _gateway->getPacketEventQue()->post(ev);
     }
-    else if ((client->isActive() && _keepAliveTimer.isTimeup())
-            || (_isWaitingResp && _responseTimer.isTimeup()))
+    else if ((client->isActive() && _keepAliveTimer.isTimeup()) || (_isWaitingResp && _responseTimer.isTimeup()))
     {
         MQTTSNPacket* packet = new MQTTSNPacket();
         MQTTSNString clientId = MQTTSNString_initializer;

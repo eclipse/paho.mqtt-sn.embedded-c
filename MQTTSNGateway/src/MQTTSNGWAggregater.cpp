@@ -84,8 +84,7 @@ uint16_t Aggregater::getMsgId(Client* client, uint16_t clientMsgId)
     return _msgIdTable.getMsgId(client, clientMsgId);
 }
 
-AggregateTopicElement* Aggregater::addAggregateTopic(Topic* topic,
-        Client* client)
+AggregateTopicElement* Aggregater::addAggregateTopic(Topic* topic, Client* client)
 {
     return _topicTable.add(topic, client);
 }

@@ -31,16 +31,14 @@ char* currentDateTime(void);
 /*=====================================
  Class Client
  =====================================*/
-static const char* theClientStatus[] =
-{ "InPool", "Disconnected", "TryConnecting", "Connecting", "Active", "Asleep",
-		"Awake",
+static const char* theClientStatus[] = { "InPool", "Disconnected", "TryConnecting", "Connecting", "Active", "Asleep", "Awake",
         "Lost" };
 
 Client::Client(bool secure)
 {
     _packetId = 0;
     _snMsgId = 0;
-	_status = Cstat_Free;
+    _status = Cstat_Free;
     _keepAliveMsec = 0;
     _topics = new Topics();
     _clientId = nullptr;
@@ -121,13 +119,11 @@ int Client::setClientSleepPacket(MQTTGWPacket* packet)
     int rc = _clientSleepPacketQue.post(packet);
     if (rc)
     {
-        WRITELOG("%s    %s is sleeping. the packet was saved.\n",
-                currentDateTime(), _clientId);
+        WRITELOG("%s    %s is sleeping. the packet was saved.\n", currentDateTime(), _clientId);
     }
     else
     {
-        WRITELOG("%s    %s is sleeping　but discard the packet.\n",
-                currentDateTime(), _clientId);
+        WRITELOG("%s    %s is sleeping　but discard the packet.\n", currentDateTime(), _clientId);
     }
     return rc;
 }
@@ -147,13 +143,11 @@ int Client::setProxyPacket(MQTTSNPacket* packet)
     int rc = _proxyPacketQue.post(packet);
     if (rc)
     {
-        WRITELOG("%s    %s is Disconnected. the packet was saved.\n",
-                currentDateTime(), _clientId);
+        WRITELOG("%s    %s is Disconnected. the packet was saved.\n", currentDateTime(), _clientId);
     }
     else
     {
-        WRITELOG("%s    %s is Disconnected and discard the packet.\n",
-                currentDateTime(), _clientId);
+        WRITELOG("%s    %s is Disconnected and discard the packet.\n", currentDateTime(), _clientId);
     }
     return rc;
 }
@@ -231,8 +225,7 @@ bool Client::erasable(void)
 
 void Client::updateStatus(MQTTSNPacket* packet)
 {
-    if (((_status == Cstat_Disconnected) || (_status == Cstat_Lost))
-            && packet->getType() == MQTTSN_CONNECT)
+    if (((_status == Cstat_Disconnected) || (_status == Cstat_Lost)) && packet->getType() == MQTTSN_CONNECT)
     {
         setKeepAlive(packet);
     }
@@ -288,7 +281,7 @@ void Client::updateStatus(MQTTSNPacket* packet)
         default:
             break;
         }
-    } DEBUGLOG("Client Status = %s\n", theClientStatus[_status]);
+    }DEBUGLOG("Client Status = %s\n", theClientStatus[_status]);
 }
 
 void Client::updateStatus(ClientStatus stat)
@@ -326,7 +319,7 @@ void Client::tryConnect(void)
 
 bool Client::isCleanSession(void)
 {
-	return _sessionStatus;
+    return _sessionStatus;
 }
 
 bool Client::isConnectSendable(void)

@@ -129,8 +129,7 @@ ClientTopicElement* AggregateTopicElement::getFirstClientTopicElement(void)
     return _head;
 }
 
-ClientTopicElement* AggregateTopicElement::getNextClientTopicElement(
-        ClientTopicElement* elmClient)
+ClientTopicElement* AggregateTopicElement::getNextClientTopicElement(ClientTopicElement* elmClient)
 {
     return elmClient->_next;
 }
@@ -262,8 +261,7 @@ void AggregateTopicTable::erase(AggregateTopicElement* elmTopic)
     }
 }
 
-AggregateTopicElement* AggregateTopicTable::getAggregateTopicElement(
-        Topic* topic)
+AggregateTopicElement* AggregateTopicTable::getAggregateTopicElement(Topic* topic)
 {
     AggregateTopicElement* elm = _head;
 

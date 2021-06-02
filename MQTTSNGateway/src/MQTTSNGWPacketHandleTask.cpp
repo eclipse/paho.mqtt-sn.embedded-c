@@ -125,8 +125,7 @@ void PacketHandleTask::run()
             if (_advertiseTimer.isTimeup())
             {
                 _mqttsnConnection->sendADVERTISE();
-                _advertiseTimer.start(
-                        _gateway->getGWParams()->keepAlive * 1000UL);
+                _advertiseTimer.start(_gateway->getGWParams()->keepAlive * 1000UL);
             }
 
             /*------ Check Adapters   Connect or PINGREQ ------*/
@@ -180,8 +179,7 @@ void PacketHandleTask::run()
     }
 }
 
-void PacketHandleTask::aggregatePacketHandler(Client*client,
-        MQTTSNPacket* packet)
+void PacketHandleTask::aggregatePacketHandler(Client*client, MQTTSNPacket* packet)
 {
     switch (packet->getType())
     {
@@ -238,8 +236,7 @@ void PacketHandleTask::aggregatePacketHandler(Client*client,
     }
 }
 
-void PacketHandleTask::aggregatePacketHandler(Client*client,
-        MQTTGWPacket* packet)
+void PacketHandleTask::aggregatePacketHandler(Client*client, MQTTGWPacket* packet)
 {
     switch (packet->getType())
     {
@@ -275,8 +272,7 @@ void PacketHandleTask::aggregatePacketHandler(Client*client,
     }
 }
 
-void PacketHandleTask::transparentPacketHandler(Client*client,
-        MQTTSNPacket* packet)
+void PacketHandleTask::transparentPacketHandler(Client*client, MQTTSNPacket* packet)
 {
     switch (packet->getType())
     {
@@ -333,8 +329,7 @@ void PacketHandleTask::transparentPacketHandler(Client*client,
     }
 }
 
-void PacketHandleTask::transparentPacketHandler(Client*client,
-        MQTTGWPacket* packet)
+void PacketHandleTask::transparentPacketHandler(Client*client, MQTTGWPacket* packet)
 {
     switch (packet->getType())
     {

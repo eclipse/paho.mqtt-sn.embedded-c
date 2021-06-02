@@ -64,8 +64,7 @@ Forwarder* ForwarderList::getForwarder(SensorNetAddress* addr)
     return p;
 }
 
-Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr,
-        MQTTSNString* forwarderId)
+Forwarder* ForwarderList::addForwarder(SensorNetAddress* addr, MQTTSNString* forwarderId)
 {
     Forwarder* fdr = new Forwarder(addr, forwarderId);
     if (_head == nullptr)
@@ -251,10 +250,7 @@ SensorNetAddress* Forwarder::getSensorNetAddr(void)
  */
 
 ForwarderElement::ForwarderElement() :
-        _client
-        { 0 }, _wirelessNodeId
-        { 0 }, _next
-        { 0 }
+        _client { 0 }, _wirelessNodeId { 0 }, _next { 0 }
 {
 }
 

@@ -59,6 +59,14 @@ UDPCONF  = {
 };
 
 /*------------------------------------------------------
+ *    BLE Configuration    (theNetcon)
+ *------------------------------------------------------*/
+BLECONF = { "GatewayTestClient",      // ClientId
+        { 0x60, 0x57, 0x18, 0x06, 0x8b, 0x72 },   // GW Address
+        1,                            // Rfcomm channel
+        };
+
+/*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
 MQTTSNCONF = {

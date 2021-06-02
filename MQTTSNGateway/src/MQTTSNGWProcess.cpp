@@ -163,7 +163,7 @@ int Process::getParam(const char* parameter, char* value)
 
     if ((fp = fopen(configPath.c_str(), "r")) == NULL)
     {
-        throw Exception("No config file:\n\nUsage: Command -f path/config_file_name\n", 0);
+        throw Exception("Config file not found:\n\nUsage: Command -f path/config_file_name\n", 0);
     }
 
     while (true)
@@ -257,7 +257,7 @@ MultiTaskProcess::~MultiTaskProcess()
 {
     for (int i = 0; i < _threadCount; i++)
     {
-		_threadList[i]->stop();
+        _threadList[i]->stop();
     }
 }
 
@@ -338,18 +338,18 @@ int MultiTaskProcess::getParam(const char* parameter, char* value)
  ======================================*/
 Exception::Exception(const char* message, const int errNo)
 {
-	_message = message;
+    _message = message;
     _errNo = errNo;
     _fileName = nullptr;
     _functionName = nullptr;
     _line = 0;
 }
-Exception::Exception(const char* message, const int errNo, const char* file,
-        const char* function, const int line)
+Exception::Exception(const char* message, const int errNo, const char* file, const char* function, const int line)
 {
-	_message = message;
+    _message = message;
     _errNo = errNo;
-    _fileName = getFileName(file);;
+    _fileName = getFileName(file);
+    ;
     _functionName = function;
     _line = line;
 }
@@ -388,39 +388,40 @@ void Exception::writeMessage()
 {
     if (_fileName == nullptr)
     {
-    	if (_errNo == 0)
-    	{
-    		WRITELOG("%s%s %s%s\n", currentDateTime(), RED_HDR, _message, CLR_HDR);
-    	}
-    	else
-    	{
-    		WRITELOG("%s%s %s.\n                    errno=%d : %s%s\n", currentDateTime(), RED_HDR,_message, _errNo, strerror(_errNo), CLR_HDR);
-    	}
+        if (_errNo == 0)
+        {
+            WRITELOG("%s%s %s%s\n", currentDateTime(), RED_HDR, _message, CLR_HDR);
+        }
+        else
+        {
+            WRITELOG("%s%s %s.\n                    errno=%d : %s%s\n", currentDateTime(), RED_HDR, _message, _errNo,
+                    strerror(_errNo), CLR_HDR);
+        }
     }
     else
     {
-    	if (_errNo == 0)
-    	{
-    		WRITELOG("%s%s %s.  %s line %-4d %s()%s\n",
-    		    		    currentDateTime(), RED_HDR, _message, _fileName, _line, _functionName, CLR_HDR);
-    	}
-    	else
-    	{
-        		WRITELOG("%s%s %s.  %s line %-4d %s()\n                    errno=%d : %s%s\n",
-        		currentDateTime(), RED_HDR, _message, _fileName, _line, _functionName, _errNo, strerror(_errNo), CLR_HDR);
-    	}
+        if (_errNo == 0)
+        {
+            WRITELOG("%s%s %s.  %s line %-4d %s()%s\n", currentDateTime(), RED_HDR, _message, _fileName, _line, _functionName,
+            CLR_HDR);
+        }
+        else
+        {
+            WRITELOG("%s%s %s.  %s line %-4d %s()\n                    errno=%d : %s%s\n", currentDateTime(), RED_HDR, _message,
+                    _fileName, _line, _functionName, _errNo, strerror(_errNo), CLR_HDR);
+        }
     }
 }
 
 const char* Exception::getFileName(const char* file)
 {
-	for ( int len = strlen(file); len > 0; len-- )
-	{
-		if (*(file + len) == '/')
-		{
-			return file + len + 1;
-		}
-	}
-	return file;
+    for (int len = strlen(file); len > 0; len--)
+    {
+        if (*(file + len) == '/')
+        {
+            return file + len + 1;
+        }
+    }
+    return file;
 }
 

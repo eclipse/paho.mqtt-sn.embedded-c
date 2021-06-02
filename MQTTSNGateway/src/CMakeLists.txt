@@ -87,12 +87,27 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        /usr/local/opt/openssl/include
        )
 
+IF(SENSORNET MATCHES "ble")
+
 TARGET_LINK_LIBRARIES(mqtt-sngateway_common
        PRIVATE
        MQTTSNPacket
        pthread
        ssl
-       crypto)
+       crypto
+       bluetooth
+       )
+ELSE()
+
+TARGET_LINK_LIBRARIES(mqtt-sngateway_common
+       PRIVATE
+       MQTTSNPacket
+       pthread
+       ssl
+       crypto
+       )
+       
+ENDIF()
 
 ADD_EXECUTABLE(MQTT-SNGateway
        mainGateway.cpp

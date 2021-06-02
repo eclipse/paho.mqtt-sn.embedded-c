@@ -54,7 +54,7 @@ void BrokerRecvTask::run(void)
 {
     struct timeval timeout;
     MQTTGWPacket* packet = nullptr;
-	int rc;
+    int rc;
     Event* ev = nullptr;
     fd_set rset;
     fd_set wset;
@@ -135,53 +135,43 @@ void BrokerRecvTask::run(void)
                             {
                                 if (rc == 0)  // Disconnected
                                 {
-									WRITELOG(
-											"%s BrokerRecvTask %s is disconnected by the broker.%s\n",
-											ERRMSG_HEADER,
-											client->getClientId(),
-											ERRMSG_FOOTER);
-									client->getNetwork()->close();
-									client->disconnected();
+                                    WRITELOG("%s BrokerRecvTask %s is disconnected by the broker.%s\n",
+                                    ERRMSG_HEADER, client->getClientId(),
+                                    ERRMSG_FOOTER);
+                                    client->getNetwork()->close();
+                                    client->disconnected();
                                 }
                                 else if (rc == -1)
                                 {
-                                    WRITELOG(
-                                            "%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n",
-                                            ERRMSG_HEADER, errno,
-                                            client->getClientId(),
-                                            ERRMSG_FOOTER);
+                                    WRITELOG("%s BrokerRecvTask can't receive a packet from the broker errno=%d %s%s\n",
+                                    ERRMSG_HEADER, errno, client->getClientId(),
+                                    ERRMSG_FOOTER);
                                 }
                                 else if (rc == -2)
                                 {
                                     WRITELOG(
                                             "%s BrokerRecvTask receive invalid length of packet from the broker.  DISCONNECT  %s %s\n",
-                                            ERRMSG_HEADER,
-                                            client->getClientId(),
+                                            ERRMSG_HEADER, client->getClientId(),
                                             ERRMSG_FOOTER);
                                 }
                                 else if (rc == -3)
                                 {
-                                    WRITELOG(
-											"%s BrokerRecvTask can't allocate memories for the packet %s%s\n",
-                                            ERRMSG_HEADER,
-                                            client->getClientId(),
-                                            ERRMSG_FOOTER);
+                                    WRITELOG("%s BrokerRecvTask can't allocate memories for the packet %s%s\n",
+                                    ERRMSG_HEADER, client->getClientId(),
+                                    ERRMSG_FOOTER);
                                 }
 
                                 delete packet;
 
-								if ((rc == -1 || rc == -2)
-                                        && (client->isActive()
-                                                || client->isSleep()
-                                                || client->isAwake()))
+                                if ((rc == -1 || rc == -2) && (client->isActive() || client->isSleep() || client->isAwake()))
                                 {
-									client->getNetwork()->close();
-									client->disconnected();
+                                    client->getNetwork()->close();
+                                    client->disconnected();
                                 }
                             }
                         }
-					}
-					nextClient: client = client->getNextClient();
+                    }
+                    nextClient: client = client->getNextClient();
                 }
             }
         }
@@ -200,31 +190,26 @@ int BrokerRecvTask::log(Client* client, MQTTGWPacket* packet)
     switch (packet->getType())
     {
     case CONNACK:
-        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB,
-                client->getClientId(), packet->print(pbuf));
+        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB, client->getClientId(), packet->print(pbuf));
         break;
     case PUBLISH:
-        WRITELOG(FORMAT_W_MSGID_Y_W_NL, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
-                packet->print(pbuf));
+        WRITELOG(FORMAT_W_MSGID_Y_W_NL, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB,
+                client->getClientId(), packet->print(pbuf));
         break;
     case PUBACK:
     case PUBREC:
     case PUBREL:
     case PUBCOMP:
-        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
-                packet->print(pbuf));
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB,
+                client->getClientId(), packet->print(pbuf));
         break;
     case SUBACK:
     case UNSUBACK:
-        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(),
-                packet->getMsgId(msgId), LEFTARROWB, client->getClientId(),
-                packet->print(pbuf));
+        WRITELOG(FORMAT_W_MSGID_Y_W, currentDateTime(), packet->getName(), packet->getMsgId(msgId), LEFTARROWB,
+                client->getClientId(), packet->print(pbuf));
         break;
     case PINGRESP:
-        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB,
-                client->getClientId(), packet->print(pbuf));
+        WRITELOG(FORMAT_Y_Y_W, currentDateTime(), packet->getName(), LEFTARROWB, client->getClientId(), packet->print(pbuf));
         break;
     default:
         WRITELOG("Type=%x\n", packet->getType());

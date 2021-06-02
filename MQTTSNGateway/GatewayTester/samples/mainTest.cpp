@@ -51,25 +51,31 @@ extern LScreen* theScreen;
 /*------------------------------------------------------
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
-UDPCONF =
-{ "GatewayTestClient", // ClientId
+UDPCONF = { "GatewayTestClient",  // ClientId
 		{ 225, 1, 1, 1 },         // Multicast group IP
-		1883,                // Multicast group Port
-		20020,               // Local PortNo
-		};
+        1883,                     // Multicast group Port
+        20020,                    // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    BLE Configuration    (theNetcon)
+ *------------------------------------------------------*/
+BLECONF = { "GatewayTestClient",      // ClientId
+        { 0x60, 0x57, 0x18, 0x06, 0x8b, 0x72 },   // GW Address
+        1,                            // Rfcomm channel
+        };
 
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
-MQTTSNCONF =
-{ 60,            //KeepAlive [seconds]
-		true,          //Clean session
-		300,           //Sleep duration [seconds]
-		"",            //WillTopic
-		"",            //WillMessage
-		0,             //WillQos
-		false          //WillRetain
-		};
+MQTTSNCONF = { 60,            //KeepAlive [seconds]
+        true,          //Clean session
+        300,           //Sleep duration [seconds]
+        "",            //WillTopic
+        "",            //WillMessage
+        0,             //WillQos
+        false          //WillRetain
+        };
 
 /*------------------------------------------------------
  *     Define Topics

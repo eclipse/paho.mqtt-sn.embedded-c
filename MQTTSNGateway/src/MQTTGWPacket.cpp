@@ -28,10 +28,8 @@ void writeInt(unsigned char** pptr, int msgId);
 /**
  * List of the predefined MQTT v3 packet names.
  */
-static const char* mqtt_packet_names[] =
-{ "RESERVED", "CONNECT", "CONNACK", "PUBLISH", "PUBACK", "PUBREC", "PUBREL",
-        "PUBCOMP", "SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK", "PINGREQ",
-        "PINGRESP", "DISCONNECT" };
+static const char* mqtt_packet_names[] = { "RESERVED", "CONNECT", "CONNACK", "PUBLISH", "PUBACK", "PUBREC", "PUBREL", "PUBCOMP",
+        "SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK", "PINGREQ", "PINGRESP", "DISCONNECT" };
 
 /**
  * Encodes the message length according to the MQTT algorithm
@@ -50,7 +48,8 @@ int MQTTPacket_encode(char* buf, int length)
         if (length > 0)
             d |= 0x80;
         buf[rc++] = d;
-    } while (length > 0);
+    }
+    while (length > 0);
     return rc;
 }
 
@@ -206,7 +205,8 @@ int MQTTGWPacket::recv(Network* network)
         }
         _remainingLength += (c & 127) * multiplier;
         multiplier *= 128;
-    } while ((c & 128) != 0);
+    }
+    while ((c & 128) != 0);
 
     if (_remainingLength > 0)
     {
@@ -243,9 +243,8 @@ int MQTTGWPacket::send(Network* network)
 
 int MQTTGWPacket::getAck(Ack* ack)
 {
-    if (PUBACK != _header.bits.type && PUBREC != _header.bits.type
-            && PUBREL != _header.bits.type && PUBCOMP != _header.bits.type
-            && UNSUBACK != _header.bits.type)
+    if (PUBACK != _header.bits.type && PUBREC != _header.bits.type && PUBREL != _header.bits.type
+            && PUBCOMP != _header.bits.type && UNSUBACK != _header.bits.type)
     {
         return 0;
     }
@@ -305,18 +304,15 @@ int MQTTGWPacket::getPUBLISH(Publish* pub)
     return 1;
 }
 
-int MQTTGWPacket::setCONNECT(Connect* connect, unsigned char* username,
-        unsigned char* password)
+int MQTTGWPacket::setCONNECT(Connect* connect, unsigned char* username, unsigned char* password)
 {
     clearData();
     _header = connect->header;
 
-    _remainingLength = ((connect->version == 3) ? 12 : 10)
-            + (int) strlen(connect->clientID) + 2;
+    _remainingLength = ((connect->version == 3) ? 12 : 10) + (int) strlen(connect->clientID) + 2;
     if (connect->flags.bits.will)
     {
-        _remainingLength += (int) strlen(connect->willTopic) + 2
-                + (int) strlen(connect->willMsg) + 2;
+        _remainingLength += (int) strlen(connect->willTopic) + 2 + (int) strlen(connect->willMsg) + 2;
     }
     if (connect->flags.bits.username)
     {
@@ -365,8 +361,7 @@ int MQTTGWPacket::setCONNECT(Connect* connect, unsigned char* username,
     return 1;
 }
 
-int MQTTGWPacket::setSUBSCRIBE(const char* topic, unsigned char qos,
-        unsigned short msgId)
+int MQTTGWPacket::setSUBSCRIBE(const char* topic, unsigned char qos, unsigned short msgId)
 {
     clearData();
     _header.byte = 0;
@@ -640,8 +635,7 @@ MQTTGWPacket& MQTTGWPacket::operator =(MQTTGWPacket& packet)
 
 UTF8String MQTTGWPacket::getTopic(void)
 {
-    UTF8String str =
-    { 0, nullptr };
+    UTF8String str = { 0, nullptr };
     if (_header.bits.type == SUBSCRIBE || _header.bits.type == UNSUBSCRIBE)
     {
         char* ptr = (char*) (_data + 2);

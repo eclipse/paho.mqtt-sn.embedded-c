@@ -149,8 +149,7 @@ int MQTTSNPacket::setADVERTISE(uint8_t gatewayid, uint16_t duration)
 {
     unsigned char buf[5];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_advertise(buf, buflen, (unsigned char) gatewayid,
-            (unsigned short) duration);
+    int len = MQTTSNSerialize_advertise(buf, buflen, (unsigned char) gatewayid, (unsigned short) duration);
     return desirialize(buf, len);
 }
 
@@ -158,8 +157,7 @@ int MQTTSNPacket::setGWINFO(uint8_t gatewayId)
 {
     unsigned char buf[3];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_gwinfo(buf, buflen, (unsigned char) gatewayId, 0,
-            0);
+    int len = MQTTSNSerialize_gwinfo(buf, buflen, (unsigned char) gatewayId, 0, 0);
     return desirialize(buf, len);
 }
 
@@ -202,45 +200,37 @@ int MQTTSNPacket::setWILLMSGREQ(void)
     return desirialize(buf, len);
 }
 
-int MQTTSNPacket::setREGISTER(uint16_t topicId, uint16_t msgId,
-        MQTTSNString* topicName)
+int MQTTSNPacket::setREGISTER(uint16_t topicId, uint16_t msgId, MQTTSNString* topicName)
 {
     unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_register(buf, buflen, (unsigned short) topicId,
-            (unsigned short) msgId, topicName);
+    int len = MQTTSNSerialize_register(buf, buflen, (unsigned short) topicId, (unsigned short) msgId, topicName);
     return desirialize(buf, len);
 }
 
-int MQTTSNPacket::setREGACK(uint16_t topicId, uint16_t msgId,
-        uint8_t returnCode)
+int MQTTSNPacket::setREGACK(uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
     unsigned char buf[7];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_regack(buf, buflen, (unsigned short) topicId,
-            (unsigned short) msgId, (unsigned char) returnCode);
+    int len = MQTTSNSerialize_regack(buf, buflen, (unsigned short) topicId, (unsigned short) msgId, (unsigned char) returnCode);
     return desirialize(buf, len);
 }
 
-int MQTTSNPacket::setPUBLISH(uint8_t dup, int qos, uint8_t retained,
-        uint16_t msgId, MQTTSN_topicid topic, uint8_t* payload,
+int MQTTSNPacket::setPUBLISH(uint8_t dup, int qos, uint8_t retained, uint16_t msgId, MQTTSN_topicid topic, uint8_t* payload,
         uint16_t payloadlen)
 {
     unsigned char buf[MQTTSNGW_MAX_PACKET_SIZE];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_publish(buf, buflen, (unsigned char) dup, qos,
-            (unsigned char) retained, (unsigned short) msgId, topic,
-            (unsigned char*) payload, (int) payloadlen);
+    int len = MQTTSNSerialize_publish(buf, buflen, (unsigned char) dup, qos, (unsigned char) retained, (unsigned short) msgId,
+            topic, (unsigned char*) payload, (int) payloadlen);
     return desirialize(buf, len);
 }
 
-int MQTTSNPacket::setPUBACK(uint16_t topicId, uint16_t msgId,
-        uint8_t returnCode)
+int MQTTSNPacket::setPUBACK(uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
     unsigned char buf[7];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_puback(buf, buflen, (unsigned short) topicId,
-            (unsigned short) msgId, (unsigned char) returnCode);
+    int len = MQTTSNSerialize_puback(buf, buflen, (unsigned short) topicId, (unsigned short) msgId, (unsigned char) returnCode);
     return desirialize(buf, len);
 }
 
@@ -268,13 +258,12 @@ int MQTTSNPacket::setPUBCOMP(uint16_t msgId)
     return desirialize(buf, len);
 }
 
-int MQTTSNPacket::setSUBACK(int qos, uint16_t topicId, uint16_t msgId,
-        uint8_t returnCode)
+int MQTTSNPacket::setSUBACK(int qos, uint16_t topicId, uint16_t msgId, uint8_t returnCode)
 {
     unsigned char buf[8];
     int buflen = sizeof(buf);
-    int len = MQTTSNSerialize_suback(buf, buflen, qos, (unsigned short) topicId,
-            (unsigned short) msgId, (unsigned char) returnCode);
+    int len = MQTTSNSerialize_suback(buf, buflen, qos, (unsigned short) topicId, (unsigned short) msgId,
+            (unsigned char) returnCode);
     return desirialize(buf, len);
 }
 
@@ -336,8 +325,7 @@ int MQTTSNPacket::setPINGREQ(MQTTSNString* clientId)
 
 int MQTTSNPacket::getSERCHGW(uint8_t* radius)
 {
-    return MQTTSNDeserialize_searchgw((unsigned char*) radius,
-            (unsigned char*) _buf, _bufLen);
+    return MQTTSNDeserialize_searchgw((unsigned char*) radius, (unsigned char*) _buf, _bufLen);
 }
 
 int MQTTSNPacket::getCONNECT(MQTTSNPacket_connectData* data)
@@ -350,11 +338,9 @@ int MQTTSNPacket::getCONNACK(uint8_t* returnCode)
     return MQTTSNSerialize_connack(_buf, _bufLen, (int) *returnCode);
 }
 
-int MQTTSNPacket::getWILLTOPIC(int* willQoS, uint8_t* willRetain,
-        MQTTSNString* willTopic)
+int MQTTSNPacket::getWILLTOPIC(int* willQoS, uint8_t* willRetain, MQTTSNString* willTopic)
 {
-    return MQTTSNDeserialize_willtopic((int*) willQoS,
-            (unsigned char*) willRetain, willTopic, _buf, _bufLen);
+    return MQTTSNDeserialize_willtopic((int*) willQoS, (unsigned char*) willRetain, willTopic, _buf, _bufLen);
 }
 
 int MQTTSNPacket::getWILLMSG(MQTTSNString* willmsg)
@@ -362,34 +348,28 @@ int MQTTSNPacket::getWILLMSG(MQTTSNString* willmsg)
     return MQTTSNDeserialize_willmsg(willmsg, _buf, _bufLen);
 }
 
-int MQTTSNPacket::getREGISTER(uint16_t* topicId, uint16_t* msgId,
-        MQTTSNString* topicName)
+int MQTTSNPacket::getREGISTER(uint16_t* topicId, uint16_t* msgId, MQTTSNString* topicName)
 {
-    return MQTTSNDeserialize_register((unsigned short*) topicId,
-            (unsigned short*) msgId, topicName, _buf, _bufLen);
+    return MQTTSNDeserialize_register((unsigned short*) topicId, (unsigned short*) msgId, topicName, _buf, _bufLen);
 }
 
-int MQTTSNPacket::getREGACK(uint16_t* topicId, uint16_t* msgId,
-        uint8_t* returnCode)
+int MQTTSNPacket::getREGACK(uint16_t* topicId, uint16_t* msgId, uint8_t* returnCode)
 {
-    return MQTTSNDeserialize_regack((unsigned short*) topicId,
-            (unsigned short*) msgId, (unsigned char*) returnCode, _buf, _bufLen);
+    return MQTTSNDeserialize_regack((unsigned short*) topicId, (unsigned short*) msgId, (unsigned char*) returnCode, _buf,
+            _bufLen);
 }
 
-int MQTTSNPacket::getPUBLISH(uint8_t* dup, int* qos, uint8_t* retained,
-        uint16_t* msgId, MQTTSN_topicid* topic, uint8_t** payload,
-        int* payloadlen)
+int MQTTSNPacket::getPUBLISH(uint8_t* dup, int* qos, uint8_t* retained, uint16_t* msgId, MQTTSN_topicid* topic,
+        uint8_t** payload, int* payloadlen)
 {
-    return MQTTSNDeserialize_publish((unsigned char*) dup, qos,
-            (unsigned char*) retained, (unsigned short*) msgId, topic,
+    return MQTTSNDeserialize_publish((unsigned char*) dup, qos, (unsigned char*) retained, (unsigned short*) msgId, topic,
             (unsigned char**) payload, (int*) payloadlen, _buf, _bufLen);
 }
 
-int MQTTSNPacket::getPUBACK(uint16_t* topicId, uint16_t* msgId,
-        uint8_t* returnCode)
+int MQTTSNPacket::getPUBACK(uint16_t* topicId, uint16_t* msgId, uint8_t* returnCode)
 {
-    return MQTTSNDeserialize_puback((unsigned short*) topicId,
-            (unsigned short*) msgId, (unsigned char*) returnCode, _buf, _bufLen);
+    return MQTTSNDeserialize_puback((unsigned short*) topicId, (unsigned short*) msgId, (unsigned char*) returnCode, _buf,
+            _bufLen);
 }
 
 int MQTTSNPacket::getACK(uint16_t* msgId)
@@ -398,17 +378,14 @@ int MQTTSNPacket::getACK(uint16_t* msgId)
     return MQTTSNDeserialize_ack(&type, (unsigned short*) msgId, _buf, _bufLen);
 }
 
-int MQTTSNPacket::getSUBSCRIBE(uint8_t* dup, int* qos, uint16_t* msgId,
-        MQTTSN_topicid* topicFilter)
+int MQTTSNPacket::getSUBSCRIBE(uint8_t* dup, int* qos, uint16_t* msgId, MQTTSN_topicid* topicFilter)
 {
-    return MQTTSNDeserialize_subscribe((unsigned char*) dup, qos,
-            (unsigned short*) msgId, topicFilter, _buf, _bufLen);
+    return MQTTSNDeserialize_subscribe((unsigned char*) dup, qos, (unsigned short*) msgId, topicFilter, _buf, _bufLen);
 }
 
 int MQTTSNPacket::getUNSUBSCRIBE(uint16_t* msgId, MQTTSN_topicid* topicFilter)
 {
-    return MQTTSNDeserialize_unsubscribe((unsigned short*) msgId, topicFilter,
-            _buf, _bufLen);
+    return MQTTSNDeserialize_unsubscribe((unsigned short*) msgId, topicFilter, _buf, _bufLen);
 }
 
 int MQTTSNPacket::getPINGREQ(void)
@@ -428,11 +405,9 @@ int MQTTSNPacket::getDISCONNECT(uint16_t* duration)
     return rc;
 }
 
-int MQTTSNPacket::getWILLTOPICUPD(uint8_t* willQoS, uint8_t* willRetain,
-        MQTTSNString* willTopic)
+int MQTTSNPacket::getWILLTOPICUPD(uint8_t* willQoS, uint8_t* willRetain, MQTTSNString* willTopic)
 {
-    return MQTTSNDeserialize_willtopicupd((int*) willQoS,
-            (unsigned char*) willRetain, willTopic, _buf, _bufLen);
+    return MQTTSNDeserialize_willtopicupd((int*) willQoS, (unsigned char*) willRetain, willTopic, _buf, _bufLen);
 }
 
 int MQTTSNPacket::getWILLMSGUPD(MQTTSNString* willMsg)

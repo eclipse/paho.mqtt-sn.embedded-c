@@ -35,14 +35,13 @@ MQTTSNPublishHandler::~MQTTSNPublishHandler()
 
 }
 
-MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
-        MQTTSNPacket* packet)
+MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client, MQTTSNPacket* packet)
 {
     uint8_t dup;
     int qos;
     uint8_t retained;
     uint16_t msgId;
-	uint16_t tid;
+    uint16_t tid;
     uint8_t* payload;
     MQTTSN_topicid topicid;
     int payloadlen;
@@ -54,15 +53,13 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     {
         if (client->isQoSm1())
         {
-            _gateway->getAdapterManager()->getQoSm1Proxy()->savePacket(client,
-                    packet);
+            _gateway->getAdapterManager()->getQoSm1Proxy()->savePacket(client, packet);
 
             return nullptr;
         }
     }
 
-    if (packet->getPUBLISH(&dup, &qos, &retained, &msgId, &topicid, &payload,
-            &payloadlen) == 0)
+    if (packet->getPUBLISH(&dup, &qos, &retained, &msgId, &topicid, &payload, &payloadlen) == 0)
     {
         return nullptr;
     }
@@ -70,7 +67,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     pub.header.bits.dup = dup;
     pub.header.bits.qos = (qos == 3 ? 0 : qos);
     pub.header.bits.retain = retained;
-	tid = topicid.data.id;
+    tid = topicid.data.id;
 
     Topic* topic = nullptr;
 
@@ -89,22 +86,19 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
             topic = _gateway->getTopics()->getTopicById(&topicid);
             if (topic)
             {
-                topic = client->getTopics()->add(topic->getTopicName()->c_str(),
-                        topic->getTopicId());
+                topic = client->getTopics()->add(topic->getTopicName()->c_str(), topic->getTopicId());
             }
         }
 
         if (!topic && qos == 3)
         {
-            WRITELOG("%s Invalid TopicId.%s %s\n", ERRMSG_HEADER,
-                    client->getClientId(), ERRMSG_FOOTER);
+            WRITELOG("%s Invalid TopicId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return nullptr;
         }
 
         if ((qos == 0 || qos == 3) && msgId > 0)
         {
-            WRITELOG("%s Invalid MsgId.%s %s\n", ERRMSG_HEADER,
-                    client->getClientId(), ERRMSG_FOOTER);
+            WRITELOG("%s Invalid MsgId.%s %s\n", ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return nullptr;
         }
 
@@ -112,8 +106,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
         {
             /* Reply PubAck with INVALID_TOPIC_ID to the client */
             MQTTSNPacket* pubAck = new MQTTSNPacket();
-            pubAck->setPUBACK(topicid.data.id, msgId,
-                    MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
+            pubAck->setPUBACK(topicid.data.id, msgId, MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
             Event* ev1 = new Event();
             ev1->setClientSendEvent(client, pubAck);
             _gateway->getClientSendQue()->post(ev1);
@@ -123,14 +116,14 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
         {
             pub.topic = (char*) topic->getTopicName()->data();
             pub.topiclen = topic->getTopicName()->length();
-			topicid.data.long_.name = pub.topic;
-			topicid.data.long_.len = pub.topiclen;
+            topicid.data.long_.name = pub.topic;
+            topicid.data.long_.len = pub.topiclen;
         }
     }
     /* Save a msgId & a TopicId pare for PUBACK */
     if (msgId && qos > 0 && qos < 3)
     {
-		client->setWaitedPubTopicId(msgId, tid, &topicid);
+        client->setWaitedPubTopicId(msgId, tid, &topicid);
     }
 
     pub.payload = (char*) payload;
@@ -139,8 +132,7 @@ MQTTGWPacket* MQTTSNPublishHandler::handlePublish(Client* client,
     MQTTGWPacket* publish = new MQTTGWPacket();
     publish->setPUBLISH(&pub);
 
-    if (_gateway->getAdapterManager()->isAggregaterActive()
-            && client->isAggregated())
+    if (_gateway->getAdapterManager()->isAggregaterActive() && client->isAggregated())
     {
         return publish;
     }
@@ -184,8 +176,7 @@ void MQTTSNPublishHandler::handlePuback(Client* client, MQTTSNPacket* packet)
     }
 }
 
-void MQTTSNPublishHandler::handleAck(Client* client, MQTTSNPacket* packet,
-        uint8_t packetType)
+void MQTTSNPublishHandler::handleAck(Client* client, MQTTSNPacket* packet, uint8_t packetType)
 {
     uint16_t msgId;
 
@@ -245,19 +236,17 @@ void MQTTSNPublishHandler::handleRegAck(Client* client, MQTTSNPacket* packet)
         }
 
         /* get PUBLISH message */
-        MQTTSNPacket* regAck = client->getWaitREGACKPacketList()->getPacket(
-                msgId);
+        MQTTSNPacket* regAck = client->getWaitREGACKPacketList()->getPacket(msgId);
 
         if (regAck != nullptr)
         {
             client->getWaitREGACKPacketList()->erase(msgId);
-			Event* ev = new Event();
-			ev->setClientSendEvent(client, regAck);
-			_gateway->getClientSendQue()->post(ev);
+            Event* ev = new Event();
+            ev->setClientSendEvent(client, regAck);
+            _gateway->getClientSendQue()->post(ev);
         }
 
-        if (client->isHoldPingReqest()
-                && client->getWaitREGACKPacketList()->getCount() == 0)
+        if (client->isHoldPingReqest() && client->getWaitREGACKPacketList()->getCount() == 0)
         {
             /* send PINGREQ to the broker */
             client->resetPingRequest();
@@ -271,8 +260,7 @@ void MQTTSNPublishHandler::handleRegAck(Client* client, MQTTSNPacket* packet)
 
 }
 
-void MQTTSNPublishHandler::handleAggregatePublish(Client* client,
-        MQTTSNPacket* packet)
+void MQTTSNPublishHandler::handleAggregatePublish(Client* client, MQTTSNPacket* packet)
 {
     int msgId = 0;
     MQTTGWPacket* publish = handlePublish(client, packet);
@@ -282,15 +270,11 @@ void MQTTSNPublishHandler::handleAggregatePublish(Client* client,
         {
             if (packet->isDuplicate())
             {
-                msgId =
-                        _gateway->getAdapterManager()->getAggregater()->getMsgId(
-                                client, packet->getMsgId());
+                msgId = _gateway->getAdapterManager()->getAggregater()->getMsgId(client, packet->getMsgId());
             }
             else
             {
-                msgId =
-                        _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(
-                                client, packet->getMsgId());
+                msgId = _gateway->getAdapterManager()->getAggregater()->addMessageIdTable(client, packet->getMsgId());
             }
             publish->setMsgId(msgId);
         }
@@ -300,8 +284,7 @@ void MQTTSNPublishHandler::handleAggregatePublish(Client* client,
     }
 }
 
-void MQTTSNPublishHandler::handleAggregateAck(Client* client,
-        MQTTSNPacket* packet, int type)
+void MQTTSNPublishHandler::handleAggregateAck(Client* client, MQTTSNPacket* packet, int type)
 {
     if (type == MQTTSN_PUBREC)
     {

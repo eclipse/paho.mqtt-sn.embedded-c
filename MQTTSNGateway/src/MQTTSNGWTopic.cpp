@@ -166,8 +166,7 @@ bool Topic::isMatch(string* topicName)
 
 void Topic::print(void)
 {
-    WRITELOG("TopicName=%s  ID=%d  Type=%d\n", _topicName->c_str(), _topicId,
-            _type);
+    WRITELOG("TopicName=%s  ID=%d  Type=%d\n", _topicName->c_str(), _topicId, _type);
 }
 
 /*=====================================
@@ -402,16 +401,16 @@ TopicIdMapElement::TopicIdMapElement(uint16_t msgId, uint16_t topicId, MQTTSN_to
     _msgId = msgId;
     _topicId = topicId;
     _type = topic->type;
-	_wildcard = 0;
+    _wildcard = 0;
     _next = nullptr;
     _prev = nullptr;
 
     if (_type == MQTTSN_TOPIC_TYPE_NORMAL)
     {
-    	if ( strchr(topic->data.long_.name, '#') != 0 || strchr(topic->data.long_.name, '+') != 0 )
-    	{
-    		_wildcard = 1;
-    	}
+        if (strchr(topic->data.long_.name, '#') != 0 || strchr(topic->data.long_.name, '+') != 0)
+        {
+            _wildcard = 1;
+        }
     }
 }
 
@@ -427,14 +426,14 @@ MQTTSN_topicTypes TopicIdMapElement::getTopicType(void)
 
 uint16_t TopicIdMapElement::getTopicId(void)
 {
-	if (_wildcard > 0)
-	{
-		return 0;
-	}
-	else
-	{
-		return _topicId;
-	}
+    if (_wildcard > 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return _topicId;
+    }
 }
 
 TopicIdMap::TopicIdMap()
@@ -473,8 +472,7 @@ TopicIdMapElement* TopicIdMap::getElement(uint16_t msgId)
 
 TopicIdMapElement* TopicIdMap::add(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic)
 {
-    if (_cnt > _maxInflight * 2
-            || (topicId == 0 && topic->type != MQTTSN_TOPIC_TYPE_SHORT))
+    if (_cnt > _maxInflight * 2 || (topicId == 0 && topic->type != MQTTSN_TOPIC_TYPE_SHORT))
     {
         return 0;
     }

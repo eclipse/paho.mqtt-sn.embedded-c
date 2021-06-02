@@ -22,9 +22,7 @@ using namespace MQTTSNGW;
 using namespace std;
 
 WirelessNodeId::WirelessNodeId() :
-        _len
-        { 0 }, _nodeId
-        { 0 }
+        _len { 0 }, _nodeId { 0 }
 {
 
 }
@@ -78,17 +76,13 @@ bool WirelessNodeId::operator ==(WirelessNodeId& id)
  *    Class MQTTSNGWEncapsulatedPacket
  */
 MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket() :
-        _mqttsn
-        { 0 }, _ctrl
-        { 0 }
+        _mqttsn { 0 }, _ctrl { 0 }
 {
 
 }
 
 MQTTSNGWEncapsulatedPacket::MQTTSNGWEncapsulatedPacket(MQTTSNPacket* packet) :
-        _mqttsn
-        { packet }, _ctrl
-        { 0 }
+        _mqttsn { packet }, _ctrl { 0 }
 {
 
 }
@@ -98,8 +92,7 @@ MQTTSNGWEncapsulatedPacket::~MQTTSNGWEncapsulatedPacket()
     /*  Do not delete the MQTTSNPacket.  MQTTSNPacket is deleted by delete Event */
 }
 
-int MQTTSNGWEncapsulatedPacket::unicast(SensorNetwork* network,
-        SensorNetAddress* sendTo)
+int MQTTSNGWEncapsulatedPacket::unicast(SensorNetwork* network, SensorNetAddress* sendTo)
 {
     uint8_t buf[MQTTSNGW_MAX_PACKET_SIZE];
     int len = serialize(buf);
@@ -121,8 +114,7 @@ int MQTTSNGWEncapsulatedPacket::serialize(uint8_t* buf)
     return buf[0] + len;
 }
 
-int MQTTSNGWEncapsulatedPacket::desirialize(unsigned char* buf,
-        unsigned short len)
+int MQTTSNGWEncapsulatedPacket::desirialize(unsigned char* buf, unsigned short len)
 {
     if (_mqttsn)
     {

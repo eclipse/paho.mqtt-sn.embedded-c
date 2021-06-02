@@ -13,6 +13,8 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
+#include "LMqttsnClientApp.h"
+#ifdef UDP
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -29,7 +31,6 @@
 #include "LTimer.h"
 #include "LScreen.h"
 
-#include "LMqttsnClientApp.h"
 
 using namespace std;
 using namespace linuxAsyncClient;
@@ -111,6 +112,10 @@ void LNetwork::setSleep(){
 	_sleepflg = true;
 }
 
+bool LNetwork::isBroadcastable()
+{
+    return true;
+}
 /*=========================================
        Class udpStack
  =========================================*/
@@ -385,5 +390,5 @@ int LUdpPort::recvfrom (uint8_t* buf, uint16_t length, int flags, uint32_t* ipAd
 	return status;
 }
 
-
+#endif
 
