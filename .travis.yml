@@ -13,6 +13,8 @@ addons:
     - g++-4.8
     - cmake
     - cmake-data
+    - bluez
+    - libbluetooth-dev
     
 script: 
   - ./travis-build.sh
