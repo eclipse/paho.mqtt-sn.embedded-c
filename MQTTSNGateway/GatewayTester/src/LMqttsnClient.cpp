@@ -53,8 +53,8 @@ int main(int argc, char** argv)
     printf("\n%s", PAHO_COPYRIGHT0);
 #if defined(UDP)
     printf("   UDP\n");
-#elif defined(BLE)
-    printf("   BLE\n");
+#elif defined(RFCOMM)
+    printf("   RFCOMM\n");
 #else
     printf("\n");
 #endif
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 
 	setup();
 	theClient->addTask(theClientMode);
-	theClient->initialize( theNetcon, theMqcon);
+	theClient->initialize( &theNetcon, &theMqcon);
 	do
 	{
 		theClient->run();
@@ -115,10 +115,10 @@ LMqttsnClient::~LMqttsnClient()
 
 }
 
-void LMqttsnClient::initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf)
+void LMqttsnClient::initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf)
 {
 	_gwProxy.initialize(netconf, mqconf);
-	setSleepDuration(mqconf.sleepDuration);
+	setSleepDuration(mqconf->sleepDuration);
 }
 
 void LMqttsnClient::addTask(bool clientMode)

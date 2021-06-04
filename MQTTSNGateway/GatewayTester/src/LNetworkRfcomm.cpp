@@ -14,7 +14,7 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 #include "LMqttsnClientApp.h"
-#ifdef BLE
+#ifdef RFCOMM
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -29,7 +29,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 
-#include "LNetworkBle.h"
+#include "LNetworkRfcomm.h"
 #include "LTimer.h"
 #include "LScreen.h"
 
@@ -40,7 +40,7 @@ extern uint16_t getUint16(const uint8_t* pos);
 extern uint32_t getUint32(const uint8_t* pos);
 extern LScreen* theScreen;
 extern bool theClientMode;
-extern LBleConfig theNetcon;
+extern LRfcommConfig theNetcon;
 /*=========================================
  Class LNetwork
  =========================================*/
@@ -57,12 +57,12 @@ LNetwork::~LNetwork()
 
 int LNetwork::broadcast(const uint8_t* xmitData, uint16_t dataLen)
 {
-    return LBlePort::unicast(xmitData, dataLen);
+    return LRfcommPort::unicast(xmitData, dataLen);
 }
 
 int LNetwork::unicast(const uint8_t* xmitData, uint16_t dataLen)
 {
-    return LBlePort::unicast(xmitData, dataLen);
+    return LRfcommPort::unicast(xmitData, dataLen);
 }
 
 uint8_t* LNetwork::getMessage(int* len)
@@ -70,7 +70,7 @@ uint8_t* LNetwork::getMessage(int* len)
     *len = 0;
     if (checkRecvBuf())
     {
-        uint16_t recvLen = LBlePort::recv(_rxDataBuf, MQTTSN_MAX_PACKET_SIZE, false);
+        uint16_t recvLen = LRfcommPort::recv(_rxDataBuf, MQTTSN_MAX_PACKET_SIZE, false);
 
         if (recvLen < 0)
         {
@@ -87,12 +87,7 @@ uint8_t* LNetwork::getMessage(int* len)
             {
                 *len = _rxDataBuf[0];
             }
-            //if(recvLen != *len){
-            //  *len = 0;
-            //  return 0;
-            //}else{
             return _rxDataBuf;
-            //}
         }
     }
     return 0;
@@ -104,13 +99,13 @@ void LNetwork::setGwAddress(void)
 
 void LNetwork::setFixedGwAddress(void)
 {
-    _channel = LBlePort::_channel;
-    memcpy(_gwAddress, theNetcon.gwAddress, 6);
+    _channel = LRfcommPort::_channel;
+    str2ba( theNetcon.gwAddress, (bdaddr_t*)_gwAddress);
 }
 
-bool LNetwork::initialize(LBleConfig config)
+bool LNetwork::initialize(LRfcommConfig* config)
 {
-    return LBlePort::open(config);
+    return LRfcommPort::open(config);
 }
 
 void LNetwork::setSleep()
@@ -124,55 +119,51 @@ bool LNetwork::isBroadcastable()
 }
 
 /*=========================================
- Class BleStack
+ Class RFCOMM Stack
  =========================================*/
-LBlePort::LBlePort()
+LRfcommPort::LRfcommPort()
 {
     _disconReq = false;
-    _sockBle = 0;
+    _sockRfcomm = 0;
     _channel = 0;
 }
 
-LBlePort::~LBlePort()
+LRfcommPort::~LRfcommPort()
 {
     close();
 }
 
-void LBlePort::close()
+void LRfcommPort::close()
 {
-    if (_sockBle > 0)
+    if (_sockRfcomm > 0)
     {
-        ::close(_sockBle);
-        _sockBle = 0;
+        ::close(_sockRfcomm);
+        _sockRfcomm = 0;
     }
 }
 
-bool LBlePort::open(LBleConfig config)
+bool LRfcommPort::open(LRfcommConfig* config)
 {
     const int reuse = 1;
-    uint8_t* gw = config.gwAddress + 5;
-    for (int i = 0; i < 6; i++)
-    {
-        *(_gwAddress + i) = *gw--;
-    }
-    _channel = config.channel;
+    str2ba(config->gwAddress, (bdaddr_t*)_gwAddress);
+    _channel = config->channel;
 
-    if (_channel == 0 || _gwAddress == 0 || _devAddress == 0)
+    if (_channel == 0 || _gwAddress == 0 )
     {
-        D_NWLOG("\033[0m\033[0;31merror BLE Address in BlePort::open\033[0m\033[0;37m\n");
-        DISPLAY("\033[0m\033[0;31m\nerror BLE Address in BlePort::open\033[0m\033[0;37m\n");
+        D_NWLOG("\033[0m\033[0;31merror Bluetooth Address in LRfcommPort::open\033[0m\033[0;37m\n");
+        DISPLAY("\033[0m\033[0;31m\nerror Bluetooth Address in LRfcommPort::open\033[0m\033[0;37m\n");
         return false;
     }
 
-    _sockBle = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-    if (_sockBle < 0)
+    _sockRfcomm = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    if (_sockRfcomm < 0)
     {
-        D_NWLOG("\033[0m\033[0;31merror Can't create socket in BlePort::open\033[0m\033[0;37m\n");
-        DISPLAY("\033[0m\033[0;31m\nerror Can't create socket in BlePort::open\033[0m\033[0;37m\n");
+        D_NWLOG("\033[0m\033[0;31merror Can't create socket in LRfcommPort::open\033[0m\033[0;37m\n");
+        DISPLAY("\033[0m\033[0;31m\nerror Can't create socket in LRfcommPort::open\033[0m\033[0;37m\n");
         return false;
     }
 
-    setsockopt(_sockBle, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    setsockopt(_sockRfcomm, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
     struct sockaddr_rc addru = { 0 };
     addru.rc_family = AF_BLUETOOTH;
@@ -185,24 +176,24 @@ bool LBlePort::open(LBleConfig config)
 
     // connect to server
     errno = 0;
-    int status = connect(_sockBle, (struct sockaddr *) &addru, sizeof(addru));
+    int status = connect(_sockRfcomm, (struct sockaddr *) &addru, sizeof(addru));
     if (status < 0)
     {
-        D_NWLOG("\033[0m\033[0;31merror = %d Can't connect to GW in BlePort::open\033[0m\033[0;37m\n", errno);
-        DISPLAY("\033[0m\033[0;31mCan't connect to GW Ble socket in BlePort::open\033[0m\033[0;37m\n");
+        D_NWLOG("\033[0m\033[0;31merror = %d Can't connect to GW in LRfcommPort::open\033[0m\033[0;37m\n", errno);
+        DISPLAY("\033[0m\033[0;31merror = %d Can't connect to GW Ble socket in LRfcommPort::open\033[0m\033[0;37m\n",errno);
         close();
         return false;
     }
     return true;
 }
 
-int LBlePort::unicast(const uint8_t* buf, uint32_t length)
+int LRfcommPort::unicast(const uint8_t* buf, uint32_t length)
 {
-    int status = ::write(_sockBle, buf, length);
+    int status = ::write(_sockRfcomm, buf, length);
     if (status < 0)
     {
-        D_NWLOG("errno == %d in LBlePort::unicast\n", errno);
-        DISPLAY("errno == %d in LBlePort::unicast\n", errno);
+        D_NWLOG("errno == %d in LRfcommPort::unicast\n", errno);
+        DISPLAY("errno == %d in LRfcommPort::unicast\n", errno);
     }
     else
     {
@@ -235,25 +226,25 @@ int LBlePort::unicast(const uint8_t* buf, uint32_t length)
     return status;
 }
 
-bool LBlePort::checkRecvBuf()
+bool LRfcommPort::checkRecvBuf()
 {
     uint8_t buf[2];
-    if (::recv(_sockBle, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
+    if (::recv(_sockRfcomm, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
     {
         return true;
     }
     return false;
 }
 
-int LBlePort::recv(uint8_t* buf, uint16_t length, bool flg)
+int LRfcommPort::recv(uint8_t* buf, uint16_t length, bool flg)
 {
     int flags = flg ? MSG_DONTWAIT : 0;
-    int status = ::recv(_sockBle, buf, length, flags);
+    int status = ::recv(_sockRfcomm, buf, length, flags);
 
     if (status < 0 && errno != EAGAIN)
     {
-        D_NWLOG("\033[0m\033[0;31merrno == %d in BlePort::recv \033[0m\033[0;37m\n", errno);
-        DISPLAY("\033[0m\033[0;31merrno == %d in BlePort::recv \033[0m\033[0;37m\n", errno);
+        D_NWLOG("\033[0m\033[0;31merrno = %d in LRfcommPort::recv \033[0m\033[0;37m\n", errno);
+        DISPLAY("\033[0m\033[0;31merrno = %d in LRfcommPort::recv \033[0m\033[0;37m\n", errno);
     }
     else if (status > 0)
     {

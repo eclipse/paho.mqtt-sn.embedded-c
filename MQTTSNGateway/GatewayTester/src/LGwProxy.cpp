@@ -66,16 +66,16 @@ LGwProxy::~LGwProxy()
     _topicTbl.clearTopic();
 }
 
-void LGwProxy::initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf)
+void LGwProxy::initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf)
 {
     _network.initialize(netconf);
-    _clientId = netconf.clientId;
-    _willTopic = mqconf.willTopic;
-    _willMsg = mqconf.willMsg;
-    _qosWill = mqconf.willQos;
-    _retainWill = mqconf.willRetain;
-    _cleanSession = mqconf.cleanSession;
-    _tkeepAlive = mqconf.keepAlive;
+    _clientId = netconf->clientId;
+    _willTopic = mqconf->willTopic;
+    _willMsg = mqconf->willMsg;
+    _qosWill = mqconf->willQos;
+    _retainWill = mqconf->willRetain;
+    _cleanSession = mqconf->cleanSession;
+    _tkeepAlive = mqconf->keepAlive;
     _initialized = 1;
 }
 

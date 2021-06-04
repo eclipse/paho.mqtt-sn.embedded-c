@@ -7,7 +7,7 @@ This Gateway can run as a transparent or aggregating Gateway by specifying the g
 ````
 $ git clone -b develop https://github.com/eclipse/paho.mqtt-sn.embedded-c  
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway      
-$ ./build.sh [udp|udp6|xbee|loralink | ble]  
+$ ./build.sh [udp|udp6|xbee|loralink|rfcomm]  
     
 ````       
 In order to build a gateway, an argument is required.  
@@ -92,8 +92,8 @@ BaudrateLoRaLink=115200
 DeviceRxLoRaLink=/dev/ttyLoRaLinkRx
 DeviceTxLoRaLink=/dev/ttyLoRaLinkTx
 
-# BLE RFCOMM
-BleAddress=60:57:18:06:8B:72.*
+# Bluetooth RFCOMM
+RFCOMMAddress=60:57:18:06:8B:72.*
 
 # LOG
 ShearedMemory=NO;

@@ -58,10 +58,10 @@ UDPCONF = { "GatewayTestClient",  // ClientId
         };
 
 /*------------------------------------------------------
- *    BLE Configuration    (theNetcon)
+ *    RFCOMM Configuration    (theNetcon)
  *------------------------------------------------------*/
-BLECONF = { "GatewayTestClient",      // ClientId
-        { 0x60, 0x57, 0x18, 0x06, 0x8b, 0x72 },   // GW Address
+RFCOMMCONF = { "GatewayTestClient",      // ClientId
+        "60:57:18:06:8B:72",          // GW Address
         1,                            // Rfcomm channel
         };
 

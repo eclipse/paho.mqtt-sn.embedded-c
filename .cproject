@@ -135,7 +135,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/linux/ble|src/mainLogmonitor.cpp|src/linux/xbee|src/linux/udp6|src/linux/loralink|src/tests|GatewayTester|GatewayTester/samples|GatewayTester/src" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway"/>
+                        <entry excluding="src/linux/rfcomm|src/linux/udp6|src/tests|GatewayTester|src/linux/xbee|GatewayTester/samples|src/mainLogmonitor.cpp|src/linux/loralink|GatewayTester/src" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway"/>
                         						
                         <entry excluding="samples|src" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNGateway/GatewayTester"/>
                         						
@@ -279,9 +279,9 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="MQTTSNGateway|MQTTSNGateway/GatewayTester|MQTTSNGateway/src|MQTTSNGateway/GatewayTester/samples/ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/ClientSub|MQTTSNGateway/GatewayTester/samples/ClientPub|MQTTSNGateway/src/tests/mainTestProcess.cpp|MQTTSNGateway/src/linux|MQTTSNPacket/src|MQTTSNClient|MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|ClientPubQoS-1" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+                        <entry excluding="MQTTSNPacket/test|MQTTSNPacket/samples|MQTTSNGateway/GatewayTester/samples/ClientPub|MQTTSNGateway/src/tests/mainTestProcess.cpp|MQTTSNGateway/src/linux|MQTTSNGateway|MQTTSNGateway/GatewayTester/samples/mainOTA.cpp|MQTTSNGateway/GatewayTester/samples/ClientSub|MQTTSNClient|MQTTSNGateway/src/mainLogmonitor.cpp|MQTTSNGateway/GatewayTester/samples/ClientPubQoS-1|MQTTSNGateway/GatewayTester/samples/mainTemplate.cpp|MQTTSNGateway/src|MQTTSNPacket/src|MQTTSNGateway/GatewayTester|ClientPubQoS-1" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
                         						
-                        <entry excluding="linux/ble" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="MQTTSNGateway/src"/>
+                        <entry excluding="linux/rfcomm|linux/ble" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="MQTTSNGateway/src"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="MQTTSNPacket/src"/>
                         					
@@ -325,18 +325,6 @@
         		
         <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
         		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2017162618;cdt.managedbuild.tool.gnu.c.compiler.input.814497727">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1903732701;cdt.managedbuild.tool.gnu.cpp.compiler.input.1606625536">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
         <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.109068141;cdt.managedbuild.tool.gnu.cpp.compiler.input.1626802967">
             			
             <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
@@ -344,6 +332,18 @@
         </scannerConfigBuildInfo>
         		
         <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.246546722;cdt.managedbuild.tool.gnu.c.compiler.input.456127079">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1685199227;cdt.managedbuild.config.gnu.exe.debug.1685199227.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2017162618;cdt.managedbuild.tool.gnu.c.compiler.input.814497727">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.561557339;cdt.managedbuild.config.gnu.exe.release.561557339.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1903732701;cdt.managedbuild.tool.gnu.cpp.compiler.input.1606625536">
             			
             <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
             		

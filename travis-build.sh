@@ -9,7 +9,7 @@ echo "travis build dir $TRAVIS_BUILD_DIR pwd $PWD"
 cmake .. -DSENSORNET=loralink
 make
 ctest -VV --timeout 600
-cmake .. -DSENSORNET=ble
+cmake .. -DSENSORNET=rfcomm
 make MQTT-SNGateway
 cmake .. -DSENSORNET=xbee
 make MQTT-SNGateway

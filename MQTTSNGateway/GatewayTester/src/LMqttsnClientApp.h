@@ -22,7 +22,7 @@
  ======================================*/
 //#define CLIENT_MODE
 #define UDP
-//#define BLE
+//#define RFCOMM
 /*======================================
  *         Debug Flag
  ======================================*/
@@ -75,10 +75,10 @@ struct LUdpConfig
 	uint16_t uPortNo;
 };
 
-struct LBleConfig
+struct LRfcommConfig
 {
     const char* clientId;
-    uint8_t gwAddress[6];
+    const char* gwAddress;
     uint8_t channel;
 };
 
@@ -100,13 +100,16 @@ typedef enum
 #ifdef UDP
 #define NETWORK_CONFIG   UdpConfig theNetworkConfig
 #define UDPCONF  LUdpConfig theNetcon
-#define BLECONF  LBleConfig theConf
+#define RFCOMMCONF  LRfcommConfig theConf
 #define SENSORNET_CONFIG_t  LUdpConfig
 #else
+#ifdef RFCOMM
 #define NETWORK_CONFIG   BleConfig theNetworkConfig
-#define BLECONF  LBleConfig theNetcon
+#define RFCOMMCONF  LRfcommConfig theNetcon
 #define UDPCONF  LUdpConfig theConf
-#define SENSORNET_CONFIG_t  LBleConfig
+#define SENSORNET_CONFIG_t  LRfcommConfig
+#endif
+#error "UDP and RFCOMM are not defined in LMqttsnClientApp.h"
 #endif
 
 #define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)

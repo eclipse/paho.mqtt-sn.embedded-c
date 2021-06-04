@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage: build.sh { udp | udp6 | xbee | loralink }"
+    echo "Usage: build.sh  [ udp | udp6 | xbee | loralink | rfcomm ]"
 else
     echo "Start building MQTT-SN Gateway"
     

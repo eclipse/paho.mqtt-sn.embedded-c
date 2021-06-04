@@ -158,7 +158,7 @@ SensorNetwork::~SensorNetwork()
 int SensorNetwork::unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendToAddr)
 {
     uint16_t ch = sendToAddr->getPortNo();
-    BlePort* blep = &_rfPorts[ch - 1];
+    RfcommPort* blep = &_rfPorts[ch - 1];
     int rc = 0;
     errno = 0;
 
@@ -220,7 +220,6 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
     int rc = 0;
     if (select(maxSock + 1, &recvfds, 0, 0, &timeout) > 0)
     {
-        WRITELOG("RECV\n");
         for (int i = 0; i < MAX_RFCOMM_CH; i++)
         {
             if (_rfPorts[i]._rfCommSock > 0)
@@ -243,7 +242,6 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
                     {
                         _rfPorts[i]._rfCommSock = sock;
                     }
-                    WRITELOG("accept sock= %d  CH = %d\n", sock, i + 1);
                 }
             }
         }
@@ -269,24 +267,24 @@ void SensorNetwork::initialize(void)
      *  in Gateway.conf e.g.
      *
      *  # BLE
-     *  BleAddress=XX:XX:XX:XX:XX:XX.0
+     *  RFCOMM=XX:XX:XX:XX:XX:XX.0
      *
      */
-    if (theProcess->getParam("BleAddress", param) == 0)
+    if (theProcess->getParam("RFCOMMAddress", param) == 0)
     {
         devAddr = param;
-        _description = "BLE RFCOMM ";
+        _description = "Bluetooth RFCOMM ";
         _description += param;
     }
 
     errno = 0;
     if (sa.setAddress(&devAddr) == -1)
     {
-        throw EXCEPTION("Invalid BLE Address", errno);
+        throw EXCEPTION("Invalid Bluetooth Address", errno);
     }
 
     /*  Prepare BLE sockets */
-    WRITELOG("Initialize ble\n");
+    WRITELOG("Initialize RFCOMM\n");
     int rc = MAX_RFCOMM_CH;
     for (uint16_t i = 0; i < MAX_RFCOMM_CH; i++)
     {
@@ -295,7 +293,7 @@ void SensorNetwork::initialize(void)
     }
     if (rc == 0)
     {
-        throw EXCEPTION("Can't open BLE RFComms", errno);
+        throw EXCEPTION("Can't open Bluetooth RFComms", errno);
     }
 }
 
@@ -313,7 +311,7 @@ SensorNetAddress* SensorNetwork::getSenderAddress(void)
  Class BleStack
  =========================================*/
 
-BlePort::BlePort()
+RfcommPort::RfcommPort()
 {
     _disconReq = false;
     _rfCommSock = 0;
@@ -321,7 +319,7 @@ BlePort::BlePort()
     _channel = 0;
 }
 
-BlePort::~BlePort()
+RfcommPort::~RfcommPort()
 {
     close();
 
@@ -331,7 +329,7 @@ BlePort::~BlePort()
     }
 }
 
-void BlePort::close(void)
+void RfcommPort::close(void)
 {
     if (_rfCommSock > 0)
     {
@@ -340,7 +338,7 @@ void BlePort::close(void)
     }
 }
 
-int BlePort::open(bdaddr_t* devAddr, uint16_t channel)
+int RfcommPort::open(bdaddr_t* devAddr, uint16_t channel)
 {
     const int reuse = 1;
 
@@ -380,13 +378,12 @@ int BlePort::open(bdaddr_t* devAddr, uint16_t channel)
     return 1;
 }
 
-int BlePort::send(const uint8_t* buf, uint32_t length)
+int RfcommPort::send(const uint8_t* buf, uint32_t length)
 {
-    WRITELOG("sock = %d\n", _rfCommSock);
     return ::send(_rfCommSock, buf, length, 0);
 }
 
-int BlePort::recv(uint8_t* buf, uint16_t len)
+int RfcommPort::recv(uint8_t* buf, uint16_t len)
 {
     int rc = 0;
     errno = 0;
@@ -400,7 +397,7 @@ int BlePort::recv(uint8_t* buf, uint16_t len)
     return rc;
 }
 
-int BlePort::accept(SensorNetAddress* addr)
+int RfcommPort::accept(SensorNetAddress* addr)
 {
     struct sockaddr_rc devAddr = { 0 };
     socklen_t opt = sizeof(devAddr);
@@ -419,7 +416,7 @@ int BlePort::accept(SensorNetAddress* addr)
     return sock;
 }
 
-int BlePort::getSock(void)
+int RfcommPort::getSock(void)
 {
     return _rfCommSock;
 }

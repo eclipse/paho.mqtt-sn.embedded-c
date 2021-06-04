@@ -58,7 +58,7 @@ public:
     void unsubscribe(const char* topicName);
     void unsubscribe(const uint16_t topicId);
     void disconnect(uint16_t sleepInSecs);
-    void initialize(SENSORNET_CONFIG_t netconf, LMqttsnConfig mqconf);
+    void initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf);
     void run(void);
     void addTask(bool test);
     void setSleepDuration(uint32_t duration);

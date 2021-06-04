@@ -104,7 +104,7 @@ void LNetwork::resetGwAddress(void){
 }
 
 
-bool LNetwork::initialize(LUdpConfig  config){
+bool LNetwork::initialize(LUdpConfig* config){
 	return LUdpPort::open(config);
 }
 
@@ -119,43 +119,48 @@ bool LNetwork::isBroadcastable()
 /*=========================================
        Class udpStack
  =========================================*/
-LUdpPort::LUdpPort(){
+LUdpPort::LUdpPort()
+{
     _disconReq = false;
     _sockfdUcast = -1;
     _sockfdMcast = -1;
     _castStat = 0;
 }
 
-LUdpPort::~LUdpPort(){
+LUdpPort::~LUdpPort()
+{
     close();
 }
 
 
 void LUdpPort::close(){
-	if(_sockfdMcast > 0){
+	if(_sockfdMcast > 0)
+	{
 		::close( _sockfdMcast);
 		_sockfdMcast = -1;
-	if(_sockfdUcast > 0){
+	    if(_sockfdUcast > 0)
+	    {
 		::close( _sockfdUcast);
 			_sockfdUcast = -1;
 		}
 	}
 }
 
-bool LUdpPort::open(LUdpConfig config){
+bool LUdpPort::open(LUdpConfig* config)
+{
 	const int reuse = 1;
 	char loopch = 1;
 
-	uint8_t sav = config.ipAddress[3];
-	config.ipAddress[3] = config.ipAddress[0];
-	config.ipAddress[0] = sav;
-	sav = config.ipAddress[2];
-	config.ipAddress[2] = config.ipAddress[1];
-	config.ipAddress[1] = sav;
+	uint8_t sav = config->ipAddress[3];
+	config->ipAddress[3] = config->ipAddress[0];
+	config->ipAddress[0] = sav;
+	sav = config->ipAddress[2];
+	config->ipAddress[2] = config->ipAddress[1];
+	config->ipAddress[1] = sav;
 
-	_gPortNo = htons(config.gPortNo);
-	_gIpAddr = getUint32((const uint8_t*)config.ipAddress);
-	_uPortNo = htons(config.uPortNo);
+	_gPortNo = htons(config->gPortNo);
+	_gIpAddr = getUint32((const uint8_t*)config->ipAddress);
+	_uPortNo = htons(config->uPortNo);
 
 	if( _gPortNo == 0 || _gIpAddr == 0 || _uPortNo == 0){
 		return false;

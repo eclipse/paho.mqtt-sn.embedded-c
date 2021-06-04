@@ -55,14 +55,14 @@ private:
 };
 
 /*========================================
- Class BlePort
+ Class RfcommPort
  =======================================*/
-class BlePort
+class RfcommPort
 {
     friend class SensorNetwork;
 public:
-	BlePort();
-	virtual ~BlePort();
+    RfcommPort();
+    virtual ~RfcommPort();
 
     int open(bdaddr_t* devAddress, uint16_t channel);
 	void close(void);
@@ -95,7 +95,7 @@ public:
 
 private:
     // sockets for RFCOMM
-    BlePort _rfPorts[MAX_RFCOMM_CH];
+    RfcommPort _rfPorts[MAX_RFCOMM_CH];
 	SensorNetAddress _senderAddr;
 	string _description;
 };

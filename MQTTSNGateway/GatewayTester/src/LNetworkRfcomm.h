@@ -14,11 +14,11 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
-#ifndef NETWORKBLE_H_
-#define NETWORKBLE_H_
+#ifndef NETWORKRFCOMM_H_
+#define NETWORKRFCOMM_H_
 
 #include "LMqttsnClientApp.h"
-#ifdef BLE
+#ifdef RFCOMM
 
 #include <sys/time.h>
 #include <iostream>
@@ -44,17 +44,15 @@ using namespace std;
 namespace linuxAsyncClient
 {
 /*========================================
- Class LBlePort
+     Class LRfcommPort
  =======================================*/
-class LBlePort
+class LRfcommPort
 {
     friend class LNetwork;
 public:
-    LBlePort();
-    virtual ~LBlePort();
-
-    bool open(LBleConfig config);
-
+    LRfcommPort();
+    virtual ~LRfcommPort();
+    bool open(LRfcommConfig* config);
     int unicast(const uint8_t* buf, uint32_t length);
     int recv(uint8_t* buf, uint16_t len, bool nonblock);
     bool checkRecvBuf();
@@ -63,8 +61,7 @@ public:
 private:
     void close();
 
-    int _sockBle;
-    uint8_t _devAddress[6];
+    int _sockRfcomm;
     uint8_t _gwAddress[6];
     uint8_t _channel;
     bool _disconReq;
@@ -76,7 +73,7 @@ private:
 /*===========================================
  Class  Network
  ============================================*/
-class LNetwork: public LBlePort
+class LNetwork: public LRfcommPort
 {
 public:
     LNetwork();
@@ -87,7 +84,7 @@ public:
     void setGwAddress(void);
     void resetGwAddress(void);
     void setFixedGwAddress(void);
-    bool initialize(LBleConfig config);
+        bool initialize(LRfcommConfig* config);
     uint8_t* getMessage(int* len);
     bool isBroadcastable();
 
@@ -102,5 +99,5 @@ private:
 };
 
 } /* end of namespace */
-#endif /* BLE */
-#endif /* NETWORKBLE_H_ */
+#endif /* RFCOMM */
+#endif /* NETWORKRFCOM_H_ */

@@ -51,7 +51,7 @@ public:
 	LUdpPort();
 	virtual ~LUdpPort();
 
-	bool open(LUdpConfig config);
+	bool open(LUdpConfig* config);
 
 	int unicast(const uint8_t* buf, uint32_t length, uint32_t ipaddress, uint16_t port  );
 	int multicast( const uint8_t* buf, uint32_t length );
@@ -89,7 +89,7 @@ public:
     void setGwAddress(void);
     void resetGwAddress(void);
     void setFixedGwAddress(void);
-    bool initialize(LUdpConfig  config);
+    bool initialize(LUdpConfig* config);
     uint8_t*  getMessage(int* len);
         bool isBroadcastable();
 private:

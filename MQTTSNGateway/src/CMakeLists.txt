@@ -87,7 +87,7 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        /usr/local/opt/openssl/include
        )
 
-IF(SENSORNET MATCHES "ble")
+IF(SENSORNET MATCHES "rfcomm")
 
 TARGET_LINK_LIBRARIES(mqtt-sngateway_common
        PRIVATE

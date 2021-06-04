@@ -20,7 +20,7 @@ CPPSRCS :=  \
 $(SUBDIR)/LGwProxy.cpp \
 $(SUBDIR)/LMqttsnClient.cpp \
 $(SUBDIR)/LNetworkUdp.cpp \
-$(SUBDIR)/LNetworkBle.cpp \
+$(SUBDIR)/LNetworkRfcomm.cpp \
 $(SUBDIR)/LPublishManager.cpp \
 $(SUBDIR)/LRegisterManager.cpp \
 $(SUBDIR)/LSubscribeManager.cpp \
