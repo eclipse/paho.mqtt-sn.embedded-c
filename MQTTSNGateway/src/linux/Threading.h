@@ -95,7 +95,7 @@ private:
 class RingBuffer
 {
 public:
-    RingBuffer(const char* keyDirctory = MQTTSNGW_KEY_DIRECTORY);
+    RingBuffer(const char* keyDirectory = MQTTSNGW_KEY_DIRECTORY);
 	~RingBuffer();
 	void put(char* buffer);
 	int get(char* buffer, int bufferLength);

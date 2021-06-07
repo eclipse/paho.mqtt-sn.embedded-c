@@ -57,7 +57,7 @@ TEST_LIST = {// e.g. TEST( Label, Test),
 ## step1. Define a sensor network 
 
 **UDP** or **Bluetooth** is available as a sensor network.
-Uncomment a line \#define UDP or BLE in LMqttsnClientApp.h file. 
+Uncomment a line \#define UDP or RFCOMM in LMqttsnClientApp.h file. 
 ```
 
 /*======================================
@@ -65,7 +65,7 @@ Uncomment a line \#define UDP or BLE in LMqttsnClientApp.h file.
  ======================================*/
 //#define CLIENT_MODE
 #define UDP
-//#define BLE
+//#define RFCOMM
 ```
 
 ## step2. Build    
