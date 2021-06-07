@@ -68,7 +68,11 @@ LGwProxy::~LGwProxy()
 
 void LGwProxy::initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf)
 {
-    _network.initialize(netconf);
+    if (_network.initialize(netconf) == false)
+    {
+        DISPLAY("Can't open SensorNetwork\n");
+        exit(-1);
+    }
     _clientId = netconf->clientId;
     _willTopic = mqconf->willTopic;
     _willMsg = mqconf->willMsg;
