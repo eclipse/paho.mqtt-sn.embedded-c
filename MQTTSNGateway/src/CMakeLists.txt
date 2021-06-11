@@ -35,6 +35,9 @@ IF(NOT DEFINED SENSORNET)
 ENDIF()
 MESSAGE(STATUS "SENSORNET: " ${SENSORNET})
 
+ADD_DEFINITIONS(${DEFS})
+MESSAGE(STATUS "Definitions: " ${DEFS})
+
 ADD_LIBRARY(mqtt-sngateway_common
        MQTTGWConnectionHandler.cpp
        MQTTGWPacket.cpp
@@ -74,8 +77,11 @@ ADD_LIBRARY(mqtt-sngateway_common
        ${OS}/Threading.h
        )
 
+# linux
 link_directories("/usr/local/lib")
-link_directories("/usr/local/opt/openssl/lib")
+
+# Mac
+link_directories("/usr/local/opt/openssl")
 
 
 TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
@@ -84,7 +90,7 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        ${OS}
        ${OS}/${SENSORNET}
        ../../MQTTSNPacket/src
-       /usr/local/opt/openssl/include
+       /usr/local/include
        )
 
 IF(SENSORNET MATCHES "rfcomm")

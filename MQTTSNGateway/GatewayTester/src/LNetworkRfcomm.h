@@ -17,7 +17,6 @@
 #ifndef NETWORKRFCOMM_H_
 #define NETWORKRFCOMM_H_
 
-#include "LMqttsnClientApp.h"
 #ifdef RFCOMM
 
 #include <sys/time.h>

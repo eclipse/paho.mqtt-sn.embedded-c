@@ -20,7 +20,10 @@ CPPSRCS :=  \
 $(SUBDIR)/LGwProxy.cpp \
 $(SUBDIR)/LMqttsnClient.cpp \
 $(SUBDIR)/LNetworkUdp.cpp \
+$(SUBDIR)/LNetworkUdp6.cpp \
 $(SUBDIR)/LNetworkRfcomm.cpp \
+$(SUBDIR)/LNetworkDtls.cpp \
+$(SUBDIR)/LNetworkDtls6.cpp \
 $(SUBDIR)/LPublishManager.cpp \
 $(SUBDIR)/LRegisterManager.cpp \
 $(SUBDIR)/LSubscribeManager.cpp \
@@ -38,11 +41,13 @@ CXX := g++
 CPPFLAGS += 
 
 INCLUDES += -I$(SUBDIR)
-DEFS :=
-LIBS +=
+DEF1 :=
+DEF2 :=
+DEFS := -D$(SN) $(DEF1) $(DEF2)
+LIBS += -L/usr/local/lib -L/usr/local/opt/openssl
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := -lbluetooth
+LDADD := -lbluetooth -lssl -lcrypto
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGTEST)
@@ -76,23 +81,23 @@ $(PROGQOS): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(SRCQOS)/$(QOSAPPL).o
 
 $(OUTDIR)/$(SUBDIR)/%.o:$(SUBDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	$(CXX) $(DEFS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 $(OUTDIR)/$(SRCDIR)/%.o:$(SRCDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	$(CXX) $(DEFS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 $(OUTDIR)/$(SRCDIR)/$(SRCPUB)/%.o:$(SRCDIR)/$(SRCPUB)%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	$(CXX) $(DEFS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 $(OUTDIR)/$(SRCDIR)/$(SRCSUB)/%.o:$(SRCDIR)/$(SRCSUB)%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	$(CXX) $(DEFS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 	
 $(OUTDIR)/$(SRCDIR)/$(SRCQOS)/%.o:$(SRCDIR)/$(SRCQOS)%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $(DEFS) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
+	$(CXX) $(DEFS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ -c -MMD -MP -MF $(@:%.o=%.d) $<
 
 clean:
 	rm -rf $(OUTDIR)

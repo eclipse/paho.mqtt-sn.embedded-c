@@ -17,6 +17,7 @@
 #include "MQTTSNGWBrokerRecvTask.h"
 #include "MQTTSNGWClient.h"
 #include "MQTTSNGWClientList.h"
+#include "MQTTSNGateway.h"
 #include <unistd.h>
 
 using namespace std;

@@ -21,7 +21,6 @@
 #include "MQTTSNGWPacketHandleTask.h"
 
 using namespace MQTTSNGW;
-
 /*
  *  Gateway Application
  */

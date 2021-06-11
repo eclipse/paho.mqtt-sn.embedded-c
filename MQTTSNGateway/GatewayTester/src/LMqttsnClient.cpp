@@ -53,8 +53,14 @@ int main(int argc, char** argv)
     printf("\n%s", PAHO_COPYRIGHT0);
 #if defined(UDP)
     printf("   UDP\n");
+#elif defined(UDP6)
+    printf("   UDP6\n");
 #elif defined(RFCOMM)
     printf("   RFCOMM\n");
+#elif defined(DTLS)
+    printf("   DTLS\n");
+#elif defined(DTLS6)
+    printf("   DTLS6\n");
 #else
     printf("\n");
 #endif

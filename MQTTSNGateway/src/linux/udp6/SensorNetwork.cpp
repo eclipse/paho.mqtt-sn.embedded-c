@@ -1,6 +1,6 @@
 /**************************************************************************************
  * Copyright (c) 2017, Benjamin Aigner
- * Copyright (c) 2016, Tomoaki Yamaguchi (original UDPv4 implementation)
+ * Copyright (c) 2021, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -20,8 +20,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <netinet/ip.h>
 #include <net/if.h>
+#include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
@@ -40,61 +42,57 @@ using namespace MQTTSNGW;
  ============================================*/
 SensorNetAddress::SensorNetAddress()
 {
-	_portNo = 0;
-	memset((void *)&_IpAddr,0,sizeof(_IpAddr));
+    memset((void*) &_IpAddr, 0, sizeof(_IpAddr));
 }
 
 SensorNetAddress::~SensorNetAddress()
 {
 }
 
-struct sockaddr_in6 *SensorNetAddress::getIpAddress(void)
+sockaddr_in6* SensorNetAddress::getIpAddress(void)
 {
-	return &_IpAddr;
+    return &_IpAddr;
 }
 
 uint16_t SensorNetAddress::getPortNo(void)
 {
-	return _portNo;
+    return _IpAddr.sin6_port;
 }
 
-void SensorNetAddress::setAddress(struct sockaddr_in6 *IpAddr, uint16_t port)
+void SensorNetAddress::setAddress(struct sockaddr_in6 *IpAddr)
 {
-	memcpy((void *)&_IpAddr,IpAddr,sizeof(_IpAddr));
-	_portNo = port;
+    memcpy((void*) &_IpAddr, IpAddr, sizeof(_IpAddr));
 }
 
 /**
  *  convert Text data to SensorNetAddress
- *  @param  data is a IPV6_Address:PortNo format string
+ *  @param  data is a string [IPV6_Address]:PortNo
  *  @return success = 0,  Invalid format = -1
  */
 int SensorNetAddress::setAddress(string* data)
 {
+    size_t pos = data->find_last_of("]:");
 
-	size_t pos = data->find_last_of(":");
+    if (pos != string::npos)
+    {
+        int portNo = 0;
+        string port = data->substr(pos + 1);
 
-	if ( pos != string::npos)
-	{
-		int portNo = 0;
-		string port = data->substr(pos + 1);
+        if ((portNo = atoi(port.c_str())) > 0)
+        {
+            _IpAddr.sin6_port = htons(portNo);
+            _IpAddr.sin6_family = AF_INET6;
+            string ip = data->substr(1, pos - 2);
+            const char *cstr = ip.c_str();
 
-		if ( ( portNo = atoi(port.c_str()) ) > 0 )
-		{
-			_portNo = htons(portNo);
-
-			string ip = data->substr(1,pos - 1);
-			const char *cstr = ip.c_str();
-
-			if (inet_pton(AF_INET6, cstr, &(_IpAddr.sin6_addr)) == 1 )
-			{
-				return 0;
-			}
-		}
-	}
-	_portNo = 0;
-	memset((void *)&_IpAddr,0,sizeof(_IpAddr));
-	return -1;
+            if (inet_pton(AF_INET6, cstr, &(_IpAddr.sin6_addr)) == 1)
+            {
+                return 0;
+            }
+        }
+    }
+    memset((void*) &_IpAddr, 0, sizeof(_IpAddr));
+    return -1;
 }
 
 /**
@@ -104,43 +102,42 @@ int SensorNetAddress::setAddress(string* data)
  */
 int SensorNetAddress::setAddress(const char* data)
 {
-	if ( inet_pton(AF_INET6, data, &(_IpAddr.sin6_addr)) == 1 )
-	{
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+    if (inet_pton(AF_INET6, data, &(_IpAddr.sin6_addr)) == 1)
+    {
+        _IpAddr.sin6_family = AF_INET6;
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 char* SensorNetAddress::getAddress(void)
 {
-	inet_ntop(AF_INET6, &(_IpAddr.sin6_addr), _addrString, INET6_ADDRSTRLEN);
-	return _addrString;
+    inet_ntop(AF_INET6, &(_IpAddr.sin6_addr), _addrString, INET6_ADDRSTRLEN);
+    return _addrString;
 }
 
 bool SensorNetAddress::isMatch(SensorNetAddress* addr)
 {
-	return (this->_portNo == addr->_portNo) && \
-	(memcmp(this->_IpAddr.sin6_addr.s6_addr, addr->_IpAddr.sin6_addr.s6_addr, sizeof(this->_IpAddr.sin6_addr.s6_addr)) == 0);
+    return (this->_IpAddr.sin6_port == addr->_IpAddr.sin6_port)
+            && (memcmp(this->_IpAddr.sin6_addr.s6_addr, addr->_IpAddr.sin6_addr.s6_addr,
+                    sizeof(this->_IpAddr.sin6_addr.s6_addr)) == 0);
 }
 
 SensorNetAddress& SensorNetAddress::operator =(SensorNetAddress& addr)
 {
-	this->_portNo = addr._portNo;
-	memcpy(&this->_IpAddr.sin6_addr, &addr._IpAddr.sin6_addr, sizeof(this->_IpAddr.sin6_addr));
-	return *this;
+    memcpy(&this->_IpAddr, &addr._IpAddr, sizeof(this->_IpAddr));
+    return *this;
 }
 
 
 char* SensorNetAddress::sprint(char* buf)
 {
-	char ip[INET6_ADDRSTRLEN];
-	inet_ntop(AF_INET6, &(_IpAddr.sin6_addr), ip, INET6_ADDRSTRLEN);
-	sprintf( buf, "%s:", ip);
-	sprintf( buf + strlen(buf), "%d", ntohs(_portNo));
-	return buf;
+    sprintf(buf, "[%s]:", getAddress());
+    sprintf(buf + strlen(buf), "%d", ntohs(_IpAddr.sin6_port));
+    return buf;
 }
 
 /*===========================================
@@ -156,75 +153,74 @@ SensorNetwork::~SensorNetwork()
 
 int SensorNetwork::unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendToAddr)
 {
-	return UDPPort6::unicast(payload, payloadLength, sendToAddr);
+    return UDPPort6::unicast(payload, payloadLength, sendToAddr);
 }
 
 int SensorNetwork::broadcast(const uint8_t* payload, uint16_t payloadLength)
 {
-	return UDPPort6::broadcast(payload, payloadLength);
+    return UDPPort6::broadcast(payload, payloadLength);
 }
 
 int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 {
-	return UDPPort6::recv(buf, bufLen, &_clientAddr);
+    return UDPPort6::recv(buf, bufLen, &_clientAddr);
 }
 
 void SensorNetwork::initialize(void)
 {
-	char param[MQTTSNGW_PARAM_MAX];
-	uint16_t unicastPortNo = 0;
-	string ip;
-	string broadcast;
-	string interface;
-	unsigned int hops = 1;
+    char param[MQTTSNGW_PARAM_MAX];
+    uint16_t unicastPortNo = 0;
+    uint16_t multicastPortNo = 0;
+    string ip;
+    string multicast;
+    string interface;
+    uint32_t hops = 1;
 
-	if (theProcess->getParam("GatewayUDP6Bind", param) == 0)
-	{
-		ip = param;
-		_description = "GatewayUDP6Bind: ";
-		_description += param;
-	}
-	if (theProcess->getParam("GatewayUDP6Port", param) == 0)
-	{
-		unicastPortNo = atoi(param);
-		_description += " Gateway Port: ";
-		_description += param;
-	}
-	if (theProcess->getParam("GatewayUDP6Broadcast", param) == 0)
-	{
-		broadcast = param;
-		_description += " Broadcast Address: ";
-		_description += param;
-	}
-	if (theProcess->getParam("GatewayUDP6If", param) == 0)
-	{
-		interface = param;
-		_description += " Interface: ";
-		_description += param;
-	}
-	if (theProcess->getParam("GatewayUDP6Hops", param) == 0)
-	{
-		hops = atoi(param);
-		_description += " Hops: ";
-		_description += param;
-	}
+    if (theProcess->getParam("MulticastIPv6", param) == 0)
+    {
+        multicast = param;
+        _description += "Multicast Address: [";
+        _description += param;
+    }
+    if (theProcess->getParam("MulticastIPv6PortNo", param) == 0)
+    {
+        multicastPortNo = atoi(param);
+        _description += "]:";
+        _description += param;
+    }
+    if (theProcess->getParam("GatewayIPv6PortNo", param) == 0)
+    {
+        unicastPortNo = atoi(param);
+        _description += ", Gateway Port:";
+        _description += param;
+    }
+    if (theProcess->getParam("MulticastIPv6If", param) == 0)
+    {
+        interface = param;
+        _description += ", Interface: ";
+        _description += param;
+    }
+    if (theProcess->getParam("MulticastHops", param) == 0)
+    {
+        hops = atoi(param);
+        _description += ", Hops:";
+        _description += param;
+    }
 
-	errno = 0;
-
-	if ( UDPPort6::open(ip.c_str(), unicastPortNo, broadcast.c_str(), interface.c_str(), hops) < 0 )
-	{
-		throw EXCEPTION("Can't open a UDP6", errno);
-	}
+    if (UDPPort6::open(unicastPortNo, multicastPortNo, multicast.c_str(), interface.c_str(), hops) < 0)
+    {
+        throw EXCEPTION("Can't open a UDP6", errno);
+    }
 }
 
 const char* SensorNetwork::getDescription(void)
 {
-	return _description.c_str();
+    return _description.c_str();
 }
 
 SensorNetAddress* SensorNetwork::getSenderAddress(void)
 {
-	return &_clientAddr;
+    return &_clientAddr;
 }
 
 /*=========================================
@@ -233,278 +229,241 @@ SensorNetAddress* SensorNetwork::getSenderAddress(void)
 
 UDPPort6::UDPPort6()
 {
-	_disconReq = false;
-	_sockfdUnicast = -1;
-	_sockfdMulticast = -1;
+    _disconReq = false;
+    _hops = 0;
 }
 
 UDPPort6::~UDPPort6()
 {
-	close();
+    close();
 }
 
 void UDPPort6::close(void)
 {
-	if (_sockfdUnicast > 0)
-	{
-		::close(_sockfdUnicast);
-		_sockfdUnicast = -1;
-	}
-	if (_sockfdMulticast > 0)
-	{
-		::close(_sockfdMulticast);
-		_sockfdMulticast = -1;
-	}
+    for (int i = 0; i < 2; i++)
+    {
+        if (_pollfds[i].fd > 0)
+        {
+            ::close(_pollfds[i].fd);
+            _pollfds[i].fd = 0;
+        }
+    }
 }
 
-int UDPPort6::open(const char* ipAddress, uint16_t uniPortNo, const char* broadcastAddr, const char* interfaceName, unsigned int hops)
+int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multicastAddr, const char *interfaceName,
+        uint32_t hops)
 {
-	struct addrinfo hints, *res;
-	int errnu;
-	const int reuse = 1;
+    int optval = 0;
+    int sock = 0;
+    sockaddr_in6 addr6;
+    uint32_t ifindex = 0;
 
-	if (uniPortNo == 0)
-	{
-		WRITELOG("error portNo undefined in UDPPort::open\n");
-		return -1;
-	}
+    errno = 0;
 
+    if (uniPortNo == 0 || multiPortNo == 0)
+    {
+        D_NWSTACK("error portNo undefined in UDPPort6::open\n");
+        return -1;
+    }
 
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET6;  // use IPv6
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE; //use local IF address
+    // Create a unicast socket
+    sock = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (sock < 0)
+    {
+        D_NWSTACK("UDP6::open - unicast socket: %s", strerror(errno));
+        return -1;
+    }
 
-	getaddrinfo(NULL, std::to_string(uniPortNo).c_str(), &hints, &res);
+    _pollfds[0].fd = sock;
+    _pollfds[0].events = POLLIN;
 
-	_sockfdMulticast = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if(_sockfdMulticast <0)
-	{
-		WRITELOG("UDP6::open - multicast: %s",strerror(_sockfdMulticast));
-		return errno;
-	}
+    optval = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &optval, sizeof(optval));
 
-	//select the interface
-	unsigned int ifindex;
-	ifindex = if_nametoindex(interfaceName);
-	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex,sizeof(ifindex));
-	if(errnu <0)
-	{
-		WRITELOG("UDP6::open - limit IF: %s",strerror(errnu));
-		return errnu;
-	}
+    optval = 1;
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*) &optval, sizeof(optval)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m unicast socket error %s IPV6_V6ONLY\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return -1;
+    }
 
-	strcpy(_interfaceName,interfaceName);
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &hops, sizeof(hops)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m error %s IPV6_UNICAST_HOPS\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return -1;
+    }
 
-	//restrict the socket to IPv6 only
-	int on = 1;
-	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on));
-	if(errnu <0)
-	{
-		WRITELOG("UDP6::open - limit IPv6: %s",strerror(errnu));
-		return errnu;
-	}
-	errnu = setsockopt(_sockfdMulticast, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops,sizeof(hops));
-	if(errnu <0)
-	{
-	    WRITELOG("UDP6::open - limit HOPS: %s",strerror(errnu));
-	    return errnu;
-	}
-
-	_uniPortNo = uniPortNo;
-	_hops = hops;
-	freeaddrinfo(res);
-
-	//init the structs for getaddrinfo
-	//according to: https://beej.us/guide/bgnet/output/html/multipage/
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET6;  // use IPv6, whichever
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
-
-	//no specific address, bind to available ones...
-	getaddrinfo(NULL, std::to_string(uniPortNo).c_str(), &hints, &res);
-
-	//create the socket
-	_sockfdUnicast = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (_sockfdUnicast < 0)
-	{
-		WRITELOG("UDP6::open - unicast socket: %s",strerror(_sockfdUnicast));
-		return -1;
-	}
-
-	//if given, set a given device name to bind to
-	if(strlen(interfaceName) > 0)
-	{
+    if (strlen(interfaceName) > 0)
+    {
+        ifindex = if_nametoindex(interfaceName);
 #ifdef __APPLE__
-		int idx = if_nametoindex(interfaceName);
-		setsockopt(_sockfdUnicast, IPPROTO_IP, IP_BOUND_IF, &idx, sizeof(idx));
-#else	
-		//socket option: bind to a given interface name
-		setsockopt(_sockfdUnicast, SOL_SOCKET, SO_BINDTODEVICE, interfaceName, strlen(interfaceName));
+        setsockopt(sock, IPPROTO_IP, IP_BOUND_IF, &ifindex, sizeof(ifindex));
+#else
+        setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, interfaceName, strlen(interfaceName));
 #endif
-	}
+    }
 
-	//socket option: reuse address
-	setsockopt(_sockfdUnicast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    memset(&addr6, 0, sizeof(addr6));
+    addr6.sin6_family = AF_INET6;
+    addr6.sin6_port = htons(uniPortNo);
+    addr6.sin6_addr = in6addr_any;
 
-	//finally: bind...
-	errnu = ::bind(_sockfdUnicast, res->ai_addr, res->ai_addrlen);
-	if (errnu  < 0)
-	{
-		WRITELOG("error can't bind unicast socket in UDPPort::open: %s\n",strerror(errnu));
-		return -1;
-	}
+    if (::bind(sock, (sockaddr*) &addr6, sizeof(addr6)) < 0)
+    {
+        D_NWSTACK("error can't bind unicast socket in UDPPort6::open: %s\n", strerror(errno));
+        close();
+        return -1;
+    }
 
-	//if given, set a broadcast address; otherwise it will be ::
-	if(strlen(broadcastAddr) > 0)
-	{
-		_grpAddr.setAddress(broadcastAddr);
-	} else {
-		_grpAddr.setAddress("::");
-	}
-	//everything went fine...
-	freeaddrinfo(res);
-	return 0;
+
+    // create a MULTICAST socket
+
+    sock = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (sock < 0)
+    {
+        D_NWSTACK("UDP6::open - multicast: %s", strerror(errno));
+        close();
+        return -1;
+    }
+    _pollfds[1].fd = sock;
+    _pollfds[1].events = POLLIN;
+
+    optval = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &optval, sizeof(optval)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m multicast socket error %s SO_REUSEADDR\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return -1;
+    }
+    optval = 1;
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*) &optval, sizeof(optval)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m multicast socket error %s IPV6_V6ONLY\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return -1;
+    }
+
+    memset(&addr6, 0, sizeof(addr6));
+    addr6.sin6_family = AF_INET6;
+    addr6.sin6_port = htons(multiPortNo);
+    addr6.sin6_addr = in6addr_any;
+
+    if (::bind(sock, (sockaddr*) &addr6, sizeof(addr6)) < 0)
+    {
+        close();
+        D_NWSTACK("error can't bind multicast socket in UDPPort6::open: %s\n", strerror(errno));
+        return -1;
+    }
+
+    ipv6_mreq addrm;
+    addrm.ipv6mr_interface = ifindex;
+    inet_pton(AF_INET6, multicastAddr, &addrm.ipv6mr_multiaddr);
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &addrm, sizeof(addrm)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m error %d IPV6_ADD_MEMBERSHIP in Udp6Port::open\033[0m\033[0;37m\n", errno);
+        close();
+        return false;
+    }
+
+#ifdef DEBUG_NW
+    optval = 1;
+#else
+    optval = 0;
+#endif
+
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char*) &optval, sizeof(optval)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m error %s IPV6_MULTICAST_LOOP\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return false;
+    }
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops, sizeof(hops)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m error %s IPV6_MULTICAST_HOPS\033[0m\033[0;37m\n", strerror(errno));
+        close();
+        return -1;
+    }
+
+    memcpy(&addr6.sin6_addr, &addrm.ipv6mr_multiaddr, sizeof(addrm.ipv6mr_multiaddr));
+    _grpAddr.setAddress(&addr6);
+    return 0;
 }
 
 int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
-	char destStr[INET6_ADDRSTRLEN+10];
-	struct addrinfo hints, *res;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET6;  // use IPv6
-	hints.ai_socktype = SOCK_DGRAM;
+    sockaddr_in6 dest;
+    memset(&dest, 0, sizeof(dest));
+    dest.sin6_family = AF_INET6;
+    dest.sin6_port = addr->getPortNo();
+    memcpy(dest.sin6_addr.s6_addr, (const void*) &addr->getIpAddress()->sin6_addr, sizeof(in6_addr));
 
-	int err = 0;
-	int port = 0;
-	string portStr;
-	if(addr->getPortNo() != 0)
-	{
-		port = htons(addr->getPortNo());
-		portStr = to_string(port);
-	} else {
-		port = _uniPortNo;
-		portStr = to_string(port);
-	}
+#ifdef  DEBUG_NW
+    char addrBuf[INET6_ADDRSTRLEN];
+    addr->sprint(addrBuf);
+    D_NWSTACK("sendto %s\n", addrBuf);
+#endif
 
-	errno = 0;
+    int status = ::sendto(_pollfds[0].fd, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
 
-	if(strlen(_interfaceName) != 0)
-	{
-		strcpy(destStr, addr->getAddress());
-		strcat(destStr,"%");
-		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_LINKLOCAL(&addr->getIpAddress()->sin6_addr))
-		{
-			err = getaddrinfo(destStr, portStr.c_str(), &hints, &res);
-		}
-		else
-		{
-			err = getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
-		}
-	} else {
-		strcpy(destStr, addr->getAddress());
-		err = getaddrinfo(addr->getAddress(), portStr.c_str(), &hints, &res);
-	}
-
-	if ( err != 0)
-	{
-		WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(errno));
-		return err;
-	}
-
-	int status = ::sendto(_sockfdUnicast, buf, length, 0, res->ai_addr, res->ai_addrlen);
-
-	if (status < 0)
-	{
-		WRITELOG("errno in UDPPort::unicast(sendto): %d, %s\n",status,strerror(errno));
-	}
-
-	return status;
+    if (status < 0)
+    {
+        D_NWSTACK("%s in UDPPor6t::sendto\n", strerror(errno));
+    }
+    return status;
 }
 
 int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 {
-	struct addrinfo hint,*info;
-	int err;
-	memset( &hint, 0, sizeof( hint ) );
+    int err = unicast(buf, length, &_grpAddr);
 
-	hint.ai_family = AF_INET6;
-	hint.ai_socktype = SOCK_DGRAM;
-	hint.ai_protocol = 0;
+    if (err < 0)
+    {
+        D_NWSTACK("UDP6::broadcast - sendto: %s", strerror(errno));
+        return err;
+    }
 
-	errno = 0;
-
-	if(strlen(_interfaceName) != 0)
-	{
-		char destStr[80];
-		strcpy(destStr, _grpAddr.getAddress());
-		strcat(destStr,"%");
-		strcat(destStr,_interfaceName);
-		if(IN6_IS_ADDR_MC_NODELOCAL(&_grpAddr.getIpAddress()->sin6_addr) ||
-		   IN6_IS_ADDR_MC_LINKLOCAL(&_grpAddr.getIpAddress()->sin6_addr))
-		{
-			err = getaddrinfo(destStr, std::to_string(_uniPortNo).c_str(), &hint, &info );
-		}
-		else
-		{
-			err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
-		}
-	} else {
-		err = getaddrinfo(_grpAddr.getAddress(), std::to_string(_uniPortNo).c_str(), &hint, &info );
-	}
-
-	if( err != 0 ) {
-	    WRITELOG("UDP6::broadcast - getaddrinfo: %s",strerror(errno));
-	    return err;
-	}
-
-	err = sendto(_sockfdMulticast, buf, length, 0, info->ai_addr, info->ai_addrlen );
-
-	if(err < 0 ) {
-	    WRITELOG("UDP6::broadcast - sendto: %s",strerror(errno));
-	    return err;
-	}
-
-	return 0;
+    return 0;
 }
 
 int UDPPort6::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
-	struct timeval timeout;
-	fd_set recvfds;
+    int rc = poll(_pollfds, 2, 2000);  // Timeout 2secs
+    if (rc == 0)
+    {
+        return rc;
+    }
 
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;    // 1 sec
-	FD_ZERO(&recvfds);
-	FD_SET(_sockfdUnicast, &recvfds);
-
-	int rc = 0;
-	if ( select(_sockfdUnicast + 1, &recvfds, 0, 0, &timeout) > 0 )
-	{
-		if (FD_ISSET(_sockfdUnicast, &recvfds))
-		{
-			rc = recvfrom(_sockfdUnicast, buf, len, 0, addr);
-		}
-	}
-	return rc;
+    for (int i = 0; i < 2; i++)
+    {
+        if (_pollfds[i].revents & POLLIN)
+        {
+            return recvfrom(_pollfds[i].fd, buf, len, 0, addr);
+        }
+    }
+    return 0;
 }
 
 int UDPPort6::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
 {
-	sockaddr_in6 sender;
-	socklen_t addrlen = sizeof(sender);
-	memset(&sender, 0, addrlen);
+    sockaddr_in6 sender;
+    socklen_t addrlen = sizeof(sender);
+    memset(&sender, 0, addrlen);
 
-	int status = ::recvfrom(sockfd, buf, len, flags, (sockaddr*) &sender, &addrlen);
+    int status = ::recvfrom(sockfd, buf, len, flags, (sockaddr*) &sender, &addrlen);
 
-	if (status < 0 && errno != EAGAIN)
-	{
-		WRITELOG("errno == %d in UDPPort::recvfrom: %s\n",errno,strerror(errno));
-		return -1;
-	}
-	addr->setAddress(&sender, (uint16_t)sender.sin6_port);
-	//D_NWSTACK("recved from %s:%d length = %d\n", inet_ntoa(sender.sin_addr),ntohs(sender.sin_port), status);
-	return status;
+    if (status < 0 && errno != EAGAIN)
+    {
+        D_NWSTACK("errno in UDPPort6::recvfrom: %s\n", strerror(errno));
+        return -1;
+    }
+    addr->setAddress(&sender);
+
+#ifdef DEBUG_NW
+    char addrBuf[INET6_ADDRSTRLEN];
+    addr->sprint(addrBuf);
+    D_NWSTACK("sendto %s length = %d\n", addrBuf, status);
+#endif
+    return status;
 }

@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2021, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -14,10 +14,10 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
-#ifndef NETWORKUDP_H_
-#define NETWORKUDP_H_
+#ifndef NETWORKUDP6_H_
+#define NETWORKUDP6_H_
 
-#ifdef UDP
+#ifdef UDP6
 
 #include <sys/time.h>
 #include <iostream>
@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <string>
 #include <arpa/inet.h>
+#include <poll.h>
+
 
 #define SOCKET_MAXHOSTNAME  200
 #define SOCKET_MAXCONNECTIONS  5
@@ -41,33 +43,35 @@ using namespace std;
 
 namespace linuxAsyncClient {
 /*========================================
-       Class LUpdPort
+ Class LUpd6Port
  =======================================*/
-class LUdpPort{
+class LUdp6Port
+{
     friend class LNetwork;
 public:
-	LUdpPort();
-	virtual ~LUdpPort();
+    LUdp6Port();
+    virtual ~LUdp6Port();
 
-	bool open(LUdpConfig* config);
+    bool open(LUdp6Config *config);
 
-	int unicast(const uint8_t* buf, uint32_t length, uint32_t ipaddress, uint16_t port  );
+    int unicast(const uint8_t *buf, uint32_t length, in6_addr ipaddress, uint16_t port);
 	int multicast( const uint8_t* buf, uint32_t length );
-	int recv(uint8_t* buf, uint16_t len, bool nonblock, uint32_t* ipaddress, uint16_t* port );
+    int recv(uint8_t *buf, uint16_t len, bool nonblock, in6_addr *ipaddress, uint16_t *port);
 	int recv(uint8_t* buf, int flags);
 	bool checkRecvBuf();
 	bool isUnicast();
 
 private:
 	void close();
-	int recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipaddress, uint16_t* port );
+    int recvfrom(uint8_t *buf, uint16_t len, int flags, in6_addr *ipaddress, uint16_t *port);
 
-	int      _sockfdUcast;
-	int      _sockfdMcast;
+    pollfd _pollfds[2];
 	uint16_t _gPortNo;
 	uint16_t _uPortNo;
-	uint32_t _gIpAddr;
-	uint8_t  _castStat;
+    sockaddr_in6 _gIpAddr;
+    char *_gIpAddrStr;
+    char* _interface;
+    int _sock;
 	bool   _disconReq;
 
 };
@@ -77,7 +81,8 @@ private:
 /*===========================================
                Class  Network
  ============================================*/
-class LNetwork : public LUdpPort {
+class LNetwork: public LUdp6Port
+{
 public:
     LNetwork();
     ~LNetwork();
@@ -86,17 +91,16 @@ public:
     int  unicast(const uint8_t* payload, uint16_t payloadLen);
     void setGwAddress(void);
     void resetGwAddress(void);
-    void setFixedGwAddress(void);
-    bool initialize(LUdpConfig* config);
+    bool initialize(LUdp6Config *config);
     uint8_t*  getMessage(int* len);
-        bool isBroadcastable();
+    bool isBroadcastable();
 private:
     void setSleep();
     int  readApiFrame(void);
 
-    uint32_t _gwIpAddress;
+    in6_addr _gwIpAddress;
+    in6_addr _ipAddress;
 	uint16_t _gwPortNo;
-	uint32_t _ipAddress;
 	uint16_t _portNo;
     int     _returnCode;
     bool _sleepflg;
@@ -105,5 +109,5 @@ private:
 };
 
 }    /* end of namespace */
-#endif /* UDP */
+#endif /* UDP6 */
 #endif /* NETWORKUDP_H_ */

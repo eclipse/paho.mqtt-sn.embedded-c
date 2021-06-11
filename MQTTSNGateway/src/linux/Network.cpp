@@ -656,3 +656,7 @@ bool Network::isSecure()
 	return _secureFlg;
 }
 
+void Network::setSecure(bool secureFlg)
+{
+    _secureFlg = secureFlg;
+}

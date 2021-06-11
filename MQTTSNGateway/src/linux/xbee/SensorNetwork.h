@@ -25,13 +25,6 @@ using namespace std;
 
 namespace MQTTSNGW
 {
-//#define DEBUG_NWSTACK
-
-#ifdef  DEBUG_NWSTACK
-  #define D_NWSTACK(...) printf(__VA_ARGS__)
-#else
-  #define D_NWSTACK(...)
-#endif
 
 #define API_XMITREQUEST          0x10
 #define API_RESPONSE             0x90

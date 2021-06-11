@@ -26,12 +26,6 @@ using namespace std;
 namespace MQTTSNGW
 {
 
-#ifdef  DEBUG_NWSTACK
-  #define D_NWSTACK(...) printf(__VA_ARGS__)
-#else
-  #define D_NWSTACK(...)
-#endif
-
 #define MAX_RFCOMM_CH 30
 
 /*===========================================

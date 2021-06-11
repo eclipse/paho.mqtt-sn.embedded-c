@@ -200,6 +200,15 @@ int LGwProxy::getConnectResponce(void)
     {
         _network.setGwAddress();
         _gwId = _mqttsnMsg[1];
+
+#if defined(DTLS) || defined(DTLS6)
+        if (_network.sslConnect() < 0)
+        {
+            DISPLAY(
+                    "\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce Can't connect the Gateway via SSL.\033[0m\033[0;37m\n\n");
+            return 0;
+        }
+#endif
         _status = GW_CONNECTING;
     }
     else if (_mqttsnMsg[0] == MQTTSN_TYPE_WILLTOPICREQ && _status == GW_WAIT_WILLTOPICREQ)

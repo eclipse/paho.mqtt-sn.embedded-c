@@ -13,7 +13,7 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#ifdef UDP
+#ifdef DTLS
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -25,21 +25,27 @@
 #include <string.h>
 #include <fcntl.h>
 #include <termios.h>
-
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
 #include "LMqttsnClientApp.h"
-#include "LNetworkUdp.h"
+#include "LNetworkDtls.h"
 #include "LTimer.h"
 #include "LScreen.h"
 
 using namespace std;
 using namespace linuxAsyncClient;
 
-extern uint16_t getUint16(const uint8_t *pos);
-extern uint32_t getUint32(const uint8_t *pos);
-extern LScreen *theScreen;
+extern uint16_t getUint16(const uint8_t* pos);
+extern uint32_t getUint32(const uint8_t* pos);
+extern LScreen* theScreen;
 extern bool theClientMode;
+
+/* Certificate verification. Returns 1 if trusted, else 0 */
+int verify_cert(int ok, X509_STORE_CTX *ctx);
+
 /*=========================================
- Class LNetwork
+       Class LNetwork
  =========================================*/
 LNetwork::LNetwork()
 {
@@ -49,25 +55,26 @@ LNetwork::LNetwork()
 
 LNetwork::~LNetwork()
 {
-
 }
 
 int LNetwork::broadcast(const uint8_t *xmitData, uint16_t dataLen)
 {
-    return LUdpPort::multicast(xmitData, (uint32_t) dataLen);
+    return LDtlsPort::multicast(xmitData, (uint32_t) dataLen);
 }
 
 int LNetwork::unicast(const uint8_t *xmitData, uint16_t dataLen)
 {
-    return LUdpPort::unicast(xmitData, dataLen, _gwIpAddress, _gwPortNo);
+    return LDtlsPort::unicast(xmitData, dataLen);
 }
+
 
 uint8_t* LNetwork::getMessage(int *len)
 {
     *len = 0;
+    uint16_t recvLen = 0;
     if (checkRecvBuf())
     {
-        uint16_t recvLen = LUdpPort::recv(_rxDataBuf, MQTTSN_MAX_PACKET_SIZE, false, &_ipAddress, &_portNo);
+        recvLen = LDtlsPort::recv(_rxDataBuf, MQTTSN_MAX_PACKET_SIZE, false, &_ipAddress, &_portNo);
         if (_gwIpAddress && isUnicast() && (_ipAddress != _gwIpAddress) && (_portNo != _gwPortNo))
         {
             return 0;
@@ -88,12 +95,7 @@ uint8_t* LNetwork::getMessage(int *len)
             {
                 *len = _rxDataBuf[0];
             }
-            //if(recvLen != *len){
-            //	*len = 0;
-            //	return 0;
-            //}else{
             return _rxDataBuf;
-            //}
         }
     }
     return 0;
@@ -105,21 +107,16 @@ void LNetwork::setGwAddress(void)
     _gwIpAddress = _ipAddress;
 }
 
-void LNetwork::setFixedGwAddress(void)
-{
-    _gwPortNo = LUdpPort::_gPortNo;
-    _gwIpAddress = LUdpPort::_gIpAddr;
-}
-
 void LNetwork::resetGwAddress(void)
 {
     _gwIpAddress = 0;
     _gwPortNo = 0;
 }
 
+
 bool LNetwork::initialize(LUdpConfig *config)
 {
-    return LUdpPort::open(config);
+    return LDtlsPort::open(config);
 }
 
 void LNetwork::setSleep()
@@ -131,38 +128,46 @@ bool LNetwork::isBroadcastable()
 {
     return true;
 }
+
+int LNetwork::sslConnect(void)
+{
+    return LDtlsPort::sslConnect(_gwIpAddress, _gwPortNo);
+}
+
 /*=========================================
- Class udpStack
+ Class DtlsPort
  =========================================*/
-LUdpPort::LUdpPort()
+LDtlsPort::LDtlsPort()
 {
     _disconReq = false;
-    _sockfdUcast = -1;
-    _sockfdMcast = -1;
+    _sockfdMcast = 0;
+    _sockfdSsl = 0;
     _castStat = 0;
 }
 
-LUdpPort::~LUdpPort()
+LDtlsPort::~LDtlsPort()
 {
     close();
 }
 
-void LUdpPort::close()
+
+void LDtlsPort::close()
 {
     if (_sockfdMcast > 0)
     {
         ::close(_sockfdMcast);
-        _sockfdMcast = -1;
-        if (_sockfdUcast > 0)
+        _sockfdMcast = 0;
+        if (_sockfdSsl > 0)
         {
-            ::close(_sockfdUcast);
-            _sockfdUcast = -1;
+            ::close(_sockfdSsl);
+            _sockfdSsl = 0;
         }
     }
 }
 
-bool LUdpPort::open(LUdpConfig *config)
+bool LDtlsPort::open(LUdpConfig *config)
 {
+    char errmsg[256];
     int optval = 0;
 
     uint8_t sav = config->ipAddress[3];
@@ -172,8 +177,8 @@ bool LUdpPort::open(LUdpConfig *config)
     config->ipAddress[2] = config->ipAddress[1];
     config->ipAddress[1] = sav;
 
-    _gPortNo = htons(config->gPortNo);
     _gIpAddr = getUint32((const uint8_t*) config->ipAddress);
+    _gPortNo = htons(config->gPortNo);
     _uPortNo = htons(config->uPortNo);
 
     if (_gPortNo == 0 || _gIpAddr == 0 || _uPortNo == 0)
@@ -181,32 +186,28 @@ bool LUdpPort::open(LUdpConfig *config)
         return false;
     }
 
-    _sockfdUcast = socket(AF_INET, SOCK_DGRAM, 0);
-    if (_sockfdUcast < 0)
+    SSL_load_error_strings();
+    SSL_library_init();
+    _ctx = SSL_CTX_new(DTLS_client_method());
+
+    if (_ctx == 0)
     {
+        ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+        DISPLAY("SSL_CTX_new() %s\n", errmsg);
         return false;
     }
 
-    optval = 1;
-    setsockopt(_sockfdUcast, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+    /* Client certification and cookie are not required */
+    SSL_CTX_set_verify(_ctx, SSL_VERIFY_PEER, verify_cert);
 
-    sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = _uPortNo;
-    addr.sin_addr.s_addr = INADDR_ANY;
-
-    if (::bind(_sockfdUcast, (struct sockaddr*) &addr, sizeof(addr)) < 0)
-    {
-        return false;
-    }
-
-    _sockfdMcast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    /* setup Multicast socket */
+    _sockfdMcast = socket(AF_INET, SOCK_DGRAM, 0);
     if (_sockfdMcast < 0)
     {
         return false;
     }
 
-    sockaddr_in addrm;
+    struct sockaddr_in addrm;
     addrm.sin_family = AF_INET;
     addrm.sin_port = _gPortNo;
     addrm.sin_addr.s_addr = INADDR_ANY;
@@ -219,57 +220,59 @@ bool LUdpPort::open(LUdpConfig *config)
         return false;
     }
 
+    optval = 1;
+    if (setsockopt(_sockfdMcast, IPPROTO_IP, IP_MULTICAST_LOOP,  &optval, sizeof(optval)) < 0)
+    {
+        D_NWLOG("\033[0m\033[0;31merror IP_MULTICAST_LOOP in LDtlsPort::open\033[0m\033[0;37m\n");
+        DISPLAY("\033[0m\033[0;31m\nerror IP_MULTICAST_LOOP in LDtlsPort::open\033[0m\033[0;37m\n");
+        close();
+        return false;
+    }
+
     ip_mreq mreq;
     mreq.imr_interface.s_addr = INADDR_ANY;
     mreq.imr_multiaddr.s_addr = _gIpAddr;
 
     if (setsockopt(_sockfdMcast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
     {
-        D_NWLOG("\033[0m\033[0;31merror IP_ADD_MEMBERSHIP in UdpPort::open\033[0m\033[0;37m\n");
-        close();
-        return false;
-    }
-
-    optval= 1;
-    if (setsockopt(_sockfdMcast, IPPROTO_IP, IP_MULTICAST_LOOP, &optval, sizeof(optval)) < 0)
-    {
-        D_NWLOG("\033[0m\033[0;31merror IP_MULTICAST_LOOP in UdpPPort::open\033[0m\033[0;37m\n");
+        D_NWLOG("\033[0m\033[0;31merror IP_ADD_MEMBERSHIP in LDtlsPort::open\033[0m\033[0;37m\n");
+        DISPLAY("\033[0m\033[0;31m\nerror IP_ADD_MEMBERSHIP in LDtlsPort::open\033[0m\033[0;37m\n");
         close();
         return false;
     }
     return true;
 }
 
-bool LUdpPort::isUnicast()
+bool LDtlsPort::isUnicast()
 {
     return (_castStat == STAT_UNICAST);
 }
 
-int LUdpPort::unicast(const uint8_t *buf, uint32_t length, uint32_t ipAddress, uint16_t port)
-{
-    struct sockaddr_in dest;
-    dest.sin_family = AF_INET;
-    dest.sin_port = port;
-    dest.sin_addr.s_addr = ipAddress;
 
-    int status = ::sendto(_sockfdUcast, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
-    if (status < 0)
+int LDtlsPort::unicast(const uint8_t *buf, uint32_t length)
+{
+    int status = SSL_write(_ssl, buf, length);
+    if (status <= 0)
     {
-        D_NWLOG("errno == %d in UdpPort::unicast\n", errno);
+        int rc = 0;
+        SSL_get_error(_ssl, rc);
+                D_NWLOG("errno == %d in LDtlsPort::unicast\n", rc);
+        DISPLAY("errno == %d in LDtlsPort::unicast\n", rc);
     }
     else
     {
-        D_NWLOG("sendto %-15s:%-6u",inet_ntoa(dest.sin_addr),htons(port));
+        D_NWLOG("sendto gateway via DTLS ");
         for (uint16_t i = 0; i < length; i++)
         {
             D_NWLOG(" %02x", *(buf + i));
-        } D_NWLOG("\n");
+        }
+        D_NWLOG("\n");
 
         if (!theClientMode)
         {
             char sbuf[SCREEN_BUFF_SIZE];
             int pos = 0;
-            sprintf(sbuf, "\033[0;34msendto %-15s:%-6u", inet_ntoa(dest.sin_addr), htons(port));
+            sprintf(sbuf, "\033[0;34msendto the gateway via SSL  ");
             pos = strlen(sbuf);
             for (uint16_t i = 0; i < length; i++)
             {
@@ -281,12 +284,14 @@ int LUdpPort::unicast(const uint8_t *buf, uint32_t length, uint32_t ipAddress, u
                 pos += 3;
             }
             sprintf(sbuf + strlen(sbuf), "\033[0;37m\n");
+            theScreen->display(sbuf);
         }
     }
     return status;
 }
 
-int LUdpPort::multicast(const uint8_t *buf, uint32_t length)
+
+int LDtlsPort::multicast(const uint8_t *buf, uint32_t length)
 {
     struct sockaddr_in dest;
     dest.sin_family = AF_INET;
@@ -296,17 +301,20 @@ int LUdpPort::multicast(const uint8_t *buf, uint32_t length)
     int status = ::sendto(_sockfdMcast, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
     if (status < 0)
     {
-        D_NWLOG("\033[0m\033[0;31merrno == %d in UdpPort::multicast\033[0m\033[0;37m\n", errno);
+        D_NWLOG("\033[0m\033[0;31merrno == %d in LDtlsPort::multicast\033[0m\033[0;37m\n", errno);
+        DISPLAY("\033[0m\033[0;31merrno == %d in LDtlsPort::multicast\033[0m\033[0;37m\n", errno);
         return errno;
     }
     else
     {
-        D_NWLOG("sendto %-15s:%-6u",inet_ntoa(dest.sin_addr),htons(_gPortNo));
+        D_NWLOG("sendto %-15s:%-6u", inet_ntoa(dest.sin_addr), htons(_gPortNo));
 
         for (uint16_t i = 0; i < length; i++)
         {
             D_NWLOG(" %02x", *(buf + i));
-        } D_NWLOG("\n");
+            DISPLAY(" %02x", *(buf + i));
+        }
+        D_NWLOG("\n");
 
         if (!theClientMode)
         {
@@ -331,7 +339,7 @@ int LUdpPort::multicast(const uint8_t *buf, uint32_t length)
 
 }
 
-bool LUdpPort::checkRecvBuf()
+bool LDtlsPort::checkRecvBuf()
 {
     struct timeval timeout;
     timeout.tv_sec = 0;
@@ -342,29 +350,27 @@ bool LUdpPort::checkRecvBuf()
     int maxSock = 0;
 
     FD_ZERO(&recvfds);
-    FD_SET(_sockfdUcast, &recvfds);
-    FD_SET(_sockfdMcast, &recvfds);
+    if (_sockfdMcast)
+    {
+        FD_SET(_sockfdMcast, &recvfds);
+    }
+    if (_sockfdSsl)
+    {
+        FD_SET(_sockfdSsl, &recvfds);
+    }
 
-    if (_sockfdMcast > _sockfdUcast)
+    if (_sockfdMcast > _sockfdSsl)
     {
         maxSock = _sockfdMcast;
     }
     else
     {
-        maxSock = _sockfdUcast;
+        maxSock = _sockfdSsl;
     }
 
     select(maxSock + 1, &recvfds, 0, 0, &timeout);
 
-    if (FD_ISSET(_sockfdUcast, &recvfds))
-    {
-        if (::recv(_sockfdUcast, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
-        {
-            _castStat = STAT_UNICAST;
-            return true;
-        }
-    }
-    else if (FD_ISSET(_sockfdMcast, &recvfds))
+    if (FD_ISSET(_sockfdMcast, &recvfds))
     {
         if (::recv(_sockfdMcast, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
         {
@@ -372,27 +378,38 @@ bool LUdpPort::checkRecvBuf()
             return true;
         }
     }
+    else if (FD_ISSET(_sockfdSsl, &recvfds))
+    {
+        if (::recv(_sockfdSsl, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
+        {
+            _castStat = STAT_SSL;
+            return true;
+        }
+    }
     _castStat = 0;
     return false;
 }
 
-int LUdpPort::recv(uint8_t *buf, uint16_t len, bool flg, uint32_t *ipAddressPtr, uint16_t *portPtr)
+int LDtlsPort::recv(uint8_t *buf, uint16_t len, bool flg, uint32_t *ipAddressPtr, in_port_t *portPtr)
 {
     int flags = flg ? MSG_DONTWAIT : 0;
     return recvfrom(buf, len, flags, ipAddressPtr, portPtr);
 }
 
-int LUdpPort::recvfrom(uint8_t *buf, uint16_t length, int flags, uint32_t *ipAddressPtr, uint16_t *portPtr)
+int LDtlsPort::recvfrom(uint8_t *buf, uint16_t length, int flags, uint32_t *ipAddressPtr, in_port_t *portPtr)
 {
     struct sockaddr_in sender;
-    int status;
+    int status = 0;
     socklen_t addrlen = sizeof(sender);
     memset(&sender, 0, addrlen);
 
-    if (isUnicast())
+    if (_castStat == STAT_SSL)
     {
         D_NWLOG("Ucast ");
-        status = ::recvfrom(_sockfdUcast, buf, length, flags, (struct sockaddr*) &sender, &addrlen);
+        if (SSL_read(_ssl, buf, length) == 0)
+        {
+            return 0;
+        }
     }
     else if (_castStat == STAT_MULTICAST)
     {
@@ -406,23 +423,27 @@ int LUdpPort::recvfrom(uint8_t *buf, uint16_t length, int flags, uint32_t *ipAdd
 
     if (status < 0 && errno != EAGAIN)
     {
-        D_NWLOG("\033[0m\033[0;31merrno == %d in UdpPort::recvfrom \033[0m\033[0;37m\n", errno);
+        D_NWLOG("\033[0m\033[0;31merrno == %d in LDtlsPort::recvfrom \033[0m\033[0;37m\n", errno);
+        DISPLAY("\033[0m\033[0;31merrno == %d in LDtlsPort::recvfrom \033[0m\033[0;37m\n", errno);
     }
     else if (status > 0)
     {
         *ipAddressPtr = sender.sin_addr.s_addr;
         *portPtr = sender.sin_port;
-        D_NWLOG("recved %-15s:%-6u",inet_ntoa(sender.sin_addr), htons(*portPtr));
+
+        D_NWLOG("recved %-15s:%-6u", inet_ntoa(sender.sin_addr), ntohs(*portPtr));
+
         for (uint16_t i = 0; i < status; i++)
         {
             D_NWLOG(" %02x", *(buf + i));
-        } D_NWLOG("\n");
+        }
+        D_NWLOG("\n");
 
         if (!theClientMode)
         {
             char sbuf[SCREEN_BUFF_SIZE];
             int pos = 0;
-            sprintf(sbuf, "\033[0;34mrecved %-15s:%-6u", inet_ntoa(sender.sin_addr), htons(*portPtr));
+            sprintf(sbuf, "\033[0;34mrecved %-15s:%-6u", inet_ntoa(sender.sin_addr), ntohs(*portPtr));
             pos = strlen(sbuf);
             for (uint16_t i = 0; i < status; i++)
             {
@@ -444,6 +465,73 @@ int LUdpPort::recvfrom(uint8_t *buf, uint16_t length, int flags, uint32_t *ipAdd
     }
     return status;
 }
+
+int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
+{
+    int reuse = 1;
+    if (_ssl != 0)
+    {
+        SSL_shutdown(_ssl);
+        SSL_free(_ssl);
+        _sockfdSsl = 0;
+        _ssl = 0;
+    }
+
+    if (_sockfdSsl > 0)
+    {
+        D_NWLOG("LDtlsPort::sslConnect socket exists.\n");
+        ::close(_sockfdSsl);
+    }
+
+    _sockfdSsl = socket(AF_INET, SOCK_DGRAM, 0);
+    if (_sockfdSsl < 0)
+    {
+        D_NWLOG("LDtlsPort::sslConnect Can't create a socket\n");
+        return -1;
+    }
+    setsockopt(_sockfdSsl, SOL_SOCKET, SO_REUSEADDR || SO_REUSEPORT, &reuse, sizeof(reuse));
+
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = _uPortNo;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    if (::bind(_sockfdSsl, (struct sockaddr*) &addr, sizeof(addr)) < 0)
+    {
+        D_NWLOG("LDtlsPort::sslConnect Can't bind a socket\n");
+        return -1;
+    }
+
+    struct sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = portNo;
+    dest.sin_addr.s_addr = ipAddress;
+    int rc = 0;
+    errno = 0;
+    BIO *cbio = BIO_new_dgram(_sockfdSsl, BIO_NOCLOSE);
+    connect(_sockfdSsl, (sockaddr*) &dest, sizeof(sockaddr_in));
+    BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &dest);
+    _ssl = SSL_new(_ctx);
+    SSL_set_bio(_ssl, cbio, cbio);
+
+    D_NWLOG("LDtlsPort::sslConnect connect to %-15s:%-6u\n", inet_ntoa(dest.sin_addr), htons(dest.sin_port));
+    int stat = SSL_connect(_ssl);
+    if (stat != 1)
+    {
+        rc = -1;
+        D_NWLOG("SSL fail to connect\n");
+    }
+    else
+    {
+        D_NWLOG("SSL connected\n");
+    }
+    return rc;
+}
+
+int verify_cert(int ok, X509_STORE_CTX *ctx)
+{
+    return 1;
+}
+
 
 #endif
 

@@ -32,9 +32,9 @@ MQTTSNGW::Gateway* theGateway = nullptr;
 
 Gateway::Gateway(void)
 {
+    theGateway = this;
     theMultiTaskProcess = this;
     theProcess = this;
-    _packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
     _clientList = new ClientList(this);
     _adapterManager = new AdapterManager(this);
     _topics = new Topics();
@@ -95,15 +95,21 @@ Gateway::~Gateway()
     {
         free(_params.configName);
     }
-
     if (_params.qosMinusClientListName)
     {
         free(_params.qosMinusClientListName);
     }
-
-    if (_params.bleAddress)
+    if (_params.rfcommAddr)
     {
-        free(_params.bleAddress);
+        free(_params.rfcommAddr);
+    }
+    if (_params.gwCertskey)
+    {
+        free(_params.gwCertskey);
+    }
+    if (_params.gwPrivatekey)
+    {
+        free(_params.gwPrivatekey);
     }
 
     if (_adapterManager)
@@ -114,7 +120,6 @@ Gateway::~Gateway()
     {
         delete _clientList;
     }
-
     if (_topics)
     {
         delete _topics;
@@ -177,6 +182,14 @@ void Gateway::initialize(int argc, char** argv)
     if (getParam("RootCAfile", param) == 0)
     {
         _params.rootCAfile = strdup(param);
+    }
+    if (getParam("DtlsCertsKey", param) == 0)
+    {
+        _params.gwCertskey = strdup(param);
+    }
+    if (getParam("DtlsPrivKey", param) == 0)
+    {
+        _params.gwPrivatekey = strdup(param);
     }
 
     if (getParam("GatewayID", param) == 0)
@@ -282,10 +295,13 @@ void Gateway::initialize(int argc, char** argv)
         _params.maxClients = atoi(param);
     }
 
-    if (getParam("BleAddress", param) == 0)
+    if (getParam("RFCOMMAddress", param) == 0)
     {
-        _params.bleAddress = strdup(param);
+        _params.rfcommAddr = strdup(param);
     }
+
+    /*  Setup max PacketEventQue size  */
+    _packetEventQue.setMaxSize(_params.maxInflightMsgs * _params.maxClients);
 
     /*  Initialize adapters */
     _adapterManager->initialize(_params.gatewayName, _params.aggregatingGw, _params.forwarder, _params.qosMinus1);
@@ -308,26 +324,30 @@ void Gateway::run(void)
     WRITELOG(" *\n%s\n", PAHO_COPYRIGHT3);
     WRITELOG(" * Version: %s\n", PAHO_GATEWAY_VERSION);
     WRITELOG("%s\n", PAHO_COPYRIGHT4);
-    WRITELOG("\n%s %s has been started.\n\n", currentDateTime(), _params.gatewayName);
-    WRITELOG(" ConfigFile: %s\n", _params.configName);
+    WRITELOG(" ConfigFile  : %s\n", _params.configName);
 
     if (_params.clientListName)
     {
-        WRITELOG(" ClientList: %s\n", _params.clientListName);
+        WRITELOG(" ClientList  : %s\n", _params.clientListName);
     }
 
     if (_params.predefinedTopicFileName)
     {
-        WRITELOG(" PreDefFile: %s\n", _params.predefinedTopicFileName);
+        WRITELOG(" PreDefFile  : %s\n", _params.predefinedTopicFileName);
     }
 
-    WRITELOG(" SensorN/W:  %s\n", _sensorNetwork.getDescription());
-    WRITELOG(" Broker:     %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
-    WRITELOG(" Max number of Clients: %d\n", _params.maxClients);
-    WRITELOG(" RootCApath: %s\n", _params.rootCApath);
-    WRITELOG(" RootCAfile: %s\n", _params.rootCAfile);
-    WRITELOG(" CertKey:    %s\n", _params.certKey);
-    WRITELOG(" PrivateKey: %s\n\n\n", _params.privateKey);
+    WRITELOG(" Broker      : %s : %s, %s\n", _params.brokerName, _params.port, _params.portSecure);
+    WRITELOG(" RootCApath  : %s\n", _params.rootCApath);
+    WRITELOG(" RootCAfile  : %s\n", _params.rootCAfile);
+    WRITELOG(" CertKey     : %s\n", _params.certKey);
+    WRITELOG(" PrivateKey  : %s\n", _params.privateKey);
+    WRITELOG(" SensorN/W   : %s\n", _sensorNetwork.getDescription());
+#ifdef DTLS
+    WRITELOG(" DtlsCertsKey: %s\n", _params.gwCertskey);
+    WRITELOG(" DtlsPrivKey : %s\n", _params.gwPrivatekey);
+#endif
+    WRITELOG(" Max Clients : %d\n\n", _params.maxClients);
+    WRITELOG("%s %s starts running.\n\n", currentDateTime(), _params.gatewayName);
 
     _stopFlg = false;
 
@@ -408,12 +428,12 @@ bool Gateway::hasSecureConnection(void)
 {
     return (_params.certKey && _params.privateKey && _params.rootCApath && _params.rootCAfile);
 }
+
 /*=====================================
  Class EventQue
  =====================================*/
 EventQue::EventQue()
 {
-
 }
 
 EventQue::~EventQue()

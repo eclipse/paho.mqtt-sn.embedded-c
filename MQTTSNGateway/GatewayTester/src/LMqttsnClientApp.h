@@ -18,16 +18,15 @@
 #define MQTTSNCLIENTAPP_H_
 
 /*======================================
+ *         Debug Flag
+ ======================================*/
+//#define DEBUG_NW
+//#define DEBUG_MQTTSN
+
+/*======================================
  *     Program mode Flag
  ======================================*/
 //#define CLIENT_MODE
-#define UDP
-//#define RFCOMM
-/*======================================
- *         Debug Flag
- ======================================*/
-#define DEBUG_NW
-//#define DEBUG_MQTTSN
 
 /****************************************
       MQTT-SN Parameters
@@ -75,6 +74,15 @@ struct LUdpConfig
 	uint16_t uPortNo;
 };
 
+struct LUdp6Config
+{
+    const char* clientId;
+    const char* ipAddress;
+    const char *interface;
+    uint16_t gPortNo;
+    uint16_t uPortNo;
+};
+
 struct LRfcommConfig
 {
     const char* clientId;
@@ -97,20 +105,40 @@ typedef enum
 #define MQTTSN_CONFIG    MqttsnConfig  theMqttsnConfig
 #define MQTTSNCONF LMqttsnConfig  theMqcon
 
-#ifdef UDP
-#define NETWORK_CONFIG   UdpConfig theNetworkConfig
+#if defined(UDP)
 #define UDPCONF  LUdpConfig theNetcon
-#define RFCOMMCONF  LRfcommConfig theConf
+#define UDP6CONF  LUdp6Config theU6Conf
+#define RFCOMMCONF  LRfcommConfig theRfConf
 #define SENSORNET_CONFIG_t  LUdpConfig
-#else
-#ifdef RFCOMM
-#define NETWORK_CONFIG   BleConfig theNetworkConfig
+
+#elif defined(UDP6)
+#define UDP6CONF  LUdp6Config theNetcon
+#define UDPCONF  LUdpConfig theUConf
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t LUdp6Config
+
+#elif defined(RFCOMM)
 #define RFCOMMCONF  LRfcommConfig theNetcon
-#define UDPCONF  LUdpConfig theConf
+#define UDPCONF  LUdpConfig theUConf
+#define UDP6CONF  LUdp6Config theU6Conf
 #define SENSORNET_CONFIG_t  LRfcommConfig
+
+#elif defined(DTLS)
+#define UDPCONF  LUdpConfig theNetcon
+#define UDP6CONF  LUdp6Config theU6Conf
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t  LUdpConfig
+
+#elif defined(DTLS6)
+#define UDPCONF  LUdpConfig theUConf
+#define UDP6CONF  LUdp6Config theNetcon
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t  LUdp6Config
+#else
+#error "UDP, UDP6, DTLS, DTLS6 or RFCOMM is not defined in LMqttsnClientApp.h"
 #endif
-#error "UDP and RFCOMM are not defined in LMqttsnClientApp.h"
-#endif
+
+
 
 #define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)
 #define PUBLISH(...)     theClient->publish(__VA_ARGS__)

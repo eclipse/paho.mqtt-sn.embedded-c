@@ -38,6 +38,7 @@ using namespace MQTTSNGW;
 
 #define EVENT_QUE_TIME_OUT  2000      // 2000 msecs
 char* currentDateTime(void);
+
 /*=====================================
  Class PacketHandleTask
  =====================================*/

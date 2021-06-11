@@ -23,7 +23,10 @@
 
 #include "LMqttsnClientApp.h"
 #include "LNetworkUdp.h"
+#include "LNetworkUdp6.h"
 #include "LNetworkRfcomm.h"
+#include "LNetworkDtls.h"
+#include "LNetworkDtls6.h"
 #include "LRegisterManager.h"
 #include "LTimer.h"
 #include "LTopicTable.h"
@@ -43,6 +46,7 @@ using namespace std;
 #define GW_SLEEPING         10
 #define GW_DISCONNECTED     11
 #define GW_SLEPT            12
+#define SSL_CONNECTING      13
 
 #define GW_WAIT_PINGRESP     1
 

@@ -58,6 +58,7 @@ ClientList::~ClientList()
 
 void ClientList::initialize(bool aggregate)
 {
+    _maxClients = _gateway->getGWParams()->maxClients;
     _clientsPool->allocate(_gateway->getGWParams()->maxClients);
 
     if (_gateway->getGWParams()->clientAuthentication)
@@ -380,6 +381,7 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
     {
         client->setQoSm1();
     }
+    client->getNetwork()->setSecure(secure);
 
     _mutex.lock();
 
@@ -402,16 +404,18 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
+    Client *client = nullptr;
+
     if (topicId == 0)
     {
         WRITELOG("Invalid TopicId. Predefined Topic %s,  TopicId is 0. \n", topicName.c_str());
-        return nullptr;
+        goto exit;
     }
 
     if (strcmp(clientId->cstring, common_topic) == 0)
     {
         _gateway->getTopics()->add((const char*) topicName.c_str(), topicId);
-        return nullptr;
+        goto exit;
     }
     else
     {
@@ -419,47 +423,19 @@ Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicNa
 
         if (_authorize && client == nullptr)
         {
-            return nullptr;
+            goto exit;
         }
 
-        /*  anonimous clients */
-        if (_clientCnt > MAX_CLIENTS)
+        client = createClient(NULL, clientId, aggregate);
+        if (client)
         {
-            return nullptr;  // full of clients
+            // create Topic & Add it
+            client->getTopics()->add((const char*) topicName.c_str(), topicId);
+            client->_hasPredefTopic = true;
         }
-
-        if (client == nullptr)
-        {
-            /* creat a new client */
-            client = new Client();
-            client->setClientId(*clientId);
-            if (aggregate)
-            {
-                client->setAggregated();
-            }
-            _mutex.lock();
-
-            /* add the list */
-            if (_firstClient == nullptr)
-            {
-                _firstClient = client;
-                _endClient = client;
-            }
-            else
-            {
-                _endClient->_nextClient = client;
-                client->_prevClient = _endClient;
-                _endClient = client;
-            }
-            _clientCnt++;
-            _mutex.unlock();
-        }
-
-        // create Topic & Add it
-        client->getTopics()->add((const char*) topicName.c_str(), topicId);
-        client->_hasPredefTopic = true;
-        return client;
     }
+exit:
+    return client;
 }
 
 uint16_t ClientList::getClientCount()
@@ -517,15 +493,17 @@ void ClientsPool::allocate(int maxClients)
 
 Client* ClientsPool::getClient(void)
 {
+    Client *cl = nullptr;
+
     while (_firstClient != nullptr)
     {
-        Client* cl = _firstClient;
+        cl = _firstClient;
         _firstClient = cl->_nextClient;
         cl->_nextClient = nullptr;
         _clientCnt--;
-        return cl;
+        break;
     }
-    return nullptr;
+    return cl;
 }
 
 void ClientsPool::setClient(Client* client)
