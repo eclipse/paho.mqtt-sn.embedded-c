@@ -380,6 +380,7 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
     {
         client->setQoSm1();
     }
+    client->getNetwork()->setSecure(secure);
 
     _mutex.lock();
 
