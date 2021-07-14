@@ -34,7 +34,6 @@ Gateway::Gateway(void)
 {
     theMultiTaskProcess = this;
     theProcess = this;
-    _packetEventQue.setMaxSize(MAX_INFLIGHTMESSAGES * MAX_CLIENTS);
     _clientList = new ClientList(this);
     _adapterManager = new AdapterManager(this);
     _topics = new Topics();
@@ -282,10 +281,13 @@ void Gateway::initialize(int argc, char** argv)
         _params.maxClients = atoi(param);
     }
 
-    if (getParam("BleAddress", param) == 0)
+    if (getParam("RFCOMMAddress", param) == 0)
     {
         _params.bleAddress = strdup(param);
     }
+
+    /*  Setup max PacketEventQue size  */
+    _packetEventQue.setMaxSize(_params.maxInflightMsgs * _params.maxClients);
 
     /*  Initialize adapters */
     _adapterManager->initialize(_params.gatewayName, _params.aggregatingGw, _params.forwarder, _params.qosMinus1);

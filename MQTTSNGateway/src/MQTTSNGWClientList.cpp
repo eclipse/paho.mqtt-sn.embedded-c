@@ -423,37 +423,10 @@ Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicNa
             return nullptr;
         }
 
-        /*  anonimous clients */
-        if (_clientCnt > MAX_CLIENTS)
-        {
-            return nullptr;  // full of clients
-        }
-
+        client = createClient(NULL, clientId, aggregate);
         if (client == nullptr)
         {
-            /* creat a new client */
-            client = new Client();
-            client->setClientId(*clientId);
-            if (aggregate)
-            {
-                client->setAggregated();
-            }
-            _mutex.lock();
-
-            /* add the list */
-            if (_firstClient == nullptr)
-            {
-                _firstClient = client;
-                _endClient = client;
-            }
-            else
-            {
-                _endClient->_nextClient = client;
-                client->_prevClient = _endClient;
-                _endClient = client;
-            }
-            _clientCnt++;
-            _mutex.unlock();
+            return nullptr;
         }
 
         // create Topic & Add it
