@@ -404,38 +404,37 @@ Client* ClientList::createClient(SensorNetAddress* addr, MQTTSNString* clientId,
 
 Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicName, uint16_t topicId, bool aggregate)
 {
-    Client *client = nullptr;
-
     if (topicId == 0)
     {
         WRITELOG("Invalid TopicId. Predefined Topic %s,  TopicId is 0. \n", topicName.c_str());
-        goto exit;
+        return nullptr;
     }
 
     if (strcmp(clientId->cstring, common_topic) == 0)
     {
         _gateway->getTopics()->add((const char*) topicName.c_str(), topicId);
-        goto exit;
+        return nullptr;
     }
     else
     {
-        Client* client = getClient(clientId);
+        Client *client = getClient(clientId);
 
         if (_authorize && client == nullptr)
         {
-            goto exit;
+            return nullptr;
         }
 
-        client = createClient(NULL, clientId, aggregate);
-        if (client)
+        client = createClient(NULL, clientId, aggregate);    //  <=== BUGFIX
+        if (client == nullptr)
         {
-            // create Topic & Add it
-            client->getTopics()->add((const char*) topicName.c_str(), topicId);
-            client->_hasPredefTopic = true;
+            return nullptr;
         }
+
+        // create Topic & Add it
+        client->getTopics()->add((const char*) topicName.c_str(), topicId);
+        client->_hasPredefTopic = true;
+        return client;
     }
-exit:
-    return client;
 }
 
 uint16_t ClientList::getClientCount()
