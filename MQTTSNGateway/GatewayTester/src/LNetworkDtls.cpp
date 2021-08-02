@@ -471,6 +471,7 @@ int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
     int reuse = 1;
     if (_ssl != 0)
     {
+        D_NWLOG("LDtlsPort::sslConnect SSL exists.\n");
         SSL_shutdown(_ssl);
         SSL_free(_ssl);
         _sockfdSsl = 0;
@@ -489,7 +490,7 @@ int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
         D_NWLOG("LDtlsPort::sslConnect Can't create a socket\n");
         return -1;
     }
-    setsockopt(_sockfdSsl, SOL_SOCKET, SO_REUSEADDR || SO_REUSEPORT, &reuse, sizeof(reuse));
+    setsockopt(_sockfdSsl, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -497,6 +498,8 @@ int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
     addr.sin_addr.s_addr = INADDR_ANY;
     if (::bind(_sockfdSsl, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
+        ::close(_sockfdSsl);
+        _sockfdSsl = 0;
         D_NWLOG("LDtlsPort::sslConnect Can't bind a socket\n");
         return -1;
     }
@@ -514,6 +517,12 @@ int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
     SSL_set_bio(_ssl, cbio, cbio);
 
     D_NWLOG("LDtlsPort::sslConnect connect to %-15s:%-6u\n", inet_ntoa(dest.sin_addr), htons(dest.sin_port));
+
+    timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
+    BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
+
     int stat = SSL_connect(_ssl);
     if (stat != 1)
     {
@@ -522,6 +531,7 @@ int LDtlsPort::sslConnect(uint32_t ipAddress, in_port_t portNo)
     }
     else
     {
+        rc = 1;
         D_NWLOG("SSL connected\n");
     }
     return rc;

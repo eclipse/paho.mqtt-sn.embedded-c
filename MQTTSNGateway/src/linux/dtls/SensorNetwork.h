@@ -138,9 +138,8 @@ public:
     void close();
 
 private:
-    int openV4(string *ipAddress, uint16_t multiPortNo, uint16_t uniPortNo, uint16_t listenPortNo, uint32_t ttl);
-    int openV6(string *ipAddress, string *interface, uint16_t multiPortNo, uint16_t uniPortNo, uint16_t listenPortNo,
-            uint32_t hops);
+    int openV4(string *ipAddress, uint16_t multiPortNo, uint16_t uniPortNo, uint32_t ttl);
+    int openV6(string *ipAddress, string *interface, uint16_t multiPortNo, uint16_t uniPortNo, uint32_t hops);
     int multicastRecv(uint8_t *buf, uint16_t len);
     int getSendClient(int index, SensorNetAddress *addr);
     int getSenderAddress(int sock, SensorNetAddress *addr);

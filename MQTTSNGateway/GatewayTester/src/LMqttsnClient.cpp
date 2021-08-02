@@ -52,15 +52,15 @@ int main(int argc, char** argv)
 	printf("\n%s", PAHO_COPYRIGHT4);
     printf("\n%s", PAHO_COPYRIGHT0);
 #if defined(UDP)
-    printf("   UDP\n");
+    printf("UDP ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
 #elif defined(UDP6)
-    printf("   UDP6\n");
-#elif defined(RFCOMM)
-    printf("   RFCOMM\n");
+    printf("UDP6 ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
 #elif defined(DTLS)
-    printf("   DTLS\n");
+    printf("DTLS ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
 #elif defined(DTLS6)
-    printf("   DTLS6\n");
+    printf("DTLS6 ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
+#elif defined(RFCOMM)
+    printf("RFCOMM ClientId:%s channel:%d\n", theNetcon.clientId, theNetcon.channel);
 #else
     printf("\n");
 #endif
