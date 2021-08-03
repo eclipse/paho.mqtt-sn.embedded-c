@@ -109,11 +109,9 @@ public:
     int getEventUnicast(void);
     int getEventListen(void);
     void closeSSL(int index);
-    int searchClient(SensorNetAddress *addr);
 private:
     pollfd *_pollfds;
     SSL **_ssls;
-    SensorNetAddress **_clientAddr;
     int _maxfds;
     int _numfds;
     Mutex _mutex;

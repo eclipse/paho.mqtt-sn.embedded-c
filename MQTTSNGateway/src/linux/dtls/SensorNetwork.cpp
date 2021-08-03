@@ -290,7 +290,6 @@ void SensorNetAddress::clear(void)
 Connections::Connections()
 {
     _pollfds = nullptr;
-    _clientAddr = nullptr;
     _ssls = nullptr;
     _maxfds = 0;
     _numfds = 2;
@@ -322,13 +321,8 @@ Connections::~Connections()
         }
         free(_pollfds);
     }
-
-    for (int i = 0; i < _maxfds; i++)
-    {
-        delete _clientAddr[i];
-    }
-    free(_clientAddr);
 }
+
 void Connections::initialize(int maxClient)
 {
     _maxfds = maxClient + POLL_SSL;
@@ -339,13 +333,6 @@ void Connections::initialize(int maxClient)
     if ((_ssls = (SSL**) calloc(_maxfds, sizeof(SSL*))) == NULL)
     {
         throw EXCEPTION("Can't allocate ssls.", 0);
-    }
-
-
-    _clientAddr = (SensorNetAddress**) malloc(_maxfds * sizeof(unsigned long int));
-    for (int i = 0; i < _maxfds; i++)
-    {
-        _clientAddr[i] = new SensorNetAddress();
     }
 }
 
@@ -409,17 +396,14 @@ void Connections::close(int index)
     _mutex.lock();
     int sock = _pollfds[idx].fd;
     SSL *ssl = _ssls[idx];
-    SensorNetAddress *addr = _clientAddr[idx];
 
     for (; idx < _numfds; idx++)
     {
         _ssls[idx] = _ssls[idx + 1];
         _pollfds[idx] = _pollfds[idx + 1];
-        _clientAddr[idx] = _clientAddr[idx + 1];
 
         if (_ssls[idx + 1] == 0)
         {
-            _clientAddr[idx + 1] = new SensorNetAddress();
             break;
         }
     }
@@ -433,10 +417,6 @@ void Connections::close(int index)
     if (sock > 0)
     {
         ::close(sock);
-    }
-    if (addr != nullptr)
-    {
-        delete addr;
     }
     _mutex.unlock();
 }
@@ -471,18 +451,6 @@ int Connections::getNumOfClients(void)
 SSL* Connections::getClientSSL(int index)
 {
     return _ssls[index + POLL_SSL];
-}
-
-int Connections::searchClient(SensorNetAddress *addr)
-{
-    for (int i = POLL_SSL; i < _numfds; i++)
-    {
-        if (_clientAddr[i]->isMatch(addr) == true)
-        {
-            return i - POLL_SSL;
-        }
-    }
-    return -1;
 }
 
 /*================================================================
@@ -597,7 +565,6 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
     int optval;
     int clientIndex = -1;
     int sockListen = 0;
-    SensorNetAddress client;
     char errmsg[256];
     union
     {
@@ -605,27 +572,22 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
         struct sockaddr_in6 s6;
     } client_addr;
 
+    SensorNetAddress client;
+    client.clear();
+    client.setFamily(_af);
+
     // Check POLL_IN
     int cnt = _conns->poll(2000);  // Timeout 2secs
     if (cnt == 0)
     {
+        // Timeout
         return cnt;
     }
-
-    if (cnt < 0)
+    else if (cnt < 0)
     {
-
-        /* ToDo: close socket */
-
         return -1;
     }
 
-    int numfds = _conns->getNumOfConnections();
-
-    client.clear();
-    client.setFamily(_af);
-    size_t recvlen = 0;
-    SSL *ssl = 0;
 
     _mutex.lock();
 
@@ -643,7 +605,6 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
         getUnicastClient(&client);
         sockListen = _conns->getSockUnicast();
 
-ListenClient_hello:
         // Listen Connection
         SSL *ssl = SSL_new(_dtlsctx);
         BIO *bio = BIO_new_dgram(sockListen, BIO_NOCLOSE);
@@ -725,11 +686,15 @@ ListenClient_hello:
     else
     {
         // Check SSL packet from clients
+        size_t recvlen = 0;
+        SSL *ssl = 0;
+        int numfds = _conns->getNumOfConnections();
+
         for (int i = 0; i < numfds - POLL_SSL; i++)
         {
             if (_conns->getEventClient(i) == POLLIN)
             {
-                D_NWSTACK("SSL RECV\n");
+                D_NWSTACK("SSL Packet RECV\n");
                 int dtls = getSendClient(i, &client);
 
                 if (dtls > 0)
@@ -740,20 +705,15 @@ ListenClient_hello:
 #ifdef DEBUG_NW
                         char clientaddrBuf[128];
                         client.sprint(clientaddrBuf);
-                        D_NWSTACK("Client %s SSL reconnect. idx=%d\n", clientaddrBuf, i);
+                        D_NWSTACK("Client %s A packet is ClientHello. Client reconnected. Close connection. SSL_connection will timeout.\n", clientaddrBuf);
 #endif
-                        // Delete current connection.
                         clientIndex = i;
-                        D_NWSTACK("Close current connections\n");
                         _mutex.unlock();
-                        _conns->close(clientIndex);  // DEBUG
+                        _conns->close(clientIndex);
                         return 0;
-
-                        sockListen = _conns->getSockClient(i);
-                        goto ListenClient_hello;
                     }
 
-                    // Recv a MQTT-SN message from a client
+                    // The packet is a MQTT-SN message
                     ssl = _conns->getClientSSL(i);
                     int len = SSL_read_ex(ssl, (void*) buf, (size_t) bufLen, &recvlen);
                     if (SSL_get_error(ssl, len) >= 0)
@@ -1214,6 +1174,7 @@ int SensorNetwork::getSenderAddress(int sock, SensorNetAddress *addr)
     }
     addr->setFamily(AF_INET);
     addr->getIpAddress()->addr.ad4 = sender4.sin_addr;
+    addr->setPort(sender4.sin_port);
     D_NWSTACK("SensorNetwork::getSenderAddress recved from %s:%d length = %d\n", inet_ntoa(sender4.sin_addr),
             ntohs(sender4.sin_port), len);
 
@@ -1241,6 +1202,7 @@ int SensorNetwork::getSenderAddress(int sock, SensorNetAddress *addr)
 
     addr->setFamily(AF_INET6);
     addr->setSockaddr6(&sender6);
+    addr->setPort(sender4.sin_port);
 
 #ifdef DEBUG_NW
     char senderstr[INET6_ADDRSTRLEN];

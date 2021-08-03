@@ -207,9 +207,12 @@ int LGwProxy::getConnectResponce(void)
             if (_network.sslConnect() > 0)
             {
                 _status = GW_CONNECTING;
-                DISPLAY(
-                        "\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce Can't connect the Gateway via SSL.\033[0m\033[0;37m\n\n");
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce SSL connection established.\033[0m\033[0;37m\n\n");
                 break;
+            }
+            else
+            {
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce SSL connection failed.\033[0m\033[0;37m\n\n");
             }
         }
 #else
