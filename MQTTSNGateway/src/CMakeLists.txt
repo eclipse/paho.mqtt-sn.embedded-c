@@ -81,7 +81,7 @@ ADD_LIBRARY(mqtt-sngateway_common
 link_directories("/usr/local/lib")
 
 # Mac
-link_directories("/usr/local/opt/openssl")
+link_directories("/usr/local/opt/openssl/lib")
 
 
 TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
@@ -91,6 +91,7 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        ${OS}/${SENSORNET}
        ../../MQTTSNPacket/src
        /usr/local/include
+       /usr/local/opt/openssl/include
        )
 
 IF(SENSORNET MATCHES "rfcomm")

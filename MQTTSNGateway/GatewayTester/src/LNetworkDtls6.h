@@ -37,6 +37,7 @@
 #define SOCKET_MAXRECV  500
 #define SOCKET_MAXBUFFER_LENGTH 500 // buffer size
 
+#define STAT_NONE   0
 #define STAT_UNICAST   1
 #define STAT_MULTICAST 2
 #define STAT_SSL 3
@@ -68,9 +69,10 @@ private:
     void close();
     int recvfrom ( uint8_t* buf, uint16_t len, int flags, in6_addr* ipaddress, in_port_t* port );
 
+    int _sockfdMcast;
+    int _sockfdSsl;
     SSL_CTX *_ctx;
     SSL *_ssl;
-    pollfd _pollfds[2];
     in_port_t _gPortNo;
     in_port_t _uPortNo;
     sockaddr_in6 _gIpAddr;
@@ -78,7 +80,6 @@ private:
     uint32_t _ifIndex;
     string _interfaceName;
     uint8_t  _castStat;
-    int _sock;
     bool   _disconReq;
 
 };

@@ -360,9 +360,9 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
     ipv6_mreq addrm;
     addrm.ipv6mr_interface = ifindex;
     inet_pton(AF_INET6, multicastAddr, &addrm.ipv6mr_multiaddr);
-    if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &addrm, sizeof(addrm)) < 0)
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_JOIN_GROUP, &addrm, sizeof(addrm)) < 0)
     {
-        D_NWSTACK("\033[0m\033[0;31m error %d IPV6_ADD_MEMBERSHIP in Udp6Port::open\033[0m\033[0;37m\n", errno);
+        D_NWSTACK("\033[0m\033[0;31m error %d IPV6_JOIN_GROUP in Udp6Port::open\033[0m\033[0;37m\n", errno);
         close();
         return false;
     }

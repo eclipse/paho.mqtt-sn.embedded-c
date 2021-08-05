@@ -61,6 +61,7 @@ unsigned char cookie_secret[COOKIE_SECRET_LENGTH];
 SensorNetAddress::SensorNetAddress()
 {
     _portNo = 0;
+    _pfdsIndex = 0;
     memset(&_ipAddr, 0, sizeof(_ipAddr));
 }
 
@@ -223,7 +224,6 @@ void SensorNetAddress::setSockaddr4(sockaddr_in *sockaddr)
     _ipAddr.af = sockaddr->sin_family;
     _portNo = sockaddr->sin_port;
     memcpy((void*) &_ipAddr.addr.ad4, (void*) &sockaddr->sin_addr, sizeof(_ipAddr.addr.ad4));
-    this->_pfdsIndex = 0;
 }
 
 void SensorNetAddress::setSockaddr6(sockaddr_in6 *sockaddr)
@@ -231,7 +231,6 @@ void SensorNetAddress::setSockaddr6(sockaddr_in6 *sockaddr)
     _ipAddr.af = sockaddr->sin6_family;
     _portNo = sockaddr->sin6_port;
     memcpy((void*) &_ipAddr.addr.ad6, (void*) &sockaddr->sin6_addr, sizeof(_ipAddr.addr.ad6));
-    this->_pfdsIndex = 0;
 }
 
 void SensorNetAddress::cpyAddr4(sockaddr_in *sockaddr)
@@ -244,8 +243,15 @@ void SensorNetAddress::cpyAddr4(sockaddr_in *sockaddr)
 void SensorNetAddress::cpyAddr6(sockaddr_in6 *sockaddr)
 {
     sockaddr->sin6_family = _ipAddr.af;
-    memcpy((void*) &sockaddr->sin6_addr, (void*) &_ipAddr.addr.ad6, sizeof(_ipAddr.addr.ad6));
     sockaddr->sin6_port = _portNo;
+    memcpy((void*) &sockaddr->sin6_addr, (void*) &_ipAddr.addr.ad6, sizeof(_ipAddr.addr.ad6));
+}
+
+void SensorNetAddress::cpyAddr(SensorNetAddress *addr)
+{
+    addr->_portNo = _portNo;
+    memcpy((void*) &addr->_ipAddr, (const void*) &_ipAddr, sizeof(_ipAddr));
+    addr->_pfdsIndex = _pfdsIndex;
 }
 
 char* SensorNetAddress::sprint(char *buf)
@@ -269,6 +275,7 @@ char* SensorNetAddress::sprint(char *buf)
         return buf;
     }
     sprintf(buf + strlen(buf), "%d", ntohs(_portNo));
+    sprintf(buf + strlen(buf), " index=%d", _pfdsIndex);
     return buf;
 }
 
@@ -392,6 +399,7 @@ int Connections::getSockClient(int index)
 
 void Connections::close(int index)
 {
+    D_NWSTACK("Connection %d closed\n", index);
     int idx = index + POLL_SSL;
     _mutex.lock();
     int sock = _pollfds[idx].fd;
@@ -435,6 +443,7 @@ int Connections::addClientSSL(SSL *ssl, int sock)
     int rc = _numfds - POLL_SSL;
     _numfds++;
     _mutex.unlock();
+    D_NWSTACK("Add client connection index=%d, ssl=%ld, sock=%d\n", rc, (long int )ssl, sock);
     return rc;
 }
 
@@ -453,6 +462,14 @@ SSL* Connections::getClientSSL(int index)
     return _ssls[index + POLL_SSL];
 }
 
+void Connections::print(void)
+{
+    for (int i = 0; i < _numfds; i++)
+    {
+        printf("index=%d  fd=%d   ssl=%ld \n", i, _pollfds[i].fd, (long int) _ssls[i]);
+    }
+}
+
 /*================================================================
  Class  SensorNetwork
 
@@ -468,6 +485,8 @@ SSL* Connections::getClientSSL(int index)
 #define DTLS_APPL         23
 #define DTLS_OTHERS       100
 
+#define DTLS_TIMEOUT      4
+
 /* Certificate verification. Returns 1 if trusted, else 0 */
 int verify_cert(int ok, X509_STORE_CTX *ctx);
 
@@ -479,9 +498,6 @@ int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len
 
 SensorNetwork::SensorNetwork()
 {
-    _senderAddr = new SensorNetAddress();
-    _multicastAddr = new SensorNetAddress();
-    _unicastAddr = new SensorNetAddress();
     _conns = new Connections();
     _dtlsctx = nullptr;
     _af = 0;
@@ -493,24 +509,18 @@ SensorNetwork::~SensorNetwork()
     {
         delete _conns;
     }
-    if (_senderAddr != nullptr)
-    {
-        delete _senderAddr;
-    }
-    if (_multicastAddr != nullptr)
-    {
-        delete _multicastAddr;
-    }
-    if (_unicastAddr != nullptr)
-    {
-        delete _unicastAddr;
-    }
 }
 
 int SensorNetwork::unicast(const uint8_t *payload, uint16_t payloadLength, SensorNetAddress *sendToAddr)
 {
-    _mutex.lock();
+#ifdef DEBUG_NW
+    char buf[256];
+    _conns->print();
+    sendToAddr->sprint(buf);
+    D_NWSTACK("sendto %s\n", buf);
+#endif
 
+    _mutex.lock();
     SSL *ssl = _conns->getClientSSL(sendToAddr->getIndex());
     int len = SSL_write(ssl, payload, payloadLength);
     int rc = SSL_get_error(ssl, len);
@@ -530,7 +540,7 @@ int SensorNetwork::broadcast(const uint8_t *payload, uint16_t payloadLength)
     int status;
 #ifndef DTLS6
     sockaddr_in dest;
-    _multicastAddr->cpyAddr4(&dest);
+    _multicastAddr.cpyAddr4(&dest);
 
     status = ::sendto(_conns->getSockUnicast(), payload, payloadLength, 0, (const sockaddr*) &dest, sizeof(dest));
     if (status < 0)
@@ -542,7 +552,7 @@ int SensorNetwork::broadcast(const uint8_t *payload, uint16_t payloadLength)
 
 #else
     sockaddr_in6 dest;
-    _multicastAddr->cpyAddr6(&dest);
+    _multicastAddr.cpyAddr6(&dest);
 
     status = ::sendto(_conns->getSockUnicast(), payload, payloadLength, 0, (const sockaddr*) &dest, sizeof(dest));
     if (status < 0)
@@ -577,7 +587,7 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
     client.setFamily(_af);
 
     // Check POLL_IN
-    int cnt = _conns->poll(2000);  // Timeout 2secs
+    int cnt = _conns->poll(6000);  // Timeout 6secs
     if (cnt == 0)
     {
         // Timeout
@@ -588,21 +598,21 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
         return -1;
     }
 
-
     _mutex.lock();
 
     //  Check Unicast Port
 
     if (_conns->getEventUnicast() & POLLIN)
     {
-        D_NWSTACK("Connect RECV\n");
+        D_NWSTACK("RECV Unicast SSL_connect\n");
+
         // SSL connection request from a client
-        optval = 1;
-
-        client.clear();
-        client.setFamily(_af);
-
+#ifdef DEBUG_NW
+        int dtls = getUnicastClient(&client);
+        D_NWSTACK("Packet type = %d\n", dtls);
+#else
         getUnicastClient(&client);
+#endif
         sockListen = _conns->getSockUnicast();
 
         // Listen Connection
@@ -615,7 +625,7 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
         int rc = 0;
 
         // SSL Listen
-        D_NWSTACK("Listen SSL\n");
+        D_NWSTACK("DTLSv1_listen\n");
 
         rc = DTLSv1_listen(ssl, (BIO_ADDR*) &client_addr);
 
@@ -631,6 +641,7 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
 #ifndef DTLS6
         // DTLS over IPv4
         int client_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        optval = 1;
         setsockopt(client_fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &optval, sizeof(optval));
         // Bind to Dtls PortNo
         bind(client_fd, (sockaddr*) &_serverAddr4, sizeof(sockaddr_in));
@@ -639,6 +650,7 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
 #else
         // DTLS over IPv6
         int client_fd = socket(AF_INET6, SOCK_DGRAM, 0);
+        optval = 1;
         setsockopt(client_fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &optval, sizeof(optval));
         // Bind to Dtls PortNo
         bind(client_fd, (sockaddr*) &_serverAddr6, sizeof(sockaddr_in6));
@@ -650,12 +662,18 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
         BIO_set_fd(cbio, client_fd, BIO_NOCLOSE);
         BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &client_addr);
 
+        // set timeout
+        timeval timeout;
+        timeout.tv_sec = DTLS_TIMEOUT;
+        timeout.tv_usec = 0;
+        BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
+
         // Finish handshake
         int ret = SSL_accept(ssl);
         if (ret <= 0)
         {
             ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
-            WRITELOG("SSL_accept ret=%d %s\n", ret, errmsg);
+            WRITELOG("SSL_accept %s\n", errmsg);
             SSL_shutdown(ssl);
             SSL_free(ssl);
             ::close(client_fd);
@@ -667,11 +685,13 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
 
             // save SensorNetworkAddress of Client
             client.setIndex(index);
-            _senderAddr = &client;
+            client.cpyAddr(&_senderAddr);
+
 #ifdef DEBUG_NW
             char clientaddrBuf[128];
-            client.sprint(clientaddrBuf);
-            D_NWSTACK("Client %s SSL Accepted. idx=%d\n", clientaddrBuf, index);
+            _senderAddr.sprint(clientaddrBuf);
+            D_NWSTACK("DTLS accepted client is %s   index=%d client_fd=%d\n", clientaddrBuf, _senderAddr.getIndex(),
+                    client_fd);
 #endif
         }
         _mutex.unlock();
@@ -716,21 +736,22 @@ int SensorNetwork::read(uint8_t *buf, uint16_t bufLen)
                     // The packet is a MQTT-SN message
                     ssl = _conns->getClientSSL(i);
                     int len = SSL_read_ex(ssl, (void*) buf, (size_t) bufLen, &recvlen);
-                    if (SSL_get_error(ssl, len) >= 0)
-                    {
-#ifdef DEBUG_NW
-                        char clientaddrBuf[128];
-                        client.sprint(clientaddrBuf);
-                        D_NWSTACK("Client %s SSL Accepted. idx=%d\n", clientaddrBuf, i);
-#endif
-                        _senderAddr = &client;
-                        _senderAddr->setIndex(i);
-                    }
-                    else
+                    if (SSL_get_error(ssl, len) < 0)
                     {
                         D_NWSTACK("SSL RECV Error\n");
                         _conns->close(i);
                         recvlen = -1;
+                    }
+                    else
+                    {
+                        client.cpyAddr(&_senderAddr);
+                        _senderAddr.setIndex(i);
+
+#ifdef DEBUG_NW
+                        char clientaddrBuf[128];
+                        _senderAddr.sprint(clientaddrBuf);
+                        D_NWSTACK("Client %s ssl=%ld Received. idx=%d\n", clientaddrBuf, (long int )ssl, i);
+#endif
                     }
                     _mutex.unlock();
                     return recvlen;
@@ -880,7 +901,7 @@ const char* SensorNetwork::getDescription(void)
 
 SensorNetAddress* SensorNetwork::getSenderAddress(void)
 {
-    return _senderAddr;
+    return &_senderAddr;
 }
 
 int SensorNetwork::openV4(string *ipAddress, uint16_t multiPortNo, uint16_t uniPortNo, uint32_t ttl)
@@ -966,9 +987,9 @@ int SensorNetwork::openV4(string *ipAddress, uint16_t multiPortNo, uint16_t uniP
         D_NWSTACK("error %d IP_MULTICAST_LOOP in UDP4_6Port::openV4 %s\n", errno, strerror(errno));
         return -1;
     }
-    _multicastAddr->setFamily(AF_INET);
-    _multicastAddr->setIpAddress(ipAddress);
-    _multicastAddr->setPort(multiPortNo);
+    _multicastAddr.setFamily(AF_INET);
+    _multicastAddr.setIpAddress(ipAddress);
+    _multicastAddr.setPort(multiPortNo);
     _conns->setSockMulticast(sock);
     return 0;
 }
@@ -987,10 +1008,10 @@ int SensorNetwork::openV6(string *ipAddress, string *interface, uint16_t multiPo
         return -1;
     }
 
-    _multicastAddr->setPort(multiPortNo);
-    _unicastAddr->setPort(uniPortNo);
+    _multicastAddr.setPort(multiPortNo);
+    _unicastAddr.setPort(uniPortNo);
 
-    if (_multicastAddr->setIpAddress(ipAddress) < 0)
+    if (_multicastAddr.setIpAddress(ipAddress) < 0)
     {
         D_NWSTACK("Incorrect IPV6 address in SensorNetwork::openV6 error %s\n", strerror(errno));
         return -1;
@@ -1073,12 +1094,12 @@ int SensorNetwork::openV6(string *ipAddress, string *interface, uint16_t multiPo
     }
 
     struct ipv6_mreq mreq;
-    mreq.ipv6mr_multiaddr = _multicastAddr->getIpAddress()->addr.ad6;
+    mreq.ipv6mr_multiaddr = _multicastAddr.getIpAddress()->addr.ad6;
     mreq.ipv6mr_interface = ifindex;
 
-    if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) < 0)
     {
-        D_NWSTACK("Multicast IPV6_ADD_MEMBERSHIP in SensorNetwork::openV6 error %s\n", strerror(errno));
+        D_NWSTACK("Multicast IPV6_JOIN_GROUP in SensorNetwork::openV6 error %s\n", strerror(errno));
         return -1;
     }
 
@@ -1099,9 +1120,9 @@ int SensorNetwork::openV6(string *ipAddress, string *interface, uint16_t multiPo
         D_NWSTACK("Multicast IPV6_MULTICAST_HOPS in SensorNetwork::openV6 error %s\n", strerror(errno));
         return -1;
     }
-    _multicastAddr->setFamily(AF_INET6);
-    _multicastAddr->setIpAddress(ipAddress);
-    _multicastAddr->setPort(multiPortNo);
+    _multicastAddr.setFamily(AF_INET6);
+    _multicastAddr.setIpAddress(ipAddress);
+    _multicastAddr.setPort(multiPortNo);
     return 0;
 }
 
@@ -1169,14 +1190,14 @@ int SensorNetwork::getSenderAddress(int sock, SensorNetAddress *addr)
 
     if (len < 0 && errno != EAGAIN)
     {
-        D_NWSTACK("errno = %d in UDPPort::getSender\n", errno);
+        D_NWSTACK("errno = %d in SensorNetwork::getSenderAddress\n", errno);
         return -1;
     }
-    addr->setFamily(AF_INET);
-    addr->getIpAddress()->addr.ad4 = sender4.sin_addr;
-    addr->setPort(sender4.sin_port);
-    D_NWSTACK("SensorNetwork::getSenderAddress recved from %s:%d length = %d\n", inet_ntoa(sender4.sin_addr),
-            ntohs(sender4.sin_port), len);
+
+    addr->setSockaddr4(&sender4);
+
+    D_NWSTACK("SensorNetwork::getSenderAddress recved from %s:%d length = %d fd=%d\n", inet_ntoa(sender4.sin_addr),
+            ntohs(addr->getPort()), len, sock);
 
     if (len >= 13)
     {
@@ -1191,27 +1212,34 @@ int SensorNetwork::getSenderAddress(int sock, SensorNetAddress *addr)
     //AF_INET6
     sockaddr_in6 sender6 = { 0 };
     socklen_t addrlen6 = sizeof(sender6);
-    unsigned long int buf = 0;
-    len = ::recvfrom(sock, &buf, 1, MSG_PEEK, (sockaddr*) &sender6, &addrlen6);
+    char buf[16];
+    int rc = DTLS_OTHERS;
+
+    len = ::recvfrom(sock, &buf, 15, MSG_PEEK, (sockaddr*) &sender6, &addrlen6);
 
     if (len < 0 && errno != EAGAIN)
     {
-        D_NWSTACK("errno = %d in SensorNetwork::getSender\n", errno);
-        return len;
+        D_NWSTACK("errno = %d in SensorNetwork::getSenderAddress\n", errno);
+        return -1;
     }
 
-    addr->setFamily(AF_INET6);
     addr->setSockaddr6(&sender6);
-    addr->setPort(sender4.sin_port);
 
 #ifdef DEBUG_NW
     char senderstr[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, &sender6.sin6_addr,senderstr,INET6_ADDRSTRLEN);
-    D_NWSTACK("recved from %s:%d length = %d\n",senderstr ,ntohs(sender6.sin6_port), len);
+    D_NWSTACK("recved from %s:%d length = %d fd=%d\n",senderstr ,ntohs(addr->getPort()), len, sock);
 #endif
 #endif
 
-    return len;
+    if (len >= 13)
+    {
+        if (buf[0] == DTLS_CLIENTHELLO || buf[0] == DTLS_APPL)
+        {
+            rc = buf[0];
+        }
+    }
+    return rc;
 }
 
 void SensorNetwork::clearRecvData(int sock)
@@ -1219,6 +1247,12 @@ void SensorNetwork::clearRecvData(int sock)
     uint8_t buf[MQTTSNGW_MAX_PACKET_SIZE];
     ::recv(sock, buf, MQTTSNGW_MAX_PACKET_SIZE, 0);
 }
+
+Connections* SensorNetwork::getConnections(void)
+{
+    return _conns;
+}
+
 
 int verify_cert(int ok, X509_STORE_CTX *ctx)
 {

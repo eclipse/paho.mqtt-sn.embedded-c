@@ -36,13 +36,14 @@
 #define SOCKET_MAXRECV  500
 #define SOCKET_MAXBUFFER_LENGTH 500 // buffer size
 
-#define STAT_UNICAST   1
-#define STAT_MULTICAST 2
-#define STAT_SSL 3
 
 using namespace std;
 
 namespace linuxAsyncClient {
+#define STAT_NONE   0
+#define STAT_UNICAST   1
+#define STAT_MULTICAST 2
+#define STAT_SSL 3
 /*========================================
  Class LDtlsPort
  =======================================*/

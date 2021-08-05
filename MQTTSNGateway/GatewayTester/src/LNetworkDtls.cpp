@@ -224,7 +224,6 @@ bool LDtlsPort::open(LUdpConfig *config)
     if (setsockopt(_sockfdMcast, IPPROTO_IP, IP_MULTICAST_LOOP,  &optval, sizeof(optval)) < 0)
     {
         D_NWLOG("\033[0m\033[0;31merror IP_MULTICAST_LOOP in LDtlsPort::open\033[0m\033[0;37m\n");
-        DISPLAY("\033[0m\033[0;31m\nerror IP_MULTICAST_LOOP in LDtlsPort::open\033[0m\033[0;37m\n");
         close();
         return false;
     }
@@ -236,7 +235,6 @@ bool LDtlsPort::open(LUdpConfig *config)
     if (setsockopt(_sockfdMcast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
     {
         D_NWLOG("\033[0m\033[0;31merror IP_ADD_MEMBERSHIP in LDtlsPort::open\033[0m\033[0;37m\n");
-        DISPLAY("\033[0m\033[0;31m\nerror IP_ADD_MEMBERSHIP in LDtlsPort::open\033[0m\033[0;37m\n");
         close();
         return false;
     }
@@ -256,7 +254,6 @@ int LDtlsPort::unicast(const uint8_t *buf, uint32_t length)
     {
         int rc = 0;
         SSL_get_error(_ssl, rc);
-                D_NWLOG("errno == %d in LDtlsPort::unicast\n", rc);
         DISPLAY("errno == %d in LDtlsPort::unicast\n", rc);
     }
     else
@@ -386,7 +383,7 @@ bool LDtlsPort::checkRecvBuf()
             return true;
         }
     }
-    _castStat = 0;
+    _castStat = STAT_NONE;
     return false;
 }
 

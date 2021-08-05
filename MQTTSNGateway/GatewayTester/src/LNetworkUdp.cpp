@@ -197,6 +197,7 @@ bool LUdpPort::open(LUdpConfig *config)
 
     if (::bind(_sockfdUcast, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
+        D_NWLOG("\033[0m\033[0;31merror %s ::bind() to unicast address\033[0m\033[0;37m\n", strerror(errno));
         return false;
     }
 
@@ -216,6 +217,7 @@ bool LUdpPort::open(LUdpConfig *config)
 
     if (::bind(_sockfdMcast, (struct sockaddr*) &addrm, sizeof(addrm)) < 0)
     {
+        D_NWLOG("\033[0m\033[0;31merror %s ::bind() in UdpPort::open\033[0m\033[0;37m\n", strerror(errno));
         return false;
     }
 

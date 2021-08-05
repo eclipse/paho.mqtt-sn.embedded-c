@@ -57,6 +57,7 @@ public:
     void setSockaddr6(sockaddr_in6 *sockaddr);
     void cpyAddr4(sockaddr_in *sockaddr);
     void cpyAddr6(sockaddr_in6 *sockaddr);
+    void cpyAddr(SensorNetAddress *addr);
     in_port_t getPort(void);
     ipAddr_t* getIpAddress(void);
     void setIndex(int index);
@@ -109,6 +110,7 @@ public:
     int getEventUnicast(void);
     int getEventListen(void);
     void closeSSL(int index);
+    void print(void);
 private:
     pollfd *_pollfds;
     SSL **_ssls;
@@ -133,6 +135,7 @@ public:
     void initialize(void);
     const char* getDescription(void);
     SensorNetAddress* getSenderAddress(void);
+    Connections* getConnections(void);
     void close();
 
 private:
@@ -145,9 +148,9 @@ private:
     void clearRecvData(int sock);
 
     Mutex _mutex;
-    SensorNetAddress *_senderAddr;
-    SensorNetAddress *_multicastAddr;
-    SensorNetAddress *_unicastAddr;
+    SensorNetAddress _senderAddr;
+    SensorNetAddress _multicastAddr;
+    SensorNetAddress _unicastAddr;
     string _description;
     SSL_CTX *_dtlsctx;
     Connections *_conns;

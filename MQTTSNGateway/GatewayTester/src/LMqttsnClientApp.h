@@ -252,11 +252,11 @@ typedef enum
 /*=================================
  *    Starting prompt
  ==================================*/
-#define TESTER_VERSION " * Version: 2.0.0"
+#define TESTER_VERSION " * Version: 2.1.0"
 
-#define PAHO_COPYRIGHT0 " * MQTT-SN Gateway Tester"
+#define PAHO_COPYRIGHT0 " * "
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
-#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
+#define PAHO_COPYRIGHT2 " * (https://github.com/eclipse/paho.mqtt-sn.embedded-c.git)"
 #define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
 #define PAHO_COPYRIGHT4 " ***************************************************************************"
 

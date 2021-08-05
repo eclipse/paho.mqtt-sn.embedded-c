@@ -40,14 +40,14 @@ $(SUBDIR)/Util.cpp \
 CXX := g++ 
 CPPFLAGS += 
 
-INCLUDES += -I$(SUBDIR)
+INCLUDES += -I$(SUBDIR) -I/usr/local/opt/openssl/include
 DEF1 :=
 DEF2 :=
 DEFS := -D$(SN) $(DEF1) $(DEF2)
-LIBS += -L/usr/local/lib -L/usr/local/opt/openssl
+LIBS += -L/usr/local/lib -L/usr/local/opt/openssl/lib
 LDFLAGS := 
 CXXFLAGS := -Wall -O3 -std=c++11
-LDADD := -lbluetooth -lssl -lcrypto
+LDADD := -lssl -lcrypto $(LDADDBLT)
 OUTDIR := Build
 
 PROG := $(OUTDIR)/$(PROGTEST)

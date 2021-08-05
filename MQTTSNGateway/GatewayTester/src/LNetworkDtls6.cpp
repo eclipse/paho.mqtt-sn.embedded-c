@@ -75,8 +75,8 @@ uint8_t* LNetwork::getMessage(int *len)
     if (checkRecvBuf())
     {
         uint16_t recvLen = LDtls6Port::recv(_rxDataBuf, MQTTSN_MAX_PACKET_SIZE, false, &_ipAddress, &_portNo);
-        int diffAddr = memcmp(_ipAddress.s6_addr, _gwIpAddress.s6_addr, sizeof(_gwIpAddress.s6_addr));
-        if (isUnicast() && diffAddr && (_portNo != _gwPortNo))
+        int addrFlg = memcmp(_ipAddress.s6_addr, _gwIpAddress.s6_addr, sizeof(_gwIpAddress.s6_addr));
+        if (isUnicast() && addrFlg && (_portNo != _gwPortNo))
         {
             return 0;
         }
@@ -141,11 +141,14 @@ int LNetwork::sslConnect(void)
 LDtls6Port::LDtls6Port()
 {
     _disconReq = false;
-    memset(_pollfds, 0, sizeof(_pollfds));
-    _sock = 0;
-    _castStat = 0;
+    _castStat = STAT_NONE;
     _ifIndex = 0;
-    _gIpAddrStr = NULL;
+    _gIpAddrStr = nullptr;
+    _sockfdMcast = 0;
+    _sockfdSsl = 0;
+    _ctx = nullptr;
+    _ssl = nullptr;
+    _gPortNo = _uPortNo = 0;
 }
 
 LDtls6Port::~LDtls6Port()
@@ -159,12 +162,14 @@ LDtls6Port::~LDtls6Port()
 
 void LDtls6Port::close()
 {
-    for (int i = 0; i < 2; i++)
+    if (_sockfdMcast > 0)
     {
-        if (_pollfds[i].fd > 0)
+        ::close(_sockfdMcast);
+        _sockfdMcast = 0;
+        if (_sockfdSsl > 0)
         {
-            ::close(_pollfds[i].fd);
-            _pollfds[i].fd = 0;
+            ::close(_sockfdSsl);
+            _sockfdSsl = 0;
         }
     }
 }
@@ -172,7 +177,6 @@ void LDtls6Port::close()
 bool LDtls6Port::open(LUdp6Config *config)
 {
     int optval = 1;
-    int sock = 0;
     sockaddr_in6 addr6;
     char errmsg[256];
 
@@ -205,22 +209,22 @@ bool LDtls6Port::open(LUdp6Config *config)
     }
 
     /* create a multicast socket */
-    sock = socket(AF_INET6, SOCK_DGRAM, 0);
-    if (sock < 0)
+    _sockfdMcast = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (_sockfdMcast < 0)
     {
         return false;
     }
 
     optval = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-    setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval));
+    setsockopt(_sockfdMcast, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+    setsockopt(_sockfdMcast, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval));
 
     memset(&addr6, 0, sizeof(addr6));
     addr6.sin6_family = AF_INET6;
     addr6.sin6_port = _gPortNo;
     addr6.sin6_addr = in6addr_any;
 
-    if (::bind(sock, (sockaddr*) &addr6, sizeof(addr6)) < 0)
+    if (::bind(_sockfdMcast, (sockaddr*) &addr6, sizeof(addr6)) < 0)
     {
         D_NWLOG("\033[0m\033[0;31merror %s ::bind() in Udp6Port::open\033[0m\033[0;37m\n", strerror(errno));
         return false;
@@ -229,21 +233,21 @@ bool LDtls6Port::open(LUdp6Config *config)
     ipv6_mreq addrm;
     addrm.ipv6mr_interface = _ifIndex;
     inet_pton(AF_INET6, config->ipAddress, &addrm.ipv6mr_multiaddr);
-    if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &addrm, sizeof(addrm)) < 0)
+    if (setsockopt(_sockfdMcast, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &addrm, sizeof(addrm)) < 0)
     {
         D_NWLOG("\033[0m\033[0;31merror %s IPV6_ADD_MEMBERSHIP in Udp6Port::open\033[0m\033[0;37m\n", strerror(errno));
         close();
         return false;
     }
-    optval = 0;
-    if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &optval, sizeof(optval)) < 0)
+
+    optval = 1;
+    if (setsockopt(_sockfdMcast, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &optval, sizeof(optval)) < 0)
     {
         D_NWLOG("\033[0m\033[0;31merror %s IPV6_MULTICAST_LOOP in Udp6Port::open\033[0m\033[0;37m\n", strerror(errno));
         close();
         return false;
     }
-    _pollfds[1].fd = sock;
-    _pollfds[1].events = POLLIN;
+
     _gIpAddr.sin6_family = AF_INET6;
     _gIpAddr.sin6_port = _gPortNo;
     memcpy(&_gIpAddr.sin6_addr, (const void*) &addrm.ipv6mr_multiaddr, sizeof(addrm.ipv6mr_multiaddr));
@@ -253,7 +257,7 @@ bool LDtls6Port::open(LUdp6Config *config)
 
 bool LDtls6Port::isUnicast()
 {
-    return (_sock == _pollfds[0].fd && _sock > 0);
+    return (_castStat == STAT_UNICAST);
 }
 
 int LDtls6Port::unicast(const uint8_t *buf, uint32_t length)
@@ -267,11 +271,13 @@ int LDtls6Port::unicast(const uint8_t *buf, uint32_t length)
     }
     else
     {
-        D_NWLOG("sendto gateway via DTLS ");
+        D_NWLOG("sendto gateway via DTLS6 ");
         for (uint16_t i = 0; i < length; i++)
         {
             D_NWLOG(" %02x", *(buf + i));
-        }D_NWLOG("\n");
+        }
+
+        D_NWLOG("\n");
 
         if (!theClientMode)
         {
@@ -299,12 +305,12 @@ int LDtls6Port::multicast(const uint8_t *buf, uint32_t length)
 {
     char sbuf[SCREEN_BUFF_SIZE];
     char portStr[8];
-    sprintf(portStr, "%d", ntohs(_gPortNo));
+    sprintf(portStr, "%d", ntohs(_gIpAddr.sin6_port));
 
-    int status = ::sendto(_pollfds[1].fd, buf, length, 0, (sockaddr*) &_gIpAddr, sizeof(_gIpAddr));
+    int status = ::sendto(_sockfdMcast, buf, length, 0, (sockaddr*) &_gIpAddr, sizeof(_gIpAddr));
     if (status < 0)
     {
-        D_NWLOG("multicast to [%s]:%-6s  ", _gIpAddrStr, portStr);D_NWLOG("\033[0m\033[0;31merrno = %d %s in Udp6Port::multicast\033[0m\033[0;37m\n", errno, strerror(errno));
+        DISPLAY("\033[0m\033[0;31merrno == %d in LDtls6Port::multicast\033[0m\033[0;37m\n", errno);
         return errno;
     }
     else
@@ -313,7 +319,9 @@ int LDtls6Port::multicast(const uint8_t *buf, uint32_t length)
         for (uint16_t i = 0; i < length; i++)
         {
             D_NWLOG(" %02x", *(buf + i));
-        }D_NWLOG("\n");
+        }
+
+        D_NWLOG("\n");
 
         if (!theClientMode)
         {
@@ -339,32 +347,52 @@ int LDtls6Port::multicast(const uint8_t *buf, uint32_t length)
 
 bool LDtls6Port::checkRecvBuf()
 {
+    timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 50000;    // 50 msec
+
     uint8_t buf[2];
+    fd_set recvfds;
+    int maxSock = 0;
 
-    int cnt = poll(_pollfds, 2, 2000);  // Timeout 2secs
-    if (cnt == 0)
+    FD_ZERO(&recvfds);
+    if (_sockfdMcast)
     {
-        return false;
+        FD_SET(_sockfdMcast, &recvfds);
+    }
+    if (_sockfdSsl)
+    {
+        FD_SET(_sockfdSsl, &recvfds);
     }
 
-    if (_pollfds[0].revents & POLLIN)
+    if (_sockfdMcast > _sockfdSsl)
     {
-        if (::recv(_pollfds[0].fd, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
-        {
-            _castStat = STAT_SSL;
-            _sock = _pollfds[0].fd;
-            return true;
-        }
+        maxSock = _sockfdMcast;
     }
-    else if (_pollfds[1].revents & POLLIN)
+    else
     {
-        if (::recv(_pollfds[1].fd, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
+        maxSock = _sockfdSsl;
+    }
+
+    select(maxSock + 1, &recvfds, 0, 0, &timeout);
+
+    if (FD_ISSET(_sockfdMcast, &recvfds))
+    {
+        if (::recv(_sockfdMcast, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
         {
             _castStat = STAT_MULTICAST;
-            _sock = _pollfds[1].fd;
             return true;
         }
     }
+    else if (FD_ISSET(_sockfdSsl, &recvfds))
+    {
+        if (::recv(_sockfdSsl, buf, 1, MSG_DONTWAIT | MSG_PEEK) > 0)
+        {
+            _castStat = STAT_SSL;
+            return true;
+        }
+    }
+    _castStat = STAT_NONE;
     return false;
 }
 
@@ -393,7 +421,7 @@ int LDtls6Port::recvfrom(uint8_t *buf, uint16_t length, int flags, in6_addr *ipA
     else if (_castStat == STAT_MULTICAST)
     {
         D_NWLOG("Mcast ");
-        status = ::recvfrom(_sock, buf, length, flags, (sockaddr*) &sender, &addrlen);
+        status = ::recvfrom(_sockfdMcast, buf, length, flags, (sockaddr*) &sender, &addrlen);
     }
     else
     {
@@ -445,63 +473,82 @@ int LDtls6Port::recvfrom(uint8_t *buf, uint16_t length, int flags, in6_addr *ipA
     return status;
 }
 
-int LDtls6Port::sslConnect(in6_addr ipAddress, uint16_t portNo)
+int LDtls6Port::sslConnect(in6_addr ipAddress, in_port_t portNo)
 {
     int optval = 1;
-    int sock = _pollfds[0].fd;
 
     if (_ssl != 0)
     {
+        D_NWLOG("LDtls6Port::sslConnect SSL exists.\n");
+        SSL_shutdown(_ssl);
         SSL_free(_ssl);
+        _sockfdSsl = 0;
+        _ssl = 0;
     }
 
-    if (sock > 0)
+    if (_sockfdSsl > 0)
     {
-        ::close(sock);
+        D_NWLOG("LDtls6Port::sslConnect socket exists.\n");
+        ::close(_sockfdSsl);
     }
 
-    sock = socket(AF_INET6, SOCK_DGRAM, 0);
-    if (sock <= 0)
+    _sockfdSsl = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (_sockfdSsl <= 0)
     {
+        D_NWLOG("LDtls6Port::sslConnect Can't create a socket\n");
         return -1;
     }
     optval = 1;
-    setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval));
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR || SO_REUSEPORT, &optval, sizeof(optval));
+    setsockopt(_sockfdSsl, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval));
+    setsockopt(_sockfdSsl, SOL_SOCKET, SO_REUSEADDR || SO_REUSEPORT, &optval, sizeof(optval));
 
     if (_ifIndex > 0)
     {
 #ifdef __APPLE__
-        setsockopt(sock, IPPROTO_IP, IP_BOUND_IF, &_ifIndex, sizeof(_ifIndex));
+     setsockopt(_sockfdSsl, IPPROTO_IP, IP_BOUND_IF, &_ifIndex, sizeof(_ifIndex));
 #else
-        setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, _interfaceName.c_str(), _interfaceName.size());
+        setsockopt(_sockfdSsl, SOL_SOCKET, SO_BINDTODEVICE, _interfaceName.c_str(), _interfaceName.size());
 #endif
     }
 
-    struct sockaddr_in6 addr;
+    sockaddr_in6 addr;
     addr.sin6_family = AF_INET6;
     addr.sin6_port = _uPortNo;
     addr.sin6_addr = in6addr_any;
 
-    if (::bind(sock, (struct sockaddr*) &addr, sizeof(addr)) < 0)
+    if (::bind(_sockfdSsl, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
+        ::close(_sockfdSsl);
+        D_NWLOG("LDtlsPort::sslConnect Can't bind a socket\n");
         return -1;
     }
-    _pollfds[0].fd = sock;
-    _pollfds[0].events = POLLIN;
 
-    uint16_t listenPort = htons(portNo);
-    struct sockaddr_in6 dest;
+    // Destination is a gateway address and portNo
+    int rc = 0;
+    sockaddr_in6 dest;
     dest.sin6_family = AF_INET6;
-    dest.sin6_port = htons(listenPort);
+    dest.sin6_port = portNo;
     memcpy(dest.sin6_addr.s6_addr, (const void*) ipAddress.s6_addr, sizeof(ipAddress.s6_addr));
 
-    int rc = 0;
+    BIO *cbio = BIO_new_dgram(_sockfdSsl, BIO_NOCLOSE);
+    if (connect(_sockfdSsl, (sockaddr*) &dest, sizeof(sockaddr_in6)) < 0)
+    {
+        D_NWLOG("socket can't connect %s\n",strerror(errno));
+        return -1;
+    }
 
-    BIO *cbio = BIO_new_dgram(sock, BIO_NOCLOSE);
-    connect(sock, (sockaddr*) &dest, sizeof(sockaddr_in6));
-    BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &dest);
+    if (BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &dest) <0)
+    {
+        D_NWLOG("BIO_ctrl %s\n",strerror(errno));
+        return -1;
+    }
+
     _ssl = SSL_new(_ctx);
+    if (_ssl == nullptr)
+    {
+        D_NWLOG("SSL_new  %s\n",strerror(errno));
+       return -1;
+    }
     SSL_set_bio(_ssl, cbio, cbio);
 
 #ifdef DEBUG_NW
@@ -510,7 +557,12 @@ int LDtls6Port::sslConnect(in6_addr ipAddress, uint16_t portNo)
     D_NWLOG("connect to %-15s:%-6u\n", addrBuf, ntohs(dest.sin6_port));
 #endif
 
+    timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
+    BIO_ctrl(cbio, BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
     errno = 0;
+
     int stat = SSL_connect(_ssl);
     if (stat != 1)
     {
@@ -519,6 +571,7 @@ int LDtls6Port::sslConnect(in6_addr ipAddress, uint16_t portNo)
     }
     else
     {
+        rc = 1;
         D_NWLOG("SSL connected\n");
     }
     return rc;

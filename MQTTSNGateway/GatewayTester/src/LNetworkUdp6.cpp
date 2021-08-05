@@ -350,7 +350,7 @@ bool LUdp6Port::checkRecvBuf()
 {
     uint8_t buf[2];
 
-    int cnt = poll(_pollfds, 2, 2000);  // Timeout 2secs
+    int cnt = poll(_pollfds, 2, 50);  // Timeout 50m secs
     if (cnt == 0)
     {
         return false;

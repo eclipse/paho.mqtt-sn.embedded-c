@@ -98,11 +98,11 @@ void ClientRecvTask::run()
             continue;
         }
 
-        SensorNetAddress* senderAddr = _gateway->getSensorNetwork()->getSenderAddress();
+        SensorNetAddress senderAddr = *_gateway->getSensorNetwork()->getSenderAddress();
 
         if (packet->getType() == MQTTSN_ENCAPSULATED)
         {
-            fwd = _gateway->getAdapterManager()->getForwarderList()->getForwarder(senderAddr);
+            fwd = _gateway->getAdapterManager()->getForwarderList()->getForwarder(&senderAddr);
 
             if (fwd != nullptr)
             {
@@ -124,7 +124,7 @@ void ClientRecvTask::run()
 
             if (qosm1Proxy->isActive())
             {
-                const char* clientName = qosm1Proxy->getClientId(senderAddr);
+                const char *clientName = qosm1Proxy->getClientId(&senderAddr);
 
                 if (clientName != nullptr)
                 {
@@ -134,7 +134,7 @@ void ClientRecvTask::run()
                     {
                         log(clientName, packet);
                         WRITELOG("%s %s  %s can send only PUBLISH with QoS-1.%s\n",
-                        ERRMSG_HEADER, clientName, senderAddr->sprint(buf), ERRMSG_FOOTER);
+                        ERRMSG_HEADER, clientName, senderAddr.sprint(buf), ERRMSG_FOOTER);
                         delete packet;
                         continue;
                     }
@@ -143,7 +143,7 @@ void ClientRecvTask::run()
 
             if (client == nullptr)
             {
-                client = _gateway->getClientList()->getClient(senderAddr);
+                client = _gateway->getClientList()->getClient(&senderAddr);
             }
         }
 
@@ -183,7 +183,7 @@ void ClientRecvTask::run()
                 {
                     log(0, packet, &data.clientID);
                     WRITELOG("%s CONNECT message form %s is incorrect.%s\n",
-                    ERRMSG_HEADER, senderAddr->sprint(buf),
+                    ERRMSG_HEADER, senderAddr.sprint(buf),
                     ERRMSG_FOOTER);
                     delete packet;
                     continue;
@@ -208,13 +208,13 @@ void ClientRecvTask::run()
                         /* Authentication is not required */
                         if (_gateway->getGWParams()->clientAuthentication == false)
                         {
-                            client->setClientAddress(senderAddr);
+                            client->setClientAddress(&senderAddr);
                         }
                     }
                     else
                     {
                         /* create a new client */
-                        client = clientList->createClient(senderAddr, &data.clientID, clientType);
+                        client = clientList->createClient(&senderAddr, &data.clientID, clientType);
                     }
                 }
 
@@ -223,7 +223,7 @@ void ClientRecvTask::run()
                 if (client == nullptr)
                 {
                     WRITELOG("%s Client(%s) was rejected. CONNECT message has been discarded.%s\n",
-                    ERRMSG_HEADER, senderAddr->sprint(buf),
+                    ERRMSG_HEADER, senderAddr.sprint(buf),
                     ERRMSG_FOOTER);
                     delete packet;
                     continue;
@@ -247,7 +247,7 @@ void ClientRecvTask::run()
                 else
                 {
                     WRITELOG("%s MQTTSNGWClientRecvTask  Client(%s) is not connecting. message has been discarded.%s\n",
-                    ERRMSG_HEADER, senderAddr->sprint(buf),
+                    ERRMSG_HEADER, senderAddr.sprint(buf),
                     ERRMSG_FOOTER);
                 }
                 delete packet;
