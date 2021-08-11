@@ -83,6 +83,7 @@ private:
     Client* _endClient;
     Mutex _mutex;
     uint16_t _clientCnt;
+    uint16_t _maxClients;
     bool _authorize { false };
 };
 

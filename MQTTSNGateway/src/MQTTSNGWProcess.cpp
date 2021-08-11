@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <stdarg.h>
 #include <signal.h>
 #include <Timer.h>
@@ -156,6 +157,8 @@ int Process::getParam(const char* parameter, char* value)
 {
     char str[MQTTSNGW_PARAM_MAX];
     char param[MQTTSNGW_PARAM_MAX];
+    memset(str, 0, sizeof(str));
+    memset(param, 0, sizeof(param));
     FILE *fp;
 
     int i = 0, j = 0;
@@ -166,40 +169,55 @@ int Process::getParam(const char* parameter, char* value)
         throw Exception("Config file not found:\n\nUsage: Command -f path/config_file_name\n", 0);
     }
 
+    int paramlen = strlen(parameter);
+
     while (true)
     {
+        int pos = 0;
+        int len = 0;
         if (fgets(str, MQTTSNGW_PARAM_MAX - 1, fp) == NULL)
         {
             fclose(fp);
             return -3;
         }
-        if (!strncmp(str, parameter, strlen(parameter)))
+        if (str[0] == '#' || str[0] == '\n')
         {
-            while (str[i++] != '=')
-            {
-                ;
-            }
-            while (str[i] != '\n')
-            {
-                param[j++] = str[i++];
-            }
-            param[j] = '\0';
+            continue;
+        }
 
-            for (i = strlen(param) - 1; i >= 0 && isspace(param[i]); i--)
-                ;
-            param[i + 1] = '\0';
-            for (i = 0; isspace(param[i]); i++)
-                ;
-            if (i > 0)
+        len = strlen(str);
+        for (pos = 0; i < len; pos++)
+        {
+            if (str[pos] == '=')
             {
-                j = 0;
-                while (param[i])
-                    param[j++] = param[i++];
-                param[j] = '\0';
+                break;
             }
-            strcpy(value, param);
-            fclose(fp);
-            return 0;
+        }
+
+        if (pos == paramlen)
+        {
+            if (strncmp(str, parameter, paramlen) == 0)
+            {
+                strcpy(param, str + pos + 1);
+                param[len - pos - 2] = '\0';
+
+
+                for (i = strlen(param) - 1; i >= 0 && isspace(param[i]); i--)
+                    ;
+                param[i + 1] = '\0';
+                for (i = 0; isspace(param[i]); i++)
+                    ;
+                if (i > 0)
+                {
+                    j = 0;
+                    while (param[i])
+                        param[j++] = param[i++];
+                    param[j] = '\0';
+                }
+                strcpy(value, param);
+                fclose(fp);
+                return 0;
+            }
         }
     }
     fclose(fp);

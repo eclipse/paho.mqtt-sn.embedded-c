@@ -29,7 +29,7 @@ namespace MQTTSNGW
  ==================================*/
 #define PAHO_COPYRIGHT0 " * MQTT-SN Gateway"
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
-#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
+#define PAHO_COPYRIGHT2 " * (https://github.com/eclipse/paho.mqtt-sn.embedded-c.git)"
 #define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
 #define PAHO_COPYRIGHT4 " ***************************************************************************"
 /*==========================================================
@@ -168,7 +168,9 @@ public:
     bool qosMinus1 { false };
     bool forwarder { false };
     int maxClients {0};
-    char* bleAddress { nullptr };
+    char* rfcommAddr { nullptr };
+    char* gwCertskey { nullptr };
+    char* gwPrivatekey { nullptr };
 };
 
 /*=====================================
@@ -197,10 +199,10 @@ public:
     int getParam(const char* parameter, char* value);
     char* getClientListFileName(void);
     char* getPredefinedTopicFileName(void);
-
     bool hasSecureConnection(void);
     Topics* getTopics(void);
     bool IsStopping(void);
+    void requestSensorNetSubTask(void);
 
 private:
     GatewayParams _params;
@@ -214,7 +216,6 @@ private:
     Topics* _topics;
     bool _stopFlg;
 };
-
 }
 
 #endif /* MQTTSNGATEWAY_H_ */

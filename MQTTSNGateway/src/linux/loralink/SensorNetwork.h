@@ -11,7 +11,7 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Tomoaki Yamaguchi - initial API and implementation 
+ *    Tomoaki Yamaguchi - initial API and implementation
  **************************************************************************************/
 #ifndef SENSORNETWORKX_H_
 #define SENSORNETWORKX_H_
@@ -25,12 +25,11 @@ using namespace std;
 
 namespace MQTTSNGW
 {
-//#define DEBUG_NWSTACK
 
-#ifdef  DEBUG_NWSTACK
-  #define D_NWSTACK(...) printf(__VA_ARGS__); fflush(stdout)
+#ifdef  DEBUG_NW
+#define D_LRSTACK(...) printf(__VA_ARGS__); fflush(stdout)
 #else
-  #define D_NWSTACK(...)
+  #define D_LRSTACK(...)
 #endif
 
 

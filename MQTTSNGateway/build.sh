@@ -1,19 +1,42 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]; then
-    echo "Usage: build.sh  [ udp | udp6 | xbee | loralink | rfcomm ]"
-else
-    echo "Start building MQTT-SN Gateway"
+build () {
+    echo "Start building MQTT-SN Gateway  $1"
     
-    SCRIPT_DIR=$(cd $(dirname $0); pwd)
     cd $SCRIPT_DIR/..
-    rm -rf build.gateway
-    mkdir build.gateway
-    cd build.gateway
-    cmake .. -DSENSORNET=$1
+    BDIR='build.gateway'
+    if [ ! -d ./$BDIR ]; then
+        mkdir $BDIR
+    fi
+    cd $BDIR
+    cmake .. -DSENSORNET=$1 -DDEFS="${2} ${3}"
     make MQTTSNPacket
     make MQTT-SNGateway
     make MQTT-SNLogmonitor
     cd  ../MQTTSNGateway
     cp *.conf ./bin/
+}
+
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+if [ $1 == "udp" ] ; then
+    build $1 $2 $3
+elif [ $1 == "udp6" ] ; then 
+    build $1 $2 $3
+elif [ $1 == "xbee" ] ; then
+    build $1 $2 $3
+elif [ $1 == "loralink" ]; then
+    build $1 $2 $3
+elif [ $1 == "rfcomm" ] ; then 
+    build $1 $2 $3
+elif [ $1 == "dtls" ] ; then
+    build $1 $2 $3
+elif [ $1 == "dtls6" ] ; then
+    build dtls "${2} ${3} -DDTLS6"
+elif [ $1 == "clean" ] ; then
+    rm -rf ../builg.gateway
+else
+    echo "Usage: build.sh  [ udp | udp6 | xbee | loralink | rfcomm | dtls | dtls6 | clean]"
 fi
+
+

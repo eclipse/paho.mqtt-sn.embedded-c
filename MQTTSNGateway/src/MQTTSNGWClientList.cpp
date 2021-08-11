@@ -58,6 +58,7 @@ ClientList::~ClientList()
 
 void ClientList::initialize(bool aggregate)
 {
+    _maxClients = _gateway->getGWParams()->maxClients;
     _clientsPool->allocate(_gateway->getGWParams()->maxClients);
 
     if (_gateway->getGWParams()->clientAuthentication)
@@ -416,7 +417,7 @@ Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicNa
     }
     else
     {
-        Client* client = getClient(clientId);
+        Client *client = getClient(clientId);
 
         if (_authorize && client == nullptr)
         {
@@ -424,6 +425,7 @@ Client* ClientList::createPredefinedTopic(MQTTSNString* clientId, string topicNa
         }
 
         client = createClient(NULL, clientId, aggregate);
+
         if (client == nullptr)
         {
             return nullptr;
@@ -491,15 +493,17 @@ void ClientsPool::allocate(int maxClients)
 
 Client* ClientsPool::getClient(void)
 {
+    Client *cl = nullptr;
+
     while (_firstClient != nullptr)
     {
-        Client* cl = _firstClient;
+        cl = _firstClient;
         _firstClient = cl->_nextClient;
         cl->_nextClient = nullptr;
         _clientCnt--;
-        return cl;
+        break;
     }
-    return nullptr;
+    return cl;
 }
 
 void ClientsPool::setClient(Client* client)

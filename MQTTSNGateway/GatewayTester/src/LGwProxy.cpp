@@ -200,7 +200,24 @@ int LGwProxy::getConnectResponce(void)
     {
         _network.setGwAddress();
         _gwId = _mqttsnMsg[1];
+
+#if defined(DTLS) || defined(DTLS6)
+        for (int i = 0; i < MQTTSN_RETRY_COUNT; i++)
+        {
+            if (_network.sslConnect() > 0)
+            {
+                _status = GW_CONNECTING;
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce DTLS connection established.\033[0m\033[0;37m\n\n");
+                break;
+            }
+            else
+            {
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce DTLS connection failed.\033[0m\033[0;37m\n\n");
+            }
+        }
+#else
         _status = GW_CONNECTING;
+#endif
     }
     else if (_mqttsnMsg[0] == MQTTSN_TYPE_WILLTOPICREQ && _status == GW_WAIT_WILLTOPICREQ)
     {

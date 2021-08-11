@@ -20,13 +20,13 @@
  *
  *   void PUBLISH  ( uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
  *
- *  void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
+ *   void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
  *
- *  void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
+ *   void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
  *
- *  void UNSUBSCRIBE ( const char* topicName );
+ *   void UNSUBSCRIBE ( const char* topicName );
  *
- *  void UNSUBSCRIBE ( uint16_t topicId );
+ *   void UNSUBSCRIBE ( uint16_t topicId );
  *
  *   void DISCONNECT ( uint16_t sleepInSecs );
  *
@@ -49,12 +49,22 @@ extern LMqttsnClient* theClient;
 extern LScreen* theScreen;
 
 /*------------------------------------------------------
- *    UDP Configuration    (theNetcon)
+ *    UDP,DTLS Configuration    (theNetcon)
  *------------------------------------------------------*/
 UDPCONF = { "GatewayTestClient",  // ClientId
-		{ 225, 1, 1, 1 },         // Multicast group IP
+        { 225, 1, 1, 1 },         // Multicast group IP
         1883,                     // Multicast group Port
         20020,                    // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    UDP6, DTLS6 Configuration    (theNetcon)
+ *------------------------------------------------------*/
+UDP6CONF = { "GatewayTestClient",  // ClientId
+        "ff1e:feed:caca:dead::1", // Multicast group IP
+        "wlp4s0",                  // Network Interface
+        1883,                      // Multicast group Port
+        20020,                     // Local PortNo
         };
 
 /*------------------------------------------------------

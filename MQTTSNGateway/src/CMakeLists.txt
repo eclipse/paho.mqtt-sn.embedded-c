@@ -35,6 +35,9 @@ IF(NOT DEFINED SENSORNET)
 ENDIF()
 MESSAGE(STATUS "SENSORNET: " ${SENSORNET})
 
+ADD_DEFINITIONS(${DEFS})
+MESSAGE(STATUS "Definitions: " ${DEFS})
+
 ADD_LIBRARY(mqtt-sngateway_common
        MQTTGWConnectionHandler.cpp
        MQTTGWPacket.cpp
@@ -74,7 +77,10 @@ ADD_LIBRARY(mqtt-sngateway_common
        ${OS}/Threading.h
        )
 
+# linux
 link_directories("/usr/local/lib")
+
+# Mac
 link_directories("/usr/local/opt/openssl/lib")
 
 
@@ -84,6 +90,7 @@ TARGET_INCLUDE_DIRECTORIES(mqtt-sngateway_common
        ${OS}
        ${OS}/${SENSORNET}
        ../../MQTTSNPacket/src
+       /usr/local/include
        /usr/local/opt/openssl/include
        )
 

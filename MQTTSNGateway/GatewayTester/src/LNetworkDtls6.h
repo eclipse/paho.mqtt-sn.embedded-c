@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Copyright (c) 2016, Tomoaki Yamaguchi
+ * Copyright (c) 2021, Tomoaki Yamaguchi
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -14,10 +14,10 @@
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
 
-#ifndef NETWORKUDP_H_
-#define NETWORKUDP_H_
+#ifndef NETWORKDTLS6_H_
+#define NETWORKDTLS6_H_
 
-#ifdef UDP
+#ifdef DTLS6
 
 #include <sys/time.h>
 #include <iostream>
@@ -28,56 +28,69 @@
 #include <unistd.h>
 #include <string>
 #include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <poll.h>
 
 #define SOCKET_MAXHOSTNAME  200
 #define SOCKET_MAXCONNECTIONS  5
 #define SOCKET_MAXRECV  500
 #define SOCKET_MAXBUFFER_LENGTH 500 // buffer size
 
+#define STAT_NONE   0
 #define STAT_UNICAST   1
 #define STAT_MULTICAST 2
+#define STAT_SSL 3
 
 using namespace std;
 
 namespace linuxAsyncClient {
 /*========================================
-       Class LUpdPort
+ Class LDtls6Port
  =======================================*/
-class LUdpPort{
+class LDtls6Port
+{
     friend class LNetwork;
 public:
-	LUdpPort();
-	virtual ~LUdpPort();
+    LDtls6Port();
+    virtual ~LDtls6Port();
 
-	bool open(LUdpConfig* config);
+    bool open(LUdp6Config* config);
 
-	int unicast(const uint8_t* buf, uint32_t length, uint32_t ipaddress, uint16_t port  );
-	int multicast( const uint8_t* buf, uint32_t length );
-	int recv(uint8_t* buf, uint16_t len, bool nonblock, uint32_t* ipaddress, uint16_t* port );
-	int recv(uint8_t* buf, int flags);
-	bool checkRecvBuf();
-	bool isUnicast();
-
+    int unicast(const uint8_t *buf, uint32_t length);
+    int multicast( const uint8_t* buf, uint32_t length );
+    int recv(uint8_t* buf, uint16_t len, bool nonblock, in6_addr* ipaddress, in_port_t* port );
+    int recv(uint8_t* buf, int flags);
+    bool checkRecvBuf();
+    bool isUnicast();
+    SSL* getSSL(void);
+    int sslConnect(in6_addr ipAddress, uint16_t port);
 private:
-	void close();
-	int recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipaddress, uint16_t* port );
+    void close();
+    int recvfrom ( uint8_t* buf, uint16_t len, int flags, in6_addr* ipaddress, in_port_t* port );
 
-	int      _sockfdUcast;
-	int      _sockfdMcast;
-	uint16_t _gPortNo;
-	uint16_t _uPortNo;
-	uint32_t _gIpAddr;
-	uint8_t  _castStat;
-	bool   _disconReq;
+    int _sockfdMcast;
+    int _sockfdSsl;
+    SSL_CTX *_ctx;
+    SSL *_ssl;
+    in_port_t _gPortNo;
+    in_port_t _uPortNo;
+    sockaddr_in6 _gIpAddr;
+    char *_gIpAddrStr;
+    uint32_t _ifIndex;
+    string _interfaceName;
+    uint8_t  _castStat;
+    bool   _disconReq;
 
 };
 
-#define NO_ERROR	0
+#define NO_ERROR    0
 #define PACKET_EXCEEDS_LENGTH  1
 /*===========================================
                Class  Network
  ============================================*/
-class LNetwork : public LUdpPort {
+class LNetwork: public LDtls6Port
+{
 public:
     LNetwork();
     ~LNetwork();
@@ -86,18 +99,18 @@ public:
     int  unicast(const uint8_t* payload, uint16_t payloadLen);
     void setGwAddress(void);
     void resetGwAddress(void);
-    void setFixedGwAddress(void);
-    bool initialize(LUdpConfig* config);
+    bool initialize(LUdp6Config* config);
     uint8_t*  getMessage(int* len);
-        bool isBroadcastable();
+    bool isBroadcastable();
+    int sslConnect(void);
 private:
     void setSleep();
     int  readApiFrame(void);
 
-    uint32_t _gwIpAddress;
-	uint16_t _gwPortNo;
-	uint32_t _ipAddress;
-	uint16_t _portNo;
+    in6_addr _gwIpAddress;
+    in6_addr _ipAddress;
+    in_port_t _gwPortNo;
+    in_port_t _portNo;
     int     _returnCode;
     bool _sleepflg;
     uint8_t _rxDataBuf[MQTTSN_MAX_PACKET_SIZE + 1];  // defined in MqttsnClientApp.h
@@ -105,5 +118,5 @@ private:
 };
 
 }    /* end of namespace */
-#endif /* UDP */
-#endif /* NETWORKUDP_H_ */
+#endif /* DTLS6 */
+#endif /* NETWORKDTLS6_H_ */

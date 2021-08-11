@@ -20,10 +20,13 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
 #include <string.h>
 #include <regex>
 #include <string>
 #include <stdlib.h>
+#include <poll.h>
 #include "SensorNetwork.h"
 #include "MQTTSNGWProcess.h"
 
@@ -196,33 +199,33 @@ void SensorNetwork::initialize(void)
      *  MulticastIP=225.1.1.1
      *  MulticastPortNo=1883
      *
-	 */
-	if (theProcess->getParam("MulticastIP", param) == 0)
-	{
-		ip = param;
-		_description = "UDP Multicast ";
-		_description += param;
-	}
-	if (theProcess->getParam("MulticastPortNo", param) == 0)
-	{
-		multicastPortNo = atoi(param);
-		_description += ":";
-		_description += param;
-	}
-	if (theProcess->getParam("GatewayPortNo", param) == 0)
-	{
-		unicastPortNo = atoi(param);
-		_description += " Gateway Port ";
-		_description += param;
-	}
-	if (theProcess->getParam("MulticastTTL", param) == 0)
-	{
-		ttl = atoi(param);
-		_description += " TTL: ";
-		_description += param;
-	}
+     */
+    if (theProcess->getParam("MulticastIP", param) == 0)
+    {
+        ip = param;
+        _description = "UDP Multicast ";
+        _description += param;
+    }
+    if (theProcess->getParam("MulticastPortNo", param) == 0)
+    {
+        multicastPortNo = atoi(param);
+        _description += ":";
+        _description += param;
+    }
+    if (theProcess->getParam("GatewayPortNo", param) == 0)
+    {
+        unicastPortNo = atoi(param);
+        _description += ", Gateway Port:";
+        _description += param;
+    }
+    if (theProcess->getParam("MulticastTTL", param) == 0)
+    {
+        ttl = atoi(param);
+        _description += ", TTL:";
+        _description += param;
+    }
 
-	/*  Prepare UDP sockets */
+    /*  setup UDP sockets */
 	errno = 0;
 	if ( UDPPort::open(ip.c_str(), multicastPortNo, unicastPortNo, ttl) < 0 )
 	{
@@ -247,9 +250,7 @@ SensorNetAddress* SensorNetwork::getSenderAddress(void)
 UDPPort::UDPPort()
 {
 	_disconReq = false;
-	_sockfdUnicast = -1;
-	_sockfdMulticast = -1;
-	_ttl = 0;
+    memset(_pollFds, 0, sizeof(_pollFds));
 }
 
 UDPPort::~UDPPort()
@@ -259,130 +260,126 @@ UDPPort::~UDPPort()
 
 void UDPPort::close(void)
 {
-	if (_sockfdUnicast > 0)
-	{
-		::close(_sockfdUnicast);
-		_sockfdUnicast = -1;
-	}
-	if (_sockfdMulticast > 0)
-	{
-		::close(_sockfdMulticast);
-		_sockfdMulticast = -1;
-	}
+    for (int i = 0; i < 2; i++)
+    {
+        if (_pollFds[i].fd > 0)
+        {
+            ::close(_pollFds[i].fd);
+            _pollFds[i].fd = 0;
+        }
+    }
 }
 
-int UDPPort::open(const char* ipAddress, uint16_t multiPortNo, uint16_t uniPortNo, unsigned int ttl)
+int UDPPort::open(const char *multicastIP, uint16_t multiPortNo, uint16_t uniPortNo, unsigned int ttl)
 {
-	char loopch = 0;
-	const int reuse = 1;
+    int optval = 0;
+    int sock = 0;
 
-	if (uniPortNo == 0 || multiPortNo == 0)
-	{
-		D_NWSTACK("error portNo undefined in UDPPort::open\n");
-		return -1;
-	}
+    if (uniPortNo == 0 || multiPortNo == 0)
+    {
+        D_NWSTACK("error portNo undefined in UDPPort::open\n");
+        return -1;
+    }
 
-	uint32_t ip = inet_addr(ipAddress);
-	_multicastAddr.setAddress(ip, htons(multiPortNo));
-	_unicastAddr.setAddress(ip, htons(uniPortNo));
-	_ttl = ttl;
+    /*------ Create unicast socket --------*/
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0)
+    {
+        D_NWSTACK("error can't create unicast socket in UDPPort::open\n");
+        return -1;
+    }
 
-	/*------ Create unicast socket --------*/
-	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (_sockfdUnicast < 0)
-	{
-		D_NWSTACK("error can't create unicast socket in UDPPort::open\n");
-		return -1;
-	}
+    sockaddr_in addru;
+    addru.sin_family = AF_INET;
+    addru.sin_port = htons(uniPortNo);
+    addru.sin_addr.s_addr = INADDR_ANY;
 
-	setsockopt(_sockfdUnicast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-
-	sockaddr_in addru;
-	addru.sin_family = AF_INET;
-	addru.sin_port = htons(uniPortNo);
-	addru.sin_addr.s_addr = INADDR_ANY;
-
-	if (::bind(_sockfdUnicast, (sockaddr*) &addru, sizeof(addru)) < 0)
+    if (::bind(sock, (sockaddr*) &addru, sizeof(addru)) < 0)
 	{
 		D_NWSTACK("error can't bind unicast socket in UDPPort::open\n");
 		return -1;
 	}
-	if (setsockopt(_sockfdUnicast, IPPROTO_IP, IP_MULTICAST_LOOP, (char*) &loopch, sizeof(loopch)) < 0)
-	{
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
-		close();
-		return -1;
-	}
 
-	/*------ Create Multicast socket --------*/
-	_sockfdMulticast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (_sockfdMulticast < 0)
+    _pollFds[0].fd = sock;
+    _pollFds[0].events = POLLIN;
+
+    /*------ Create Multicast socket --------*/
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0)
 	{
 		D_NWSTACK("error can't create multicast socket in UDPPort::open\n");
 		close();
 		return -1;
 	}
 
-	setsockopt(_sockfdMulticast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    optval = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
-	sockaddr_in addrm;
-	addrm.sin_family = AF_INET;
-	addrm.sin_port = _multicastAddr.getPortNo();
-	addrm.sin_addr.s_addr = INADDR_ANY;
+    sockaddr_in addrm;
+    addrm.sin_family = AF_INET;
+    addrm.sin_port = htons(multiPortNo);
+    addrm.sin_addr.s_addr = INADDR_ANY;
 
-	if (::bind(_sockfdMulticast, (sockaddr*) &addrm, sizeof(addrm)) < 0)
-	{
-		D_NWSTACK("error can't bind multicast socket in UDPPort::open\n");
-		return -1;
-	}
-	if (setsockopt(_sockfdMulticast, IPPROTO_IP, IP_MULTICAST_LOOP, (char*) &loopch, sizeof(loopch)) < 0)
-	{
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
-		close();
-		return -1;
-	}
+    if (::bind(sock, (sockaddr*) &addrm, sizeof(addrm)) < 0)
+    {
+        D_NWSTACK("error can't bind multicast socket in UDPPort::open\n");
+        return -1;
+    }
 
-	ip_mreq mreq;
-	mreq.imr_interface.s_addr = INADDR_ANY;
-	mreq.imr_multiaddr.s_addr = _multicastAddr.getIpAddress();
+    ip_mreq mreq;
+    memset(&mreq, 0, sizeof(mreq));
+    mreq.imr_interface.s_addr = INADDR_ANY;
+    mreq.imr_multiaddr.s_addr = inet_addr(multicastIP);
 
-	if (setsockopt(_sockfdMulticast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
-	{
-		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
-		close();
-		return -1;
-	}
+    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
+    {
+        D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
+        close();
+        return -1;
+    }
 
-	if (setsockopt(_sockfdMulticast, IPPROTO_IP, IP_MULTICAST_TTL, &ttl,sizeof(ttl)) < 0)
-	{
-		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
-		close();
-		return -1;
-	}
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0)
+    {
+        D_NWSTACK("error Multicast IP_MULTICAST_TTL in UDPPort::open\n");
+        close();
+        return -1;
+    }
 
-	if (setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
-	{
-		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
-		close();
-		return -1;
-	}
-	return 0;
+#ifdef DEBUG_NW
+    optval = 1;
+#else
+    optval = 0;
+#endif
+
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, &optval, sizeof(optval)) < 0)
+    {
+        D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
+        close();
+        return -1;
+    }
+
+    _multicastAddr.setAddress(inet_addr(multicastIP), htons(multiPortNo));
+    _pollFds[1].fd = sock;
+    _pollFds[1].events = POLLIN;
+
+    return 0;
 }
 
 int UDPPort::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* addr)
 {
-	sockaddr_in dest;
-	dest.sin_family = AF_INET;
-	dest.sin_port = addr->getPortNo();
-	dest.sin_addr.s_addr = addr->getIpAddress();
+    sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = addr->getPortNo();
+    dest.sin_addr.s_addr = addr->getIpAddress();
 
-	int status = ::sendto(_sockfdUnicast, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
-	if (status < 0)
-	{
-		D_NWSTACK("errno == %d in UDPPort::sendto\n", errno);
-	}
-	D_NWSTACK("sendto %s:%u length = %d\n", inet_ntoa(dest.sin_addr), ntohs(dest.sin_port), status);
-	return status;
+    int status = ::sendto(_pollFds[0].fd, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
+    if (status < 0)
+    {
+        D_NWSTACK("errno == %d in UDPPort::sendto\n", errno);
+    }
+
+    D_NWSTACK("sendto %s:%u length = %d\n", inet_ntoa(dest.sin_addr), ntohs(dest.sin_port), status);
+    return status;
 }
 
 int UDPPort::broadcast(const uint8_t* buf, uint32_t length)
@@ -392,55 +389,35 @@ int UDPPort::broadcast(const uint8_t* buf, uint32_t length)
 
 int UDPPort::recv(uint8_t* buf, uint16_t len, SensorNetAddress* addr)
 {
-	struct timeval timeout;
-	fd_set recvfds;
-	int maxSock = 0;
+    int rc = 0;
+    poll(_pollFds, 2, 2000);  // Timeout 2 seconds
 
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;    // 1 sec
-	FD_ZERO(&recvfds);
-	FD_SET(_sockfdUnicast, &recvfds);
-	FD_SET(_sockfdMulticast, &recvfds);
-
-	if (_sockfdMulticast > _sockfdUnicast)
-	{
-		maxSock = _sockfdMulticast;
-	}
-	else
-	{
-		maxSock = _sockfdUnicast;
-	}
-
-	int rc = 0;
-	if ( select(maxSock + 1, &recvfds, 0, 0, &timeout) > 0 )
-	{
-		if (FD_ISSET(_sockfdUnicast, &recvfds))
-		{
-			rc = recvfrom(_sockfdUnicast, buf, len, 0, addr);
-		}
-		else if (FD_ISSET(_sockfdMulticast, &recvfds))
-		{
-			rc = recvfrom(_sockfdMulticast, buf, len, 0, &_multicastAddr);
-		}
-	}
-	return rc;
+    if (_pollFds[0].revents == POLLIN)
+    {
+        rc = recvfrom(_pollFds[0].fd, buf, len, 0, addr);
+    }
+    else if (_pollFds[1].revents == POLLIN)
+    {
+        rc = recvfrom(_pollFds[1].fd, buf, len, 0, addr);
+    }
+    return rc;
 }
 
 int UDPPort::recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags, SensorNetAddress* addr)
 {
-	sockaddr_in sender;
-	socklen_t addrlen = sizeof(sender);
-	memset(&sender, 0, addrlen);
+    sockaddr_in sender;
+    socklen_t addrlen = sizeof(sender);
+    memset(&sender, 0, addrlen);
 
-	int status = ::recvfrom(sockfd, buf, len, flags, (sockaddr*) &sender, &addrlen);
+    int status = ::recvfrom(sockfd, buf, len, flags, (sockaddr*) &sender, &addrlen);
 
-	if (status < 0 && errno != EAGAIN)
-	{
-		D_NWSTACK("errno == %d in UDPPort::recvfrom\n", errno);
-		return -1;
-	}
-	addr->setAddress(sender.sin_addr.s_addr, sender.sin_port);
-	D_NWSTACK("recved from %s:%d length = %d\n", inet_ntoa(sender.sin_addr),ntohs(sender.sin_port), status);
-	return status;
+    if (status < 0 && errno != EAGAIN)
+    {
+        D_NWSTACK("errno == %d in UDPPort::recvfrom\n", errno);
+        return -1;
+    }
+    addr->setAddress(sender.sin_addr.s_addr, sender.sin_port);
+    D_NWSTACK("recved from %s:%d length = %d\n", inet_ntoa(sender.sin_addr),ntohs(sender.sin_port), status);
+    return status;
 }
 

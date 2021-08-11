@@ -22,6 +22,7 @@
 
 namespace MQTTSNGW
 {
+class SensorNetwork;
 
 class MQTTSNPacket
 {

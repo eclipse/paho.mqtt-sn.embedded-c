@@ -13,7 +13,6 @@
  * Contributors:
  *    Tomoaki Yamaguchi - initial API and implementation and/or initial documentation
  **************************************************************************************/
-#include "LMqttsnClientApp.h"
 #ifdef RFCOMM
 
 #include <stdio.h>
@@ -29,6 +28,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 
+#include "LMqttsnClientApp.h"
 #include "LNetworkRfcomm.h"
 #include "LTimer.h"
 #include "LScreen.h"

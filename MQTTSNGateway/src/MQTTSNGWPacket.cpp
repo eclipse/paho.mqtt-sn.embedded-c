@@ -100,10 +100,6 @@ int MQTTSNPacket::recv(SensorNetwork* network)
     {
         len = desirialize(buf, len);
     }
-    else
-    {
-        len = 0;
-    }
     return len;
 
 }
