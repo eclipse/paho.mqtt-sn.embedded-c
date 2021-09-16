@@ -28,18 +28,18 @@ class AdapterManager;
  =====================================*/
 class ClientSendTask: public Thread
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend AdapterManager;
+MAGIC_WORD_FOR_THREAD;
+    friend AdapterManager;
 public:
-	ClientSendTask(Gateway* gateway);
-	~ClientSendTask(void);
-	void run(void);
+    ClientSendTask(Gateway* gateway);
+    ~ClientSendTask(void);
+    void run(void);
 
 private:
-	void log(Client* client, MQTTSNPacket* packet);
+    void log(Client* client, MQTTSNPacket* packet);
 
-	Gateway* _gateway;
-	SensorNetwork* _sensorNetwork;
+    Gateway* _gateway;
+    SensorNetwork* _sensorNetwork;
 };
 
 }

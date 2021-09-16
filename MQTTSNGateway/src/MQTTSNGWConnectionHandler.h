@@ -25,21 +25,21 @@ namespace MQTTSNGW
 class MQTTSNConnectionHandler
 {
 public:
-	MQTTSNConnectionHandler(Gateway* gateway);
-	~MQTTSNConnectionHandler();
-	void sendADVERTISE(void);
-	void handleSearchgw(MQTTSNPacket* packet);
-	void handleConnect(Client* client, MQTTSNPacket* packet);
-	void handleWilltopic(Client* client, MQTTSNPacket* packet);
-	void handleWillmsg(Client* client, MQTTSNPacket* packet);
-	void handleDisconnect(Client* client, MQTTSNPacket* packet);
-	void handleWilltopicupd(Client* client, MQTTSNPacket* packet);
-	void handleWillmsgupd(Client* client, MQTTSNPacket* packet);
-	void handlePingreq(Client* client, MQTTSNPacket* packet);
+    MQTTSNConnectionHandler(Gateway* gateway);
+    ~MQTTSNConnectionHandler();
+    void sendADVERTISE(void);
+    void handleSearchgw(MQTTSNPacket* packet);
+    void handleConnect(Client* client, MQTTSNPacket* packet);
+    void handleWilltopic(Client* client, MQTTSNPacket* packet);
+    void handleWillmsg(Client* client, MQTTSNPacket* packet);
+    void handleDisconnect(Client* client, MQTTSNPacket* packet);
+    void handleWilltopicupd(Client* client, MQTTSNPacket* packet);
+    void handleWillmsgupd(Client* client, MQTTSNPacket* packet);
+    void handlePingreq(Client* client, MQTTSNPacket* packet);
 private:
-	void sendStoredPublish(Client* client);
+    void sendStoredPublish(Client* client);
 
-	Gateway* _gateway;
+    Gateway* _gateway;
 };
 
 }

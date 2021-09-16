@@ -80,6 +80,7 @@ public:
 	bool isValid(void);
 	bool isSecure(void);
 	int  getSock(void);
+    void setSecure(bool secureFlg);
 
 private:
 	static SSL_CTX* _ctx;

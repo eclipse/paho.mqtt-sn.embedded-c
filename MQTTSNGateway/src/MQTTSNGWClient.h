@@ -49,7 +49,6 @@ public:
         _que = new Que<T>;
     }
 
-
     ~PacketQue()
     {
         clear();
@@ -72,8 +71,7 @@ public:
         }
     }
 
-    int
-    post(T* packet)
+    int post(T* packet)
     {
         int rc;
         _mutex.lock();
@@ -113,8 +111,6 @@ private:
     Mutex _mutex;
 };
 
-
-
 /*=====================================
  Class WaitREGACKPacket
  =====================================*/
@@ -151,26 +147,37 @@ private:
     waitREGACKPacket* _end;
 };
 
-
-
 /*=====================================
  Class Client
  =====================================*/
 typedef enum
 {
-    Cstat_Disconnected = 0, Cstat_TryConnecting, Cstat_Connecting, Cstat_Active, Cstat_Asleep, Cstat_Awake, Cstat_Lost
+	Cstat_Free = 0,
+	Cstat_Disconnected,
+    Cstat_TryConnecting,
+    Cstat_Connecting,
+    Cstat_Active,
+    Cstat_Asleep,
+    Cstat_Awake,
+    Cstat_Lost
 } ClientStatus;
 
 typedef enum
 {
-    Ctype_Regular = 0, Ctype_Forwarded, Ctype_QoS_1, Ctype_Aggregated, Ctype_Proxy, Ctype_Aggregater
-}ClientType;
+    Ctype_Normal = 0,
+    Ctype_Forwarded,
+    Ctype_QoS_1,
+    Ctype_Aggregated,
+    Ctype_Proxy,
+    Ctype_Aggregater
+} ClientType;
 
 class Forwarder;
 
 class Client
 {
     friend class ClientList;
+    friend class ClientsPool;
 public:
     Client(bool secure = false);
     Client(uint8_t maxInflightMessages, bool secure);
@@ -191,10 +198,10 @@ public:
     void clearWaitedPubTopicId(void);
     void clearWaitedSubTopicId(void);
 
-    int  setClientSleepPacket(MQTTGWPacket*);
+    int setClientSleepPacket(MQTTGWPacket*);
     int setProxyPacket(MQTTSNPacket* packet);
-    void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
-    void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicTypes type);
+    void setWaitedPubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
+    void setWaitedSubTopicId(uint16_t msgId, uint16_t topicId, MQTTSN_topicid* topic);
 
     bool checkTimeover(void);
     void updateStatus(MQTTSNPacket*);
@@ -249,6 +256,7 @@ public:
     bool isSecureNetwork(void);
     bool isSensorNetStable(void);
     bool isWaitWillMsg(void);
+	bool isCleanSession(void);
 
     void holdPingRequest(void);
     void resetPingRequest(void);
@@ -260,7 +268,7 @@ private:
     PacketQue<MQTTGWPacket> _clientSleepPacketQue;
     PacketQue<MQTTSNPacket> _proxyPacketQue;
 
-    WaitREGACKPacketList    _waitREGACKList;
+    WaitREGACKPacketList _waitREGACKList;
 
     Topics* _topics;
     TopicIdMap _waitedPubTopicIdMap;
@@ -285,7 +293,7 @@ private:
     uint8_t _snMsgId;
 
     Network* _network;      // Broker
-    bool  _secureNetwork;    // SSL
+    bool _secureNetwork;    // SSL
     bool _sensorNetype;     // false: unstable network like a G3
     SensorNetAddress _sensorNetAddr;
 
@@ -298,8 +306,6 @@ private:
     Client* _nextClient;
     Client* _prevClient;
 };
-
-
 
 }
 #endif /* MQTTSNGWCLIENT_H_ */

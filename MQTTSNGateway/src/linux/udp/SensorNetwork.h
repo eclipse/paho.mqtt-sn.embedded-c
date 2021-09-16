@@ -19,17 +19,12 @@
 
 #include "MQTTSNGWDefines.h"
 #include <string>
+#include <poll.h>
 
 using namespace std;
 
 namespace MQTTSNGW
 {
-
-#ifdef  DEBUG_NWSTACK
-  #define D_NWSTACK(...) printf(__VA_ARGS__)
-#else
-  #define D_NWSTACK(...)
-#endif
 
 /*===========================================
  Class  SensorNetAddreess
@@ -70,13 +65,9 @@ private:
 	void setNonBlocking(const bool);
 	int recvfrom(int sockfd, uint8_t* buf, uint16_t len, uint8_t flags,	SensorNetAddress* addr);
 
-	int _sockfdUnicast;
-	int _sockfdMulticast;
-
-	SensorNetAddress _grpAddr;
-	SensorNetAddress _clientAddr;
+    pollfd _pollFds[2];
 	bool _disconReq;
-	unsigned int _ttl;
+    SensorNetAddress _multicastAddr;
 };
 
 /*===========================================
@@ -91,12 +82,12 @@ public:
 	int unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendto);
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
-	int initialize(void);
+	void initialize(void);
 	const char* getDescription(void);
 	SensorNetAddress* getSenderAddress(void);
 
 private:
-	SensorNetAddress _clientAddr;   // Sender's address. not gateway's one.
+	SensorNetAddress _senderAddr;
 	string _description;
 };
 

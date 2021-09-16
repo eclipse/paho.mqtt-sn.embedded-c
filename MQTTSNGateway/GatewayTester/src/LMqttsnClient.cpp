@@ -29,7 +29,7 @@ extern TaskList      theTaskList[];
 extern TestList      theTestList[];
 extern OnPublishList theOnPublishList[];
 extern MQTTSNCONF;
-extern UDPCONF;
+extern SENSORNET_CONFIG_t theNetcon;
 extern void setup(void);
 
 /*=====================================
@@ -50,7 +50,20 @@ int main(int argc, char** argv)
 #ifndef CLIENT_MODE
 	char c = 0;
 	printf("\n%s", PAHO_COPYRIGHT4);
-	printf("\n%s\n", PAHO_COPYRIGHT0);
+    printf("\n%s", PAHO_COPYRIGHT0);
+#if defined(UDP)
+    printf("UDP ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
+#elif defined(UDP6)
+    printf("UDP6 ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
+#elif defined(DTLS)
+    printf("DTLS ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
+#elif defined(DTLS6)
+    printf("DTLS6 ClientId:%s PortNo:%d\n", theNetcon.clientId, theNetcon.uPortNo);
+#elif defined(RFCOMM)
+    printf("RFCOMM ClientId:%s channel:%d\n", theNetcon.clientId, theNetcon.channel);
+#else
+    printf("\n");
+#endif
 	printf("%s\n", PAHO_COPYRIGHT1);
 	printf("%s\n", PAHO_COPYRIGHT2);
 	printf(" *\n%s\n", PAHO_COPYRIGHT3);
@@ -77,11 +90,13 @@ int main(int argc, char** argv)
 			break;
 		}
 	}
+	theClient->setAutoConnectMode(false);
+	theClient->getPublishManager()->setAutoConnectMode(false);
 #endif
 
 	setup();
 	theClient->addTask(theClientMode);
-	theClient->initialize( theNetcon, theMqcon);
+	theClient->initialize( &theNetcon, &theMqcon);
 	do
 	{
 		theClient->run();
@@ -98,7 +113,7 @@ int main(int argc, char** argv)
  ======================================*/
 LMqttsnClient::LMqttsnClient()
 {
-
+	_isAutoConnect = true;
 }
 
 LMqttsnClient::~LMqttsnClient()
@@ -106,10 +121,10 @@ LMqttsnClient::~LMqttsnClient()
 
 }
 
-void LMqttsnClient::initialize(LUdpConfig netconf, LMqttsnConfig mqconf)
+void LMqttsnClient::initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf)
 {
 	_gwProxy.initialize(netconf, mqconf);
-	setSleepDuration(mqconf.sleepDuration);
+	setSleepDuration(mqconf->sleepDuration);
 }
 
 void LMqttsnClient::addTask(bool clientMode)
@@ -183,9 +198,10 @@ void LMqttsnClient::subscribe(const char* topicName, TopicCallback onPublish, ui
 	_subMgr.subscribe(topicName, onPublish, qos);
 }
 
-void LMqttsnClient::subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos)
+void LMqttsnClient::subscribePredefinedId(uint16_t topicId, TopicCallback onPublish,
+		uint8_t qos)
 {
-	_subMgr.subscribe(topicId, onPublish, qos);
+	_subMgr.subscribePredefinedId(topicId, onPublish, qos);
 }
 
 void LMqttsnClient::unsubscribe(const char* topicName)
@@ -205,8 +221,18 @@ void LMqttsnClient::disconnect(uint16_t sleepInSecs)
 
 void LMqttsnClient::run()
 {
-	_gwProxy.connect();
+	if (_isAutoConnect)
+	{
+		_gwProxy.connect();
+	}
 	_taskMgr.run();
+}
+
+void LMqttsnClient::setAutoConnectMode(uint8_t flg)
+{
+	_isAutoConnect = flg;
+	_pubMgr.setAutoConnectMode(flg);
+	_gwProxy.setAutoConnectMode(flg);
 }
 
 void LMqttsnClient::setSleepMode(uint32_t duration)
@@ -227,7 +253,10 @@ void LMqttsnClient::setSleepDuration(uint32_t duration)
 
 void LMqttsnClient::onConnect(void)
 {
+	if (_isAutoConnect)
+	{
         _subMgr.onConnect();
+	}
 }
 
 const char* LMqttsnClient::getClientId(void)

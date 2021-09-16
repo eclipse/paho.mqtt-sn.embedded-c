@@ -37,7 +37,7 @@ namespace MQTTSNGW
 /*=================================
  *    MQTT-SN Parametrs
  ==================================*/
-#define MAX_CLIENTS                 (100)  // Number of Clients can be handled.
+#define MAX_CLIENTS                 (100)  // Default number of Clients can be handled.
 #define MAX_CLIENTID_LENGTH          (64)  // Max length of clientID
 #define MAX_INFLIGHTMESSAGES         (10)  // Number of inflight messages
 #define MAX_MESSAGEID_TABLE_SIZE    (500)  // Number of MessageIdTable size
@@ -53,20 +53,25 @@ namespace MQTTSNGW
 /*=================================
  *    Data Type
  ==================================*/
-typedef unsigned char  uint8_t;
+typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
-typedef unsigned int   uint32_t;
+typedef unsigned int uint32_t;
 
 /*=================================
  *    Log controls
  ==================================*/
-//#define DEBUG          // print out log for debug
-//#define DEBUG_NWSTACK  // print out SensorNetwork log
-
-#ifdef  DEBUG
+//#define DEBUG_MQTTSN   // print out log for debug
+//#define DEBUG_NW       // print out SensorNetwork log
+#ifdef  DEBUG_MQTTSN
 #define DEBUGLOG(...) printf(__VA_ARGS__)
 #else
 #define DEBUGLOG(...)
+#endif
+
+#ifdef  DEBUG_NW
+#define D_NWSTACK(...) printf(__VA_ARGS__)
+#else
+#define D_NWSTACK(...)
 #endif
 
 }

@@ -14,7 +14,7 @@
 #     Ian Craggs - initial version
 #*******************************************************************************/
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 PROJECT("paho-mqttsn" CXX)
 MESSAGE(STATUS "CMake version: " ${CMAKE_VERSION})
 MESSAGE(STATUS "CMake system name: " ${CMAKE_SYSTEM_NAME})
@@ -39,3 +39,4 @@ INCLUDE(CPack)
 ENABLE_TESTING()
 
 ADD_SUBDIRECTORY(MQTTSNPacket)
+ADD_SUBDIRECTORY(MQTTSNGateway)

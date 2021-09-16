@@ -44,6 +44,7 @@ LPublishManager::LPublishManager()
     _last = 0;
     _elmCnt = 0;
     _publishedFlg = SAVE_TASK_INDEX;
+	_autoConnectFlg = false;
 }
 
 LPublishManager::~LPublishManager()
@@ -115,7 +116,10 @@ void LPublishManager::sendPublish(PubElement* elm)
         return;
     }
 
-    theClient->getGwProxy()->connect();
+	if (_autoConnectFlg)
+	{
+		theClient->getGwProxy()->connect();
+	}
 
     uint8_t msg[MQTTSN_MAX_MSG_LENGTH + 1];
     uint8_t org = 0;
@@ -308,6 +312,11 @@ void LPublishManager::checkTimeout(void)
         }
         elm = elm->next;
     }
+}
+
+void LPublishManager::setAutoConnectMode(bool flg)
+{
+	_autoConnectFlg = flg;
 }
 
 PubElement* LPublishManager::getElement(uint16_t msgId)

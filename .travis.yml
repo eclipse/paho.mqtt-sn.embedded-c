@@ -13,19 +13,11 @@ addons:
     - g++-4.8
     - cmake
     - cmake-data
+    - bluez
+    - libbluetooth-dev
     
 script: 
   - ./travis-build.sh
-
-  - cd MQTTSNGateway
-  - make SENSORNET="xbee"
-  - make SENSORNET="udp"  
-  - make SENSORNET="udp6"
-  
-  - make test
-    
-  - cd GatewayTester
-  - make 
   
 notifications:
   emails:

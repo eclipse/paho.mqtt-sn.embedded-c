@@ -51,12 +51,29 @@ extern LScreen* theScreen;
 /*------------------------------------------------------
  *    UDP Configuration    (theNetcon)
  *------------------------------------------------------*/
-UDPCONF  = {
-	"ClientSUB", // ClientId
-	{225,1,1,1},         // Multicast group IP
-	1883,                // Multicast group Port
-	20011,               // Local PortNo
-};
+UDPCONF = { "ClientSUB", // ClientId
+        { 225, 1, 1, 1 },         // Multicast group IP
+        1883,                // Multicast group Port
+        20011,               // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    UDP6 Configuration    (theNetcon)
+ *------------------------------------------------------*/
+UDP6CONF = { "ClientSUB",  // ClientId
+        "ff1e:feed:caca:dead::1", // Multicast group IP
+        "wlp4s0",                 // Network Interface
+        1883,                     // Multicast group Port
+        20020,                    // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    RFCOMM Configuration    (theNetcon)
+ *------------------------------------------------------*/
+RFCOMMCONF = { "ClientSUB",      // ClientId
+        "60:57:18:06:8B:72",          // GW Address
+        1,                            // Rfcomm channel
+        };
 
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)

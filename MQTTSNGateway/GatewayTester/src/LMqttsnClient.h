@@ -54,15 +54,16 @@ public:
     void publish(uint16_t topicId, Payload* payload, uint8_t qos, bool retain = false);
     void publish(uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false);
     void subscribe(const char* topicName, TopicCallback onPublish, uint8_t qos);
-    void subscribe(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
+    void subscribePredefinedId(uint16_t topicId, TopicCallback onPublish, uint8_t qos);
     void unsubscribe(const char* topicName);
     void unsubscribe(const uint16_t topicId);
     void disconnect(uint16_t sleepInSecs);
-    void initialize(LUdpConfig netconf, LMqttsnConfig mqconf);
+    void initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf);
     void run(void);
     void addTask(bool test);
     void setSleepDuration(uint32_t duration);
     void setSleepMode(uint32_t duration);
+	void setAutoConnectMode(uint8_t flg);
     void sleep(void);
 	const char* getClientId(void);
 	uint16_t getTopicId(const char* topicName);
@@ -78,6 +79,7 @@ private:
     LSubscribeManager _subMgr;
     LGwProxy          _gwProxy;
     uint32_t          _sleepDuration;
+	uint8_t _isAutoConnect;
 };
 
 

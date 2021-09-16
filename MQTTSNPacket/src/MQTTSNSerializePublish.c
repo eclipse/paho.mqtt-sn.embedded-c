@@ -232,7 +232,7 @@ int MQTTSNSerialize_register(unsigned char* buf, int buflen, unsigned short topi
 	int topicnamelen = 0;
 
 	FUNC_ENTRY;
-	topicnamelen = (topicname->cstring) ? strlen(topicname->cstring) : topicname->lenstring.len;
+	topicnamelen = (topicname->cstring) ? (int)strlen(topicname->cstring) : topicname->lenstring.len;
 	if ((len = MQTTSNPacket_len(MQTTSNSerialize_registerLength(topicnamelen))) > buflen)
 	{
 		rc = MQTTSNPACKET_BUFFER_TOO_SHORT;

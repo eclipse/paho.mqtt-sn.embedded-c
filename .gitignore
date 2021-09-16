@@ -5,8 +5,15 @@
 *.pyc
 /doc/MQTTSNClient/
 /doc/MQTTSNPacket/
-/rbmutex.key
-/ringbuffer.key
+rbmutex.key
+ringbuffer.key
 /Release/
 /Debug/
 /core
+Build/
+*.a
+CMakeFiles/
+*.cmake
+CMakeCache.txt
+bin/
+/build.gateway/

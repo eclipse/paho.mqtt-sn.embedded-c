@@ -119,7 +119,7 @@ int SensorNetwork::read(uint8_t* buf, uint16_t bufLen)
 	return LoRaLink::recv(buf, bufLen, &_clientAddr);
 }
 
-int SensorNetwork::initialize(void)
+void SensorNetwork::initialize(void)
 {
 	char param[MQTTSNGW_PARAM_MAX];
 	uint32_t baudrate = 115200;
@@ -135,15 +135,22 @@ int SensorNetwork::initialize(void)
 	theProcess->getParam("DeviceRxLoRaLink", param);
 	_description += ", SerialRx ";
 	_description += param;
+	errno = 0;
+
 	if ( LoRaLink::open(LORALINK_MODEM_RX, param, baudrate) < 0 )
 	{
-		return -1;
+		throw EXCEPTION("Can't open a LoRaLink", errno);
 	}
 
 	theProcess->getParam("DeviceTxLoRaLink", param);
 	_description += ", SerialTx ";
 	_description += param;
-	return LoRaLink::open(LORALINK_MODEM_TX, param, baudrate);
+	errno = 0;
+
+	if ( LoRaLink::open(LORALINK_MODEM_TX, param, baudrate) < 0 )
+	{
+		throw EXCEPTION("Can't open a LoRaLink", errno);
+	}
 }
 
 const char* SensorNetwork::getDescription(void)
@@ -376,7 +383,7 @@ bool LoRaLink::readApiFrame(LoRaLinkFrame_t* api, LoRaLinkReadParameters_t* para
 
 int LoRaLink::send(LoRaLinkPayloadType_t type, const uint8_t* payload, uint16_t pLen, SensorNetAddress* addr)
 {
-	D_NWSTACK("\r\n===> Send:    ");
+    D_LRSTACK("\r\n===> Send:    ");
 	uint8_t buf[2] = { 0 };
 	uint8_t chks = 0;
 	uint16_t len = pLen + 3;   // 3 = DestAddr[1] + PayloadType[1] + Crc[1]
@@ -397,7 +404,7 @@ int LoRaLink::send(LoRaLinkPayloadType_t type, const uint8_t* payload, uint16_t 
     send(type);
     chks += type;
 
-    D_NWSTACK("\r\n     Payload: ");
+    D_LRSTACK("\r\n     Payload: ");
 
     for ( uint8_t i = 0; i < pLen; i++ ){
         send(payload[i]);     // Payload
@@ -405,21 +412,21 @@ int LoRaLink::send(LoRaLinkPayloadType_t type, const uint8_t* payload, uint16_t 
     }
 
     chks = 0xff - chks;
-    D_NWSTACK("   checksum  ");
+    D_LRSTACK("   checksum  ");
     send(chks);
-    D_NWSTACK("\r\n");
+    D_LRSTACK("\r\n");
 
     /* wait ACK */
     _sem.timedwait(LORALINK_TIMEOUT_ACK);
 
     if ( _respCd == LORALINK_NO_FREE_CH )
     {
-    	 D_NWSTACK(" Channel isn't free\r\n");
+        D_LRSTACK(" Channel isn't free\r\n");
     	return -1;
     }
     else if ( _respCd != LORALINK_ACK )
 	{
-		 D_NWSTACK(" Not Acknowleged\r\n");
+        D_LRSTACK(" Not Acknowleged\r\n");
 		return -1;
 	}
     return (int)pLen;
@@ -472,7 +479,7 @@ int LoRaLink::recv(uint8_t* buf)
 			/*
 			if ( *buf == ESCAPE )
 			{
-				D_NWSTACK( " %02x",buf[0] );
+             D_LRSTACK( " %02x",buf[0] );
 				if ( read(fd, buf, 1) == 1 )
 				{
 					*buf = PAD ^ *buf;
@@ -484,7 +491,7 @@ int LoRaLink::recv(uint8_t* buf)
 
 			}
 			*/
-			D_NWSTACK( " %02x",buf[0] );
+            D_LRSTACK(" %02x", buf[0]);
 			return 0;
 		}
 	}
@@ -545,7 +552,7 @@ bool SerialPort::send(unsigned char b)
 	}
 	else
 	{
-		D_NWSTACK( " %02x", b);
+        D_LRSTACK(" %02x", b);
 		return true;
 	}
 }

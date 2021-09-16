@@ -17,8 +17,7 @@
 
 PROJECT(mqtt-sn-packet C)
 
-ADD_LIBRARY(MQTTSNPacketClient SHARED MQTTSNConnectClient.c MQTTSNPacket.c MQTTSNSearchClient.c MQTTSNSubscribeClient.c
-            MQTTSNUnsubscribeClient.c MQTTSNSerializePublish.c MQTTSNDeserializePublish.c)
+ADD_LIBRARY(MQTTSNPacket SHARED MQTTSNConnectClient.c MQTTSNPacket.c MQTTSNSearchClient.c MQTTSNSubscribeClient.c
+            MQTTSNUnsubscribeClient.c MQTTSNSerializePublish.c MQTTSNDeserializePublish.c MQTTSNConnectServer.c MQTTSNPacket.c 
+            MQTTSNSearchServer.c MQTTSNSubscribeServer.c MQTTSNUnsubscribeServer.c MQTTSNSerializePublish.c MQTTSNDeserializePublish.c)
 
-ADD_LIBRARY(MQTTSNPacketServer SHARED MQTTSNConnectServer.c MQTTSNPacket.c MQTTSNSearchServer.c MQTTSNSubscribeServer.c
-            MQTTSNUnsubscribeServer.c MQTTSNSerializePublish.c MQTTSNDeserializePublish.c)

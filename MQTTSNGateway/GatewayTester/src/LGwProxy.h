@@ -23,6 +23,10 @@
 
 #include "LMqttsnClientApp.h"
 #include "LNetworkUdp.h"
+#include "LNetworkUdp6.h"
+#include "LNetworkRfcomm.h"
+#include "LNetworkDtls.h"
+#include "LNetworkDtls6.h"
 #include "LRegisterManager.h"
 #include "LTimer.h"
 #include "LTopicTable.h"
@@ -42,6 +46,7 @@ using namespace std;
 #define GW_SLEEPING         10
 #define GW_DISCONNECTED     11
 #define GW_SLEPT            12
+#define SSL_CONNECTING      13
 
 #define GW_WAIT_PINGRESP     1
 
@@ -54,7 +59,7 @@ public:
     LGwProxy();
     ~LGwProxy();
 
-    void     initialize(LUdpConfig netconf, LMqttsnConfig mqconf);
+    void initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf);
     void     connect(void);
     void     disconnect(uint16_t sec = 0);
     int      getMessage(void);
@@ -67,6 +72,9 @@ public:
     void     setAdvertiseDuration(uint16_t duration);
     void     setForwarderMode(bool valid);
     void     setQoSMinus1Mode(bool valid);
+	void     setPingReqMode(bool valid);
+	void     setAutoConnectMode(bool valid);
+	void     setSessionMode(bool valid);
     void     reconnect(void);
     int      writeMsg(const uint8_t* msg);
     void     setPingReqTimer(void);
@@ -74,6 +82,7 @@ public:
     LTopicTable* getTopicTable(void);
     LRegisterManager* getRegisterManager(void);
     const char*    getClientId(void);
+	uint8_t getStatus(void);
 private:
     int      readMsg(void);
     void     writeGwMsg(void);
@@ -109,8 +118,10 @@ private:
     LTimer       _keepAliveTimer;
     uint16_t    _tSleep;
     uint16_t    _tWake;
-    bool _isForwarderMode;
-    bool _isQoSMinus1Mode;
+    bool        _isForwarderMode;
+    bool        _isQoSMinus1Mode;
+	bool        _isPingReqMode;
+	bool        _isAutoConnectMode;
     char        _msg[MQTTSN_MAX_MSG_LENGTH + 1];
 };
 

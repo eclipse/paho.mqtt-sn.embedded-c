@@ -23,39 +23,39 @@ ADD_EXECUTABLE(
   qos0pub.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(qos0pub MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(qos0pub MQTTSNPacket)
 
 ADD_EXECUTABLE(
   qos0pub_register
   qos0pub_register.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(qos0pub_register MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(qos0pub_register MQTTSNPacket)
 
 ADD_EXECUTABLE(
   qos-1pub
   qos-1pub.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(qos-1pub MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(qos-1pub MQTTSNPacket)
 
 ADD_EXECUTABLE(
   qos-1pub_extended
   qos-1pub_extended.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(qos-1pub_extended MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(qos-1pub_extended MQTTSNPacket)
 
 ADD_EXECUTABLE(
   qos1pub
   qos1pub.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(qos1pub MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(qos1pub MQTTSNPacket)
 
 ADD_EXECUTABLE(
   pub0sub1
   pub0sub1.c transport.c
 )
 
-TARGET_LINK_LIBRARIES(pub0sub1 MQTTSNPacketClient)
+TARGET_LINK_LIBRARIES(pub0sub1 MQTTSNPacket)

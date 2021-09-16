@@ -60,6 +60,4 @@ private:
 
 }
 
-
-
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWENCAPSULATEDPACKET_H_ */

@@ -24,116 +24,114 @@
 #include <string.h>
 using namespace MQTTSNGW;
 
-
 /*=====================================
-     Class Adapter
+ Class Adapter
  =====================================*/
-Adapter:: Adapter(Gateway* gw)
+Adapter::Adapter(Gateway* gw)
 {
-	_gateway = gw;
-	_proxy = new Proxy(gw);
-	_proxySecure = new Proxy(gw);
+    _gateway = gw;
+    _proxy = new Proxy(gw);
+    _proxySecure = new Proxy(gw);
 }
 
 Adapter::~Adapter(void)
 {
-    if (  _proxy )
+    if (_proxy)
     {
         delete _proxy;
     }
 
-    if (  _proxySecure )
-   {
-	   delete _proxySecure;
-   }
+    if (_proxySecure)
+    {
+        delete _proxySecure;
+    }
 }
-
 
 void Adapter::setup(const char* adpterName, AdapterType adapterType)
 {
     _isSecure = false;
-    if ( _gateway->hasSecureConnection() )
+    if (_gateway->hasSecureConnection())
     {
-		_isSecure = true;
+        _isSecure = true;
     }
 
     MQTTSNString id = MQTTSNString_initializer;
-	MQTTSNString idSecure = MQTTSNString_initializer;
+    MQTTSNString idSecure = MQTTSNString_initializer;
 
-	string name = string(adpterName);
-	id.cstring = const_cast<char*>(name.c_str());
-	string nameSecure = string(adpterName) + "-S";
-	idSecure.cstring = const_cast<char*>(nameSecure.c_str());
+    string name = string(adpterName);
+    id.cstring = const_cast<char*>(name.c_str());
+    string nameSecure = string(adpterName) + "-S";
+    idSecure.cstring = const_cast<char*>(nameSecure.c_str());
 
-	Client*  client = _gateway->getClientList()->createClient(0, &id, true, false, TRANSPEARENT_TYPE);
-	setClient(client, false);
-	client->setAdapterType(adapterType);
+    Client* client = _gateway->getClientList()->createClient(0, &id, true, false, TRANSPEARENT_TYPE);
+    setClient(client, false);
+    client->setAdapterType(adapterType);
 
-	client = _gateway->getClientList()->createClient(0, &idSecure, true, true, TRANSPEARENT_TYPE);
-	setClient(client, true);
-	client->setAdapterType(adapterType);
+    client = _gateway->getClientList()->createClient(0, &idSecure, true, true,
+    TRANSPEARENT_TYPE);
+    setClient(client, true);
+    client->setAdapterType(adapterType);
 }
-
 
 Client* Adapter::getClient(SensorNetAddress* addr)
 {
-	Client* client = _gateway->getClientList()->getClient(addr);
-	if ( !client )
-	{
-		return nullptr;
-	}
-	else if ( client->isQoSm1() )
-	{
-		return client;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-const char*  Adapter::getClientId(SensorNetAddress* addr)
-{
-    Client* client = getClient(addr);
-    if ( !client )
+    Client* client = _gateway->getClientList()->getClient(addr);
+    if (!client)
     {
-    	return nullptr;
+        return nullptr;
     }
-    else if ( client->isQoSm1() )
+    else if (client->isQoSm1())
     {
-    	return client->getClientId();
+        return client;
     }
     else
     {
-    	return nullptr;
+        return nullptr;
+    }
+}
+
+const char* Adapter::getClientId(SensorNetAddress* addr)
+{
+    Client* client = getClient(addr);
+    if (!client)
+    {
+        return nullptr;
+    }
+    else if (client->isQoSm1())
+    {
+        return client->getClientId();
+    }
+    else
+    {
+        return nullptr;
     }
 }
 
 bool Adapter::isSecure(SensorNetAddress* addr)
 {
-	Client* client = getClient(addr);
-	if ( !client )
-	{
-		return false;
-	}
-	else if ( client->isSecureNetwork() )
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    Client* client = getClient(addr);
+    if (!client)
+    {
+        return false;
+    }
+    else if (client->isSecureNetwork())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool Adapter::isSecure(void)
 {
-	return _isSecure;
+    return _isSecure;
 }
 
 void Adapter::setClient(Client* client, bool secure)
 {
-    if ( secure )
+    if (secure)
     {
         _clientSecure = client;
     }
@@ -157,7 +155,7 @@ void Adapter::checkConnection(void)
 {
     _proxy->checkConnection(_client);
 
-    if ( _isSecure )
+    if (_isSecure)
     {
         _proxySecure->checkConnection(_clientSecure);
     }
@@ -166,15 +164,16 @@ void Adapter::checkConnection(void)
 void Adapter::send(MQTTSNPacket* packet, Client* client)
 {
     Proxy* proxy = _proxy;
-    if ( client->isSecureNetwork() && !_isSecure )
+    if (client->isSecureNetwork() && !_isSecure)
     {
-        if ( _isSecure )
+        if (_isSecure)
         {
             proxy = _proxySecure;
         }
         else
         {
-            WRITELOG("%s %s  No Secure connections %s 's packet is discarded.%s\n", ERRMSG_HEADER, client->getClientId() , ERRMSG_FOOTER);
+            WRITELOG("%s %s  No Secure connections %s 's packet is discarded.%s\n",
+            ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);
             return;
         }
     }
@@ -185,13 +184,13 @@ void Adapter::send(MQTTSNPacket* packet, Client* client)
 
 void Adapter::resetPingTimer(bool secure)
 {
-    if ( secure )
+    if (secure)
     {
-    	_proxySecure->resetPingTimer();
+        _proxySecure->resetPingTimer();
     }
     else
     {
-    	_proxy->resetPingTimer();
+        _proxy->resetPingTimer();
     }
 }
 
@@ -202,48 +201,47 @@ bool Adapter::isActive(void)
 
 void Adapter::savePacket(Client* client, MQTTSNPacket* packet)
 {
-	if ( client->isSecureNetwork())
-	{
-		_proxySecure->savePacket(client, packet);
-	}
-	else
-	{
-		_proxy->savePacket(client, packet);
-	}
+    if (client->isSecureNetwork())
+    {
+        _proxySecure->savePacket(client, packet);
+    }
+    else
+    {
+        _proxy->savePacket(client, packet);
+    }
 }
-
 
 Client* Adapter::getAdapterClient(Client* client)
 {
-	if ( client->isSecureNetwork() )
-	{
-		return _clientSecure;
-	}
-	else
-	{
-		return _client;
-	}
+    if (client->isSecureNetwork())
+    {
+        return _clientSecure;
+    }
+    else
+    {
+        return _client;
+    }
 }
 
 /*=====================================
-     Class Proxy
+ Class Proxy
  =====================================*/
 Proxy::Proxy(Gateway* gw)
 {
-	_gateway = gw;
-	_suspendedPacketEventQue = new EventQue();
+    _gateway = gw;
+    _suspendedPacketEventQue = new EventQue();
 }
 Proxy::~Proxy(void)
 {
-	if ( _suspendedPacketEventQue )
-	{
-		delete _suspendedPacketEventQue;
-	}
+    if (_suspendedPacketEventQue)
+    {
+        delete _suspendedPacketEventQue;
+    }
 }
 
 void Proxy::checkConnection(Client* client)
 {
-    if ( client->isDisconnect()  || ( client->isConnecting() && _responseTimer.isTimeup()) )
+    if (client->isDisconnect() || (client->isConnecting() && _responseTimer.isTimeup()))
     {
         client->connectSended();
         _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
@@ -257,25 +255,24 @@ void Proxy::checkConnection(Client* client)
         ev->setClientRecvEvent(client, packet);
         _gateway->getPacketEventQue()->post(ev);
     }
-    else if (  (client->isActive() && _keepAliveTimer.isTimeup() ) || (_isWaitingResp  && _responseTimer.isTimeup() ) )
+    else if ((client->isActive() && _keepAliveTimer.isTimeup()) || (_isWaitingResp && _responseTimer.isTimeup()))
     {
-            MQTTSNPacket* packet = new MQTTSNPacket();
-            MQTTSNString clientId = MQTTSNString_initializer;
-            packet->setPINGREQ(&clientId);
-            Event* ev = new Event();
-            ev->setClientRecvEvent(client, packet);
-            _gateway->getPacketEventQue()->post(ev);
-            _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
-            _isWaitingResp = true;
+        MQTTSNPacket* packet = new MQTTSNPacket();
+        MQTTSNString clientId = MQTTSNString_initializer;
+        packet->setPINGREQ(&clientId);
+        Event* ev = new Event();
+        ev->setClientRecvEvent(client, packet);
+        _gateway->getPacketEventQue()->post(ev);
+        _responseTimer.start(PROXY_RESPONSE_DURATION * 1000UL);
+        _isWaitingResp = true;
 
-            if ( ++_retryCnt > PROXY_MAX_RETRY_CNT )
-            {
-                client->disconnected();
-            }
-            resetPingTimer();
+        if (++_retryCnt > PROXY_MAX_RETRY_CNT)
+        {
+            client->disconnected();
+        }
+        resetPingTimer();
     }
 }
-
 
 void Proxy::resetPingTimer(void)
 {
@@ -284,24 +281,24 @@ void Proxy::resetPingTimer(void)
 
 void Proxy::recv(MQTTSNPacket* packet, Client* client)
 {
-    if ( packet->getType() == MQTTSN_CONNACK )
+    if (packet->getType() == MQTTSN_CONNACK)
     {
-       if ( packet->isAccepted() )
-       {
+        if (packet->isAccepted())
+        {
             _responseTimer.stop();
             _retryCnt = 0;
             resetPingTimer();
             sendSuspendedPacket();
-       }
+        }
     }
-    else if ( packet->getType() == MQTTSN_PINGRESP )
+    else if (packet->getType() == MQTTSN_PINGRESP)
     {
         _isWaitingResp = false;
         _responseTimer.stop();
-         _retryCnt = 0;
-         resetPingTimer();
+        _retryCnt = 0;
+        resetPingTimer();
     }
-    else if ( packet->getType() == MQTTSN_DISCONNECT )
+    else if (packet->getType() == MQTTSN_DISCONNECT)
     {
         // blank
     }
@@ -309,18 +306,18 @@ void Proxy::recv(MQTTSNPacket* packet, Client* client)
 
 void Proxy::savePacket(Client* client, MQTTSNPacket* packet)
 {
-	MQTTSNPacket* pk = new MQTTSNPacket(*packet);
-	Event* ev = new Event();
-	ev->setClientRecvEvent(client, pk);
-	_suspendedPacketEventQue->post(ev);
+    MQTTSNPacket* pk = new MQTTSNPacket(*packet);
+    Event* ev = new Event();
+    ev->setClientRecvEvent(client, pk);
+    _suspendedPacketEventQue->post(ev);
 }
 
 void Proxy::sendSuspendedPacket(void)
 {
-	while ( _suspendedPacketEventQue->size() )
-	{
-		Event* ev = _suspendedPacketEventQue->wait();
-		_gateway->getPacketEventQue()->post(ev);
-	}
+    while (_suspendedPacketEventQue->size())
+    {
+        Event* ev = _suspendedPacketEventQue->wait();
+        _gateway->getPacketEventQue()->post(ev);
+    }
 }
 

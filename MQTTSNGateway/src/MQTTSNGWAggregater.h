@@ -32,11 +32,11 @@ class AggregateTopicTable;
 class Topics;
 
 /*=====================================
-     Class Aggregater
+ Class Aggregater
  =====================================*/
-class Aggregater : public Adapter
+class Aggregater: public Adapter
 {
-	friend class MessageIdTable;
+    friend class MessageIdTable;
 public:
     Aggregater(Gateway* gw);
     ~Aggregater(void);
@@ -44,39 +44,35 @@ public:
     void initialize(char* gwName);
 
     const char* getClientId(SensorNetAddress* addr);
-	Client* getClient(SensorNetAddress* addr);
-	Client* convertClient(uint16_t msgId, uint16_t* clientMsgId);
-	uint16_t addMessageIdTable(Client* client, uint16_t msgId);
-	uint16_t getMsgId(Client* client, uint16_t clientMsgId);
+    Client* getClient(SensorNetAddress* addr);
+    Client* convertClient(uint16_t msgId, uint16_t* clientMsgId);
+    uint16_t addMessageIdTable(Client* client, uint16_t msgId);
+    uint16_t getMsgId(Client* client, uint16_t clientMsgId);
 
-	ClientTopicElement* getClientElement(Topic* topic);
-	ClientTopicElement* getNextClientElement(ClientTopicElement* clientElement);
-	Client* getClient(ClientTopicElement* clientElement);
+    ClientTopicElement* getClientElement(Topic* topic);
+    ClientTopicElement* getNextClientElement(ClientTopicElement* clientElement);
+    Client* getClient(ClientTopicElement* clientElement);
 
-	AggregateTopicElement* findTopic(Topic* topic);
-	AggregateTopicElement* addAggregateTopic(Topic* topic, Client* client);
+    AggregateTopicElement* findTopic(Topic* topic);
+    AggregateTopicElement* addAggregateTopic(Topic* topic, Client* client);
 
-	void removeAggregateTopic(Topic* topic, Client* client);
-	void removeAggregateAllTopic(Client* client);
-	bool isActive(void);
+    void removeAggregateTopic(Topic* topic, Client* client);
+    void removeAggregateAllTopic(Client* client);
+    bool isActive(void);
 
-	void printAggregateTopicTable(void);
-	bool testMessageIdTable(void);
+    void printAggregateTopicTable(void);
+    bool testMessageIdTable(void);
 
 private:
-	uint16_t msgId(void);
-    Gateway* _gateway {nullptr};
+    uint16_t msgId(void);
+    Gateway* _gateway { nullptr };
     MessageIdTable _msgIdTable;
     AggregateTopicTable _topicTable;
 
-    bool _isActive {false};
-    bool _isSecure {false};
+    bool _isActive { false };
+    bool _isSecure { false };
 };
 
-
-
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWAGGREGATER_H_ */

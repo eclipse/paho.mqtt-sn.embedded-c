@@ -25,13 +25,6 @@ using namespace std;
 
 namespace MQTTSNGW
 {
-//#define DEBUG_NWSTACK
-
-#ifdef  DEBUG_NWSTACK
-  #define D_NWSTACK(...) printf(__VA_ARGS__)
-#else
-  #define D_NWSTACK(...)
-#endif
 
 #define API_XMITREQUEST          0x10
 #define API_RESPONSE             0x90
@@ -126,7 +119,7 @@ public:
 	int unicast(const uint8_t* payload, uint16_t payloadLength, SensorNetAddress* sendto);
 	int broadcast(const uint8_t* payload, uint16_t payloadLength);
 	int read(uint8_t* buf, uint16_t bufLen);
-	int initialize(void);
+	void initialize(void);
 	const char* getDescription(void);
 	SensorNetAddress* getSenderAddress(void);
 

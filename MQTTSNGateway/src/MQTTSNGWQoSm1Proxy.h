@@ -27,12 +27,12 @@ class SensorNetAddress;
 class MQTTSNPacket;
 
 /*=====================================
-     Class QoSm1Proxy
+ Class QoSm1Proxy
  =====================================*/
-class QoSm1Proxy : public Adapter
+class QoSm1Proxy: public Adapter
 {
 public:
-	QoSm1Proxy(Gateway* gw);
+    QoSm1Proxy(Gateway* gw);
     ~QoSm1Proxy(void);
 
     void initialize(char* GWnAME);
@@ -41,13 +41,10 @@ public:
 private:
     Gateway* _gateway;
 
-    bool _isActive {false};
-    bool _isSecure {false};
+    bool _isActive { false };
+    bool _isSecure { false };
 };
 
-
 }
-
-
 
 #endif /* MQTTSNGATEWAY_SRC_MQTTSNGWQOSM1PROXY_H_ */

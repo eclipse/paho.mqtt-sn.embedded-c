@@ -57,6 +57,8 @@ LGwProxy::LGwProxy()
     _initialized = 0;
     _isForwarderMode = false;
     _isQoSMinus1Mode = false;
+	_isPingReqMode = true;
+	_isAutoConnectMode = true;
 }
 
 LGwProxy::~LGwProxy()
@@ -64,16 +66,20 @@ LGwProxy::~LGwProxy()
     _topicTbl.clearTopic();
 }
 
-void LGwProxy::initialize(LUdpConfig netconf, LMqttsnConfig mqconf)
+void LGwProxy::initialize(SENSORNET_CONFIG_t* netconf, LMqttsnConfig* mqconf)
 {
-    _network.initialize(netconf);
-    _clientId = netconf.clientId;
-    _willTopic = mqconf.willTopic;
-    _willMsg = mqconf.willMsg;
-    _qosWill = mqconf.willQos;
-    _retainWill = mqconf.willRetain;
-    _cleanSession = mqconf.cleanSession;
-    _tkeepAlive = mqconf.keepAlive;
+    if (_network.initialize(netconf) == false)
+    {
+        DISPLAY("Can't open SensorNetwork\n");
+        exit(-1);
+    }
+    _clientId = netconf->clientId;
+    _willTopic = mqconf->willTopic;
+    _willMsg = mqconf->willMsg;
+    _qosWill = mqconf->willQos;
+    _retainWill = mqconf->willRetain;
+    _cleanSession = mqconf->cleanSession;
+    _tkeepAlive = mqconf->keepAlive;
     _initialized = 1;
 }
 
@@ -84,6 +90,12 @@ void LGwProxy::connect()
     while (_status != GW_CONNECTED)
     {
         pos = _msg;
+
+        if (!_network.isBroadcastable() && _status == GW_LOST)
+        {
+            _status = GW_CONNECTING;
+            continue;
+        }
 
         if (_status == GW_LOST)
         {
@@ -188,7 +200,24 @@ int LGwProxy::getConnectResponce(void)
     {
         _network.setGwAddress();
         _gwId = _mqttsnMsg[1];
+
+#if defined(DTLS) || defined(DTLS6)
+        for (int i = 0; i < MQTTSN_RETRY_COUNT; i++)
+        {
+            if (_network.sslConnect() > 0)
+            {
+                _status = GW_CONNECTING;
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce DTLS connection established.\033[0m\033[0;37m\n\n");
+                break;
+            }
+            else
+            {
+                DISPLAY("\033[0m\033[0;32m\n\nLGwProxy::getConnectResponce DTLS connection failed.\033[0m\033[0;37m\n\n");
+            }
+        }
+#else
         _status = GW_CONNECTING;
+#endif
     }
     else if (_mqttsnMsg[0] == MQTTSN_TYPE_WILLTOPICREQ && _status == GW_WAIT_WILLTOPICREQ)
     {
@@ -231,9 +260,12 @@ int LGwProxy::getConnectResponce(void)
 
 void LGwProxy::reconnect(void)
 {
-    D_MQTTLOG("...Gateway reconnect\r\n");
-    _status = GW_DISCONNECTED;
-    connect();
+	if (_isAutoConnectMode)
+	{
+		D_MQTTLOG("...Gateway reconnect\r\n");
+		_status = GW_DISCONNECTED;
+		connect();
+	}
 }
 
 void LGwProxy::disconnect(uint16_t secs)
@@ -395,7 +427,7 @@ int LGwProxy::getMessage(void)
     }
     else if (_mqttsnMsg[0] == MQTTSN_TYPE_DISCONNECT)
     {
-        _status = GW_LOST;
+		_status = GW_DISCONNECTED;
         _gwAliveTimer.stop();
         _keepAliveTimer.stop();
     }
@@ -586,7 +618,7 @@ uint16_t LGwProxy::getNextMsgId(void)
 
 void LGwProxy::checkPingReq(void)
 {
-    if ( _isQoSMinus1Mode )
+	if (_isQoSMinus1Mode || _isPingReqMode == false)
     {
         return;
     }
@@ -670,4 +702,24 @@ void LGwProxy::setForwarderMode(bool valid)
 void LGwProxy::setQoSMinus1Mode(bool valid)
 {
     _isQoSMinus1Mode = valid;
+}
+
+void LGwProxy::setPingReqMode(bool valid)
+{
+	_isPingReqMode = valid;
+}
+
+void LGwProxy::setAutoConnectMode(bool valid)
+{
+	_isAutoConnectMode = valid;
+}
+
+void LGwProxy::setSessionMode(bool valid)
+{
+	_cleanSession = valid;
+}
+
+uint8_t LGwProxy::getStatus(void)
+{
+	return _status;
 }

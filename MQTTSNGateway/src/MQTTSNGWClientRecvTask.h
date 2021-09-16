@@ -24,24 +24,24 @@ namespace MQTTSNGW
 class AdapterManager;
 
 /*=====================================
-     Class ClientRecvTask
+ Class ClientRecvTask
  =====================================*/
-class ClientRecvTask:public Thread
+class ClientRecvTask: public Thread
 {
-	MAGIC_WORD_FOR_THREAD;
-	friend AdapterManager;
+MAGIC_WORD_FOR_THREAD;
+    friend AdapterManager;
 public:
-	ClientRecvTask(Gateway*);
-	~ClientRecvTask(void);
-	virtual void initialize(int argc, char** argv);
-	void run(void);
+    ClientRecvTask(Gateway*);
+    ~ClientRecvTask(void);
+    virtual void initialize(int argc, char** argv);
+    void run(void);
 
 private:
-	void log(Client*, MQTTSNPacket*, MQTTSNString* id);
-	void log(const char* clientId, MQTTSNPacket* packet);
+    void log(Client*, MQTTSNPacket*, MQTTSNString* id);
+    void log(const char* clientId, MQTTSNPacket* packet);
 
-	Gateway*       _gateway;
-	SensorNetwork* _sensorNetwork;
+    Gateway* _gateway;
+    SensorNetwork* _sensorNetwork;
 };
 
 }

@@ -28,7 +28,7 @@ using namespace MQTTSNGW;
  =====================================*/
 MQTTSNAggregateConnectionHandler::MQTTSNAggregateConnectionHandler(Gateway* gateway)
 {
-	_gateway = gateway;
+    _gateway = gateway;
 }
 
 MQTTSNAggregateConnectionHandler::~MQTTSNAggregateConnectionHandler()
@@ -36,124 +36,121 @@ MQTTSNAggregateConnectionHandler::~MQTTSNAggregateConnectionHandler()
 
 }
 
-
 /*
  *  CONNECT
  */
 void MQTTSNAggregateConnectionHandler::handleConnect(Client* client, MQTTSNPacket* packet)
 {
-	MQTTSNPacket_connectData data;
-	if ( packet->getCONNECT(&data) == 0 )
-	{
-		return;
-	}
+    MQTTSNPacket_connectData data;
+    if (packet->getCONNECT(&data) == 0)
+    {
+        return;
+    }
 
-	/* return CONNACK when the client is sleeping */
-	if ( client->isSleep() || client->isAwake() )
-	{
-		MQTTSNPacket* packet = new MQTTSNPacket();
-		packet->setCONNACK(MQTTSN_RC_ACCEPTED);
-		Event* ev = new Event();
-		ev->setClientSendEvent(client, packet);
-		_gateway->getClientSendQue()->post(ev);
-		sendStoredPublish(client);
-		return;
-	}
+    /* return CONNACK when the client is sleeping */
+    if (client->isSleep() || client->isAwake())
+    {
+        MQTTSNPacket* packet = new MQTTSNPacket();
+        packet->setCONNACK(MQTTSN_RC_ACCEPTED);
+        Event* ev = new Event();
+        ev->setClientSendEvent(client, packet);
+        _gateway->getClientSendQue()->post(ev);
+        sendStoredPublish(client);
+        return;
+    }
 
-	//* clear ConnectData of Client */
-	Connect* connectData = client->getConnectData();
-	memset(connectData, 0, sizeof(Connect));
+    //* clear ConnectData of Client */
+    Connect* connectData = client->getConnectData();
+    memset(connectData, 0, sizeof(Connect));
 
-	client->disconnected();
+    client->disconnected();
 
-	Topics* topics = client->getTopics();
+    Topics* topics = client->getTopics();
 
-	/* CONNECT was not sent yet. prepare Connect data */
+    /* CONNECT was not sent yet. prepare Connect data */
 
+    client->setSessionStatus(false);
+    if (data.cleansession)
+    {
+        /* reset the table of msgNo and TopicId pare */
+        client->clearWaitedPubTopicId();
+        client->clearWaitedSubTopicId();
 
-	client->setSessionStatus(false);
-	if (data.cleansession)
-	{
-		/* reset the table of msgNo and TopicId pare */
-		client->clearWaitedPubTopicId();
-		client->clearWaitedSubTopicId();
+        /* renew the TopicList */
+        if (topics)
+        {
+            Topic* tp = topics->getFirstTopic();
+            while (tp != nullptr)
+            {
+                if (tp->getType() == MQTTSN_TOPIC_TYPE_NORMAL)
+                {
+                    _gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(tp, client);
+                }
+                tp = topics->getNextTopic(tp);
+            }
+            topics->eraseNormal();
+        }
+        client->setSessionStatus(true);
+    }
 
-		/* renew the TopicList */
-		if (topics)
-		{
-			Topic* tp = topics->getFirstTopic();
-			while( tp != nullptr )
-			{
-				if ( tp->getType() == MQTTSN_TOPIC_TYPE_NORMAL )
-				{
-					_gateway->getAdapterManager()->getAggregater()->removeAggregateTopic(tp, client);
-				}
-				tp = topics->getNextTopic(tp);
-			}
-			topics->eraseNormal();
-		}
-		client->setSessionStatus(true);
-	}
+    if (data.willFlag)
+    {
+        /* create & send WILLTOPICREQ message to the client */
+        MQTTSNPacket* reqTopic = new MQTTSNPacket();
+        reqTopic->setWILLTOPICREQ();
+        Event* evwr = new Event();
+        evwr->setClientSendEvent(client, reqTopic);
 
-	if (data.willFlag)
-	{
-		/* create & send WILLTOPICREQ message to the client */
-		MQTTSNPacket* reqTopic = new MQTTSNPacket();
-		reqTopic->setWILLTOPICREQ();
-		Event* evwr = new Event();
-		evwr->setClientSendEvent(client, reqTopic);
-
-		/* Send WILLTOPICREQ to the client */
-		_gateway->getClientSendQue()->post(evwr);
-	}
-	else
-	{
-		/* create CONNACK & send it to the client */
-		MQTTSNPacket* packet = new MQTTSNPacket();
-		packet->setCONNACK(MQTTSN_RC_ACCEPTED);
-		Event* ev = new Event();
-		ev->setClientSendEvent(client, packet);
-		_gateway->getClientSendQue()->post(ev);
-		client->connackSended(MQTTSN_RC_ACCEPTED);
-		sendStoredPublish(client);
-		return;
-	}
+        /* Send WILLTOPICREQ to the client */
+        _gateway->getClientSendQue()->post(evwr);
+    }
+    else
+    {
+        /* create CONNACK & send it to the client */
+        MQTTSNPacket* packet = new MQTTSNPacket();
+        packet->setCONNACK(MQTTSN_RC_ACCEPTED);
+        Event* ev = new Event();
+        ev->setClientSendEvent(client, packet);
+        _gateway->getClientSendQue()->post(ev);
+        client->connackSended(MQTTSN_RC_ACCEPTED);
+        sendStoredPublish(client);
+        return;
+    }
 }
-
 
 /*
  *  WILLMSG
  */
 void MQTTSNAggregateConnectionHandler::handleWillmsg(Client* client, MQTTSNPacket* packet)
 {
-	if ( !client->isWaitWillMsg() )
-	{
-		DEBUGLOG("     MQTTSNConnectionHandler::handleWillmsg  WaitWillMsgFlg is off.\n");
-		return;
-	}
+    if (!client->isWaitWillMsg())
+    {
+        DEBUGLOG("     MQTTSNConnectionHandler::handleWillmsg  WaitWillMsgFlg is off.\n");
+        return;
+    }
 
-	MQTTSNString willmsg  = MQTTSNString_initializer;
-	//Connect* connectData = client->getConnectData();
+    MQTTSNString willmsg = MQTTSNString_initializer;
+    //Connect* connectData = client->getConnectData();
 
-	if( client->isConnectSendable() )
-	{
-		/* save WillMsg in the client */
-		if ( packet->getWILLMSG(&willmsg) == 0 )
-		{
-			return;
-		}
-		client->setWillMsg(willmsg);
+    if (client->isConnectSendable())
+    {
+        /* save WillMsg in the client */
+        if (packet->getWILLMSG(&willmsg) == 0)
+        {
+            return;
+        }
+        client->setWillMsg(willmsg);
 
-			/* Send CONNACK to the client */
-		MQTTSNPacket* packet = new MQTTSNPacket();
-		packet->setCONNACK(MQTTSN_RC_ACCEPTED);
-		Event* ev = new Event();
-		ev->setClientSendEvent(client, packet);
-		_gateway->getClientSendQue()->post(ev);
+        /* Send CONNACK to the client */
+        MQTTSNPacket* packet = new MQTTSNPacket();
+        packet->setCONNACK(MQTTSN_RC_ACCEPTED);
+        Event* ev = new Event();
+        ev->setClientSendEvent(client, packet);
+        _gateway->getClientSendQue()->post(ev);
 
-		sendStoredPublish(client);
-		return;
-	}
+        sendStoredPublish(client);
+        return;
+    }
 }
 
 /*
@@ -173,31 +170,31 @@ void MQTTSNAggregateConnectionHandler::handleDisconnect(Client* client, MQTTSNPa
  */
 void MQTTSNAggregateConnectionHandler::handlePingreq(Client* client, MQTTSNPacket* packet)
 {
-	if ( ( client->isSleep() || client->isAwake() ) &&  client->getClientSleepPacket() )
-	{
-	    sendStoredPublish(client);
-		client->holdPingRequest();
-	}
+    if ((client->isSleep() || client->isAwake()) && client->getClientSleepPacket())
+    {
+        sendStoredPublish(client);
+        client->holdPingRequest();
+    }
 
-	/* create and send PINGRESP to the PacketHandler */
-	client->resetPingRequest();
+    /* create and send PINGRESP to the PacketHandler */
+    client->resetPingRequest();
 
-	MQTTGWPacket* pingresp = new MQTTGWPacket();
+    MQTTGWPacket* pingresp = new MQTTGWPacket();
 
-	pingresp->setHeader(PINGRESP);
+    pingresp->setHeader(PINGRESP);
 
-	Event* evt = new Event();
-	evt->setBrokerRecvEvent(client, pingresp);
-	_gateway->getPacketEventQue()->post(evt);
+    Event* evt = new Event();
+    evt->setBrokerRecvEvent(client, pingresp);
+    _gateway->getPacketEventQue()->post(evt);
 }
 
 void MQTTSNAggregateConnectionHandler::sendStoredPublish(Client* client)
 {
     MQTTGWPacket* msg = nullptr;
 
-    while  ( ( msg = client->getClientSleepPacket() ) != nullptr )
+    while ((msg = client->getClientSleepPacket()) != nullptr)
     {
-        client->deleteFirstClientSleepPacket();  // pop the que to delete element.
+        client->deleteFirstClientSleepPacket(); // pop the que to delete element.
 
         Event* ev = new Event();
         ev->setBrokerRecvEvent(client, msg);

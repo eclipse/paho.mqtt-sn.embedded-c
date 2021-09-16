@@ -1,119 +1,117 @@
-###Gateway Test Program.    
+# Gateway Test Program.    
 **sample/mainTest.cpp** is a Test sample coading.   
 Each test is described as one function. test1(), test2()...     
-````
-/*------------------------------------------------------
- *    Test functions
- *
- *    you can use 4 commands in Test functions
- *
- *    1) PUBLISH(const char* topicName,
- *               uint8_t*    payload,
- *               uint16_t    len,
- *               uint8_t     qos,
- *               bool        retain = false);
- *
- *    2) SUBSCRIBE(const char*   topicName,
- *                 TopicCallback onPublish,
- *                 uint8_t qos);
- *
- *    3) UNSUBSCRIBE(const char* topicName);
- *
- *    4) DISCONNECT(uint16_t sleepInSecs);
- *
- *------------------------------------------------------*/
-
+```
 void test1(void)
 {
-	char payload[300];
-	sprintf(payload, "ESP8266-08b133 ");
-	uint8_t qos = 0;
-	PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
+    char payload[300];
+    sprintf(payload, "ESP8266-08b133 ");
+    uint8_t qos = 0;
+    PUBLISH(topic1,(uint8_t*)payload, strlen(payload), qos);
 }
 
 void test2(void)
 {
-	uint8_t qos = 1;
-	SUBSCRIBE(topic2, on_publish02, qos);
+    uint8_t qos = 1;
+    SUBSCRIBE(topic2, on_publish02, qos);
 }
-````
-**TEST_LIST** is a test senario. Test functions are executed one by one. 
-```` 
+
+ *---------------------------------------------------------------------------
+ *
+ *   MQTT-SN GATEWAY TEST CLIENT
+ *
+ *   Supported functions.
+ *
+ *   void PUBLISH  ( const char* topicName, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
+ *
+ *   void PUBLISH  ( uint16_t topicId, uint8_t* payload, uint16_t len, uint8_t qos, bool retain = false );
+ *
+ *   void SUBSCRIBE ( const char* topicName, TopicCallback onPublish, uint8_t qos );
+ *
+ *   void SUBSCRIBE ( uint16_t topicId, TopicCallback onPublish, uint8_t qos );
+ *
+ *   void UNSUBSCRIBE ( const char* topicName );
+ *
+ *   void UNSUBSCRIBE ( uint16_t topicId );
+ *
+ *   void DISCONNECT ( uint16_t sleepInSecs );
+ *
+ *   void CONNECT ( void );
+ *
+ *   void DISPLAY( format, .....);    <== instead of printf()
+ *--------------------------------------------------------------------------
+ 
+```
+**TEST_LIST** is a test senario. Test functions are executed interactively. 
+``` 
 /*------------------------------------------------------
  *    A List of Test Tasks
  *------------------------------------------------------*/
 
 TEST_LIST = {// e.g. TEST( Label, Test),
-			 TEST("Publish topic1",     test1),
-			 TEST("Subscribe topic2",   test2),
-			 TEST("Publish topic2",     test3),
-			 TEST("Unsubscribe topic2", test4),
-			 TEST("Publish topic2",     test3),
-			 TEST("Disconnect",         test5),
-			 END_OF_TEST_LIST
-			};
-```` 
+             TEST("Publish topic1",     test1),
+             TEST("Subscribe topic2",   test2),
+             TEST("Publish topic2",     test3),
+             TEST("Unsubscribe topic2", test4),
+             TEST("Publish topic2",     test3),
+             TEST("Disconnect",         test5),
+             END_OF_TEST_LIST
+        };
+        
+``` 
 
-### **step1. Build **   
-````
-$ git clone https://github.com/eclipse/paho.mqtt-sn.embedded-c 
+**UDP**, **DTLS**, **UDP6**, **DTLS6** or **Bluetooth** is available as a sensor network.
+```
+/*------------------------------------------------------
+ *    UDP, DTLS Configuration    (theNetcon)
+ *------------------------------------------------------*/
+UDPCONF = { "GatewayTestClient",  // ClientId
+		{ 225, 1, 1, 1 },         // Multicast group IP
+        1883,                     // Multicast group Port
+        20020,                    // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    UDP6, DTLS6 Configuration    (theNetcon)
+ *------------------------------------------------------*/
+UDP6CONF = { "GatewayTestClient",  // ClientId
+        "ff12::feed:caca:dead",    // Multicast group IP
+        "wlp4s0",
+        1883,                      // Multicast group Port
+        20020,                     // Local PortNo
+        };
+
+/*------------------------------------------------------
+ *    RFCOMM Configuration    (theNetcon)
+ *------------------------------------------------------*/
+RFCOMMCONF = { "GatewayTestClient",      // ClientId
+        "60:57:18:06:8B:72",          // GW Address
+        1,                            // Rfcomm channel
+        };
+```
+
+
+## How to Build    
+```
+copy codes from the github.
 $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway/GatewayTester       
-$ make   
-$ make install   
-$ make clean
+$ ./build.sh [udp | udp6 | dtls | dtls6 | rfcomm]
 ```       
-MQTT-SNGatewayTester program is copied into ../../../ directory.
 
     
-### **step2. Execute Gateway Tester.**     
-
-````    
-$ cd ../../..   
-$ ./MQTT-SNGatewayTester
+## Execute Gateway Tester
+```    
+$ ./Build/MQTT-SNGatewayTester
   
  ***************************************************************************
- * MQTT-SN Gateway Tester
+ * MQTT-SN Gateway Tester   DTLS
  * Part of Project Paho in Eclipse
  * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)
  *
  * Author : Tomoaki YAMAGUCHI
- * Version: 0.0.0
+ * Version: 2.0.0
  ***************************************************************************
-
 Attempting to Connect the Broker.....
+Execute "Step0:Connect" ? ( y/n ) : 
 
-sendto 225.1.1.1      :1883   03 01 00
-
-recved 192.168.11.5   :1883   03 01 00
-sendto 225.1.1.1      :1883   03 01 00
-
-recved 192.168.11.5   :1883   03 01 00
-
-recved 192.168.11.17  :10000  03 02 01
-sendto 192.168.11.17  :10000  13 04 0c 01 03 84 47 61 74 65 77 61 79 54 65 73 74 65 72
-
-recved 192.168.11.17  :10000  02 06
-sendto 192.168.11.17  :10000  0c 07 00 77 69 6c 6c 54 6f 70 69 63
-
-recved 192.168.11.17  :10000  02 08
-sendto 192.168.11.17  :10000  0d 09 77 69 6c 6c 4d 65 73 73 61 67 65
-
-recved 192.168.11.17  :10000  03 05 00
-
-
- Connected to the Broker
-
- Attempting OnConnect.....
-sendto 192.168.11.17  :10000  13 12 20 00 01 74 79 34 74 77 2f 63 6c 69 65 6e 74 49 64
-
-recved 192.168.11.17  :10000  08 13 20 00 01 00 01 00
-
-
- SUBSCRIBE complete. ty4tw/clientId
-
- OnConnect complete
- Test Ready.
-
-Execute Publish topic1 Test ? ( Y/N ) :  
-
-````    
+```    

@@ -1,0 +1,14 @@
+rm -rf bin
+mkdir bin
+cd bin
+
+PKTSRC=../../../../src
+SRC=..
+gcc -Wall -c $SRC/rfcomm.c -Os -s
+gcc -Wall $SRC/qos0pub.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNPacket.c $PKTSRC/MQTTSNConnectClient.c -o qos0pub -Os -s
+gcc -Wall $SRC/qos0pub_register.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNDeserializePublish.c $PKTSRC/MQTTSNPacket.c $PKTSRC/MQTTSNConnectClient.c -o qos0pub_register -Os -s
+gcc -Wall $SRC/qos-1pub.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNPacket.c -o qos-1pub -Os -s
+gcc -Wall $SRC/qos-1pub_extended.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNPacket.c -o qos-1pub_extended -Os -s
+gcc -Wall $SRC/qos1pub.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNDeserializePublish.c $PKTSRC/MQTTSNPacket.c $PKTSRC/MQTTSNConnectClient.c -o qos1pub -Os -s
+gcc -Wall $SRC/pub0sub1.c rfcomm.o -lbluetooth -I $PKTSRC $PKTSRC/MQTTSNSerializePublish.c $PKTSRC/MQTTSNDeserializePublish.c $PKTSRC/MQTTSNPacket.c $PKTSRC/MQTTSNConnectClient.c $PKTSRC/MQTTSNSubscribeClient.c -o pub0sub1 -Os -s
+rm rfcomm.o

@@ -23,9 +23,9 @@ namespace MQTTSNGW
 class Logmonitor: public Process
 {
 public:
-	Logmonitor();
-	~Logmonitor();
-	void run();
+    Logmonitor();
+    ~Logmonitor();
+    void run();
 };
 
 }

@@ -27,15 +27,15 @@ namespace MQTTSNGW
 class MQTTGWSubscribeHandler
 {
 public:
-	MQTTGWSubscribeHandler(Gateway* gateway);
-	~MQTTGWSubscribeHandler();
-	void handleSuback(Client* clnode, MQTTGWPacket* packet);
-	void handleUnsuback(Client* clnode, MQTTGWPacket* packet);
-	void handleAggregateSuback(Client* client, MQTTGWPacket* packet);
-	void handleAggregateUnsuback(Client* client, MQTTGWPacket* packet);
+    MQTTGWSubscribeHandler(Gateway* gateway);
+    ~MQTTGWSubscribeHandler();
+    void handleSuback(Client* clnode, MQTTGWPacket* packet);
+    void handleUnsuback(Client* clnode, MQTTGWPacket* packet);
+    void handleAggregateSuback(Client* client, MQTTGWPacket* packet);
+    void handleAggregateUnsuback(Client* client, MQTTGWPacket* packet);
 
 private:
-	Gateway* _gateway;
+    Gateway* _gateway;
 };
 
 }

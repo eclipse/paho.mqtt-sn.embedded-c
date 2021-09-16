@@ -22,7 +22,7 @@ using namespace MQTTSNGW;
 
 Logmonitor::Logmonitor()
 {
-	theProcess = this;
+    theProcess = this;
 }
 
 Logmonitor::~Logmonitor()
@@ -32,17 +32,17 @@ Logmonitor::~Logmonitor()
 
 void Logmonitor::run()
 {
-	while (true)
-	{
-		const char* data = getLog();
-		if ( *data == 0 )
-		{
-			break;
-		}
-		else
-		{
-			printf("%s", data);
-		}
-	}
+    while (true)
+    {
+        const char* data = getLog();
+        if (*data == 0)
+        {
+            break;
+        }
+        else
+        {
+            printf("%s", data);
+        }
+    }
 }
 

@@ -31,6 +31,9 @@ namespace MQTTSNGW
 #define MQTTSNGW_RB_MUTEX_KEY     "rbmutex.key"
 #define MQTTSNGW_RB_SEMAPHOR_NAME "/rbsemaphor"
 
+#define RED_HDR  "\033[0m\033[0;31m"
+#define CLR_HDR  "\033[0m\033[0;37m"
+
 /*=====================================
          Class Mutex
   ====================================*/
@@ -92,8 +95,7 @@ private:
 class RingBuffer
 {
 public:
-	RingBuffer();
-	RingBuffer(const char* keyDirctory);
+    RingBuffer(const char* keyDirectory = MQTTSNGW_KEY_DIRECTORY);
 	~RingBuffer();
 	void put(char* buffer);
 	int get(char* buffer, int bufferLength);
@@ -124,15 +126,17 @@ public:
 #define MAGIC_WORD_FOR_THREAD \
 public: void EXECRUN() \
 { \
-	try \
-	{ \
-		run(); \
-		stopProcess(); \
-	} \
-	catch(...) \
-	{ \
-		throw; \
-	} \
+    try \
+    { \
+      run(); \
+    } \
+    catch ( Exception &ex ) \
+    { \
+        ex.writeMessage(); \
+        WRITELOG("%s%s caught an exception and stopped.%s\n", RED_HDR, getTaskName(), CLR_HDR); \
+        theMultiTaskProcess->abort(); \
+    } \
+    theMultiTaskProcess->threadStopped(); \
 }
 
 /*=====================================
@@ -146,12 +150,15 @@ public:
 	static pthread_t getID();
 	static bool equals(pthread_t*, pthread_t*);
 	virtual void initialize(int argc, char** argv);
-	void stopProcess(void);
 	void waitStop(void);
 	void stop(void);
+	const char* getTaskName(void);
+	void setTaskName(const char* name);
+	void abort(int threadNo);
 private:
 	static void* _run(void*);
 	pthread_t _threadID;
+	const char* _taskName;
 };
 
 }

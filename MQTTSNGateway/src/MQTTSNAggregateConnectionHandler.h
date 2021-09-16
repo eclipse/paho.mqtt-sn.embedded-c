@@ -28,18 +28,18 @@ class MQTTSNPacket;
 class MQTTSNAggregateConnectionHandler
 {
 public:
-	MQTTSNAggregateConnectionHandler(Gateway* gateway);
-	~MQTTSNAggregateConnectionHandler(void);
+    MQTTSNAggregateConnectionHandler(Gateway* gateway);
+    ~MQTTSNAggregateConnectionHandler(void);
 
-	void handleConnect(Client* client, MQTTSNPacket* packet);
-	void handleWillmsg(Client* client, MQTTSNPacket* packet);
-	void handleDisconnect(Client* client, MQTTSNPacket* packet);
-	void handlePingreq(Client* client, MQTTSNPacket* packet);
+    void handleConnect(Client* client, MQTTSNPacket* packet);
+    void handleWillmsg(Client* client, MQTTSNPacket* packet);
+    void handleDisconnect(Client* client, MQTTSNPacket* packet);
+    void handlePingreq(Client* client, MQTTSNPacket* packet);
 
 private:
-	void sendStoredPublish(Client* client);
+    void sendStoredPublish(Client* client);
 
-	Gateway* _gateway;
+    Gateway* _gateway;
 };
 
 }

@@ -1,7 +1,0 @@
-gcc -Wall -c transport.c -Os -s
-gcc -Wall qos0pub.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNPacket.c ../src/MQTTSNConnectClient.c -o qos0pub -Os -s
-gcc -Wall qos0pub_register.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNDeserializePublish.c ../src/MQTTSNPacket.c ../src/MQTTSNConnectClient.c -o qos0pub_register -Os -s
-gcc -Wall qos-1pub.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNPacket.c -o qos-1pub -Os -s
-gcc -Wall qos-1pub_extended.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNPacket.c -o qos-1pub_extended -Os -s
-gcc -Wall qos1pub.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNDeserializePublish.c ../src/MQTTSNPacket.c ../src/MQTTSNConnectClient.c -o qos1pub -Os -s
-gcc -Wall pub0sub1.c transport.o -I ../src ../src/MQTTSNSerializePublish.c ../src/MQTTSNDeserializePublish.c ../src/MQTTSNPacket.c ../src/MQTTSNConnectClient.c ../src/MQTTSNSubscribeClient.c -o pub0sub1 -Os -s

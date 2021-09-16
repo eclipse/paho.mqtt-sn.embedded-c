@@ -19,15 +19,14 @@
 
 using namespace MQTTSNGW;
 
-
 /*
  *   Logmonitor process
  */
 int main(int argc, char** argv)
 {
-	Logmonitor monitor = Logmonitor();
-	monitor.initialize(argc, argv);
-	monitor.run();
-	return 0;
+    Logmonitor monitor = Logmonitor();
+    monitor.initialize(argc, argv);
+    monitor.run();
+    return 0;
 }
 

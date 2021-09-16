@@ -18,15 +18,15 @@
 #define MQTTSNCLIENTAPP_H_
 
 /*======================================
- *     Program mode Flag
- ======================================*/
-//#define CLIENT_MODE
-
-/*======================================
  *         Debug Flag
  ======================================*/
 //#define DEBUG_NW
 //#define DEBUG_MQTTSN
+
+/*======================================
+ *     Program mode Flag
+ ======================================*/
+//#define CLIENT_MODE
 
 /****************************************
       MQTT-SN Parameters
@@ -55,7 +55,8 @@ typedef signed int     int32_t;
       Application config structures
 *****************************************/
 
-struct LMqttsnConfig{
+struct LMqttsnConfig
+{
 	uint16_t keepAlive;
 	bool     cleanSession;
 	uint32_t sleepDuration;
@@ -65,11 +66,28 @@ struct LMqttsnConfig{
     bool     willRetain;
 };
 
-struct LUdpConfig{
+struct LUdpConfig
+{
 	const char* clientId;
 	uint8_t  ipAddress[4];
 	uint16_t gPortNo;
 	uint16_t uPortNo;
+};
+
+struct LUdp6Config
+{
+    const char* clientId;
+    const char* ipAddress;
+    const char *interface;
+    uint16_t gPortNo;
+    uint16_t uPortNo;
+};
+
+struct LRfcommConfig
+{
+    const char* clientId;
+    const char* gwAddress;
+    uint8_t channel;
 };
 
 
@@ -85,13 +103,50 @@ typedef enum
       MACROs for Application
 =======================================*/
 #define MQTTSN_CONFIG    MqttsnConfig  theMqttsnConfig
-#define NETWORK_CONFIG   UdpConfig theNetworkConfig
+#define MQTTSNCONF LMqttsnConfig  theMqcon
+
+#if defined(UDP)
+#define UDPCONF  LUdpConfig theNetcon
+#define UDP6CONF  LUdp6Config theU6Conf
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t  LUdpConfig
+
+#elif defined(UDP6)
+#define UDP6CONF  LUdp6Config theNetcon
+#define UDPCONF  LUdpConfig theUConf
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t LUdp6Config
+
+#elif defined(RFCOMM)
+#define RFCOMMCONF  LRfcommConfig theNetcon
+#define UDPCONF  LUdpConfig theUConf
+#define UDP6CONF  LUdp6Config theU6Conf
+#define SENSORNET_CONFIG_t  LRfcommConfig
+
+#elif defined(DTLS)
+#define UDPCONF  LUdpConfig theNetcon
+#define UDP6CONF  LUdp6Config theU6Conf
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t  LUdpConfig
+
+#elif defined(DTLS6)
+#define UDPCONF  LUdpConfig theUConf
+#define UDP6CONF  LUdp6Config theNetcon
+#define RFCOMMCONF  LRfcommConfig theRfConf
+#define SENSORNET_CONFIG_t  LUdp6Config
+#else
+#error "UDP, UDP6, DTLS, DTLS6 or RFCOMM is not defined in LMqttsnClientApp.h"
+#endif
+
+
 
 #define CONNECT(...) theClient->getGwProxy()->connect(__VA_ARGS__)
 #define PUBLISH(...)     theClient->publish(__VA_ARGS__)
 #define SUBSCRIBE(...)   theClient->subscribe(__VA_ARGS__)
+#define SUBSCRIBE_PREDEF(...)   theClient->subscribePredefinedId(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theClient->unsubscribe(__VA_ARGS__)
 #define DISCONNECT(...)  theClient->disconnect(__VA_ARGS__)
+#define ONCONNECT() theClient->getSubscribeManager()->onConnect()
 
 #define TASK_LIST         TaskList theTaskList[]
 #define TASK(...)         {__VA_ARGS__, 0, 0}
@@ -102,11 +157,13 @@ typedef enum
 #define SUBSCRIBE_LIST    OnPublishList theOnPublishList[]
 #define SUB(...)          {__VA_ARGS__}
 #define END_OF_SUBSCRIBE_LIST {MQTTSN_TOPIC_TYPE_NORMAL,0,0,0, 0}
-#define UDPCONF  LUdpConfig theNetcon
-#define MQTTSNCONF LMqttsnConfig  theMqcon
+
+
 #define SetForwarderMode(...)  theClient->getGwProxy()->setForwarderMode(__VA_ARGS__)
 #define SetQoSMinus1Mode(...) theClient->getGwProxy()->setQoSMinus1Mode(__VA_ARGS__)
-
+#define SetAutoConnectMode(...) theClient->setAutoConnectMode(__VA_ARGS__)
+#define SetAutoPingReqMode(...) theClient->getGwProxy()->setPingReqMode(__VA_ARGS__)
+#define SetCleanSession(...) theClient->getGwProxy()->setSessionMode(__VA_ARGS__)
 #ifdef CLIENT_MODE
 #define DISPLAY(...)
 #define PROMPT(...)
@@ -195,11 +252,11 @@ typedef enum
 /*=================================
  *    Starting prompt
  ==================================*/
-#define TESTER_VERSION " * Version: 2.0.0"
+#define TESTER_VERSION " * Version: 2.1.0"
 
-#define PAHO_COPYRIGHT0 " * MQTT-SN Gateway Tester"
+#define PAHO_COPYRIGHT0 " * "
 #define PAHO_COPYRIGHT1 " * Part of Project Paho in Eclipse"
-#define PAHO_COPYRIGHT2 " * (http://git.eclipse.org/c/paho/org.eclipse.paho.mqtt-sn.embedded-c.git/)"
+#define PAHO_COPYRIGHT2 " * (https://github.com/eclipse/paho.mqtt-sn.embedded-c.git)"
 #define PAHO_COPYRIGHT3 " * Author : Tomoaki YAMAGUCHI"
 #define PAHO_COPYRIGHT4 " ***************************************************************************"
 
