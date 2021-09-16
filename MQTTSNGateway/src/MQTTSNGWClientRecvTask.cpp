@@ -20,8 +20,6 @@
 #include "MQTTSNGWEncapsulatedPacket.h"
 #include <cstring>
 
-//#include "MQTTSNGWForwarder.h"
-
 using namespace MQTTSNGW;
 char* currentDateTime(void);
 /*=====================================
@@ -45,7 +43,7 @@ void ClientRecvTask::initialize(int argc, char** argv)
 
 /*
  * Receive a packet from clients via sensor netwwork
- * and generate a event to execute the packet handling  procedure
+ * and creats a event to execute the packet handling procedure
  * of MQTTSNPacketHandlingTask.
  */
 void ClientRecvTask::run()

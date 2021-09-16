@@ -9,7 +9,7 @@ $ cd paho.mqtt-sn.embedded-c/MQTTSNGateway
 ```
 In order to build a gateway, one sensor network argument is required. 
 ```
-$ ./build.sh [udp|udp6|xbee|loralink|rfcomm]  
+$ ./build.sh [udp|udp6|xbee|loralink|rfcomm|dtls|dtls6]  
 ```     
 
 MQTT-SNGateway and MQTT-SNLogmonitor (executable programs) are built in ./bin directory.
