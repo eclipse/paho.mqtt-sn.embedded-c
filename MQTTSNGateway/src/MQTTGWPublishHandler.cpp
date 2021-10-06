@@ -101,6 +101,7 @@ void MQTTGWPublishHandler::handlePublish(Client* client, MQTTGWPacket* packet)
             topicId.type = tp->getType();
             topicId.data.long_.len = pub.topiclen;
             topicId.data.long_.name = pub.topic;
+            topicId.data.id = tp->getTopicId();
         }
         else
         {
