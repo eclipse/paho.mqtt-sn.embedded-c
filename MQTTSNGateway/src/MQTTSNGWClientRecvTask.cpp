@@ -149,7 +149,7 @@ void ClientRecvTask::run()
         {
             log(client, packet, 0);
 
-            if (client->isDisconnect() && packet->getType() != MQTTSN_CONNECT)
+            if (client->isDisconnect() && packet->getType() != MQTTSN_CONNECT && packet->getType() != MQTTSN_WILLTOPIC && packet->getType() != MQTTSN_WILLMSG)
             {
                 WRITELOG("%s MQTTSNGWClientRecvTask %s is not connecting.%s\n",
                 ERRMSG_HEADER, client->getClientId(), ERRMSG_FOOTER);

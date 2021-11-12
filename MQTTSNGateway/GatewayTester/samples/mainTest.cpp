@@ -78,13 +78,13 @@ RFCOMMCONF = { "GatewayTestClient",      // ClientId
 /*------------------------------------------------------
  *    Client Configuration  (theMqcon)
  *------------------------------------------------------*/
-MQTTSNCONF = { 60,            //KeepAlive [seconds]
-        true,          //Clean session
-        300,           //Sleep duration [seconds]
-        "",            //WillTopic
-        "",            //WillMessage
-        0,             //WillQos
-        false          //WillRetain
+MQTTSNCONF = { 60,    //KeepAlive [seconds]
+        true,         //Clean session
+        300,          //Sleep duration [seconds]
+        "willtopic",  //WillTopic
+        "willmsg",    //WillMessage
+        0,            //WillQos
+        false         //WillRetain
         };
 
 /*------------------------------------------------------
