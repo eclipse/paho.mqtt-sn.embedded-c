@@ -378,6 +378,7 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
     optval = 0;
 #endif
 
+#if 0
     if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char*) &optval, sizeof(optval)) < 0)
     {
         D_NWSTACK("\033[0m\033[0;31m error %s IPV6_MULTICAST_LOOP\033[0m\033[0;37m\n", strerror(errno));
@@ -390,6 +391,7 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
         close();
         return -1;
     }
+#endif
 
     memcpy(&addr6.sin6_addr, &addrm.ipv6mr_multiaddr, sizeof(addrm.ipv6mr_multiaddr));
     _grpAddr.setAddress(&addr6);
