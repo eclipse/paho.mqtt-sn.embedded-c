@@ -59,6 +59,11 @@ uint16_t SensorNetAddress::getPortNo(void)
     return _IpAddr.sin6_port;
 }
 
+void SensorNetAddress::setPortNo(uint16_t port)
+{
+    _IpAddr.sin6_port = port;
+}
+
 void SensorNetAddress::setAddress(struct sockaddr_in6 *IpAddr)
 {
     memcpy((void*) &_IpAddr, IpAddr, sizeof(_IpAddr));
@@ -388,6 +393,7 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
 
     memcpy(&addr6.sin6_addr, &addrm.ipv6mr_multiaddr, sizeof(addrm.ipv6mr_multiaddr));
     _grpAddr.setAddress(&addr6);
+    _grpAddr.setPortNo(multiPortNo);
     return 0;
 }
 
