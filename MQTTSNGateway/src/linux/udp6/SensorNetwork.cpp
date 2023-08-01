@@ -424,7 +424,7 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 
 #ifdef  DEBUG_NW
     char addrBuf[INET6_ADDRSTRLEN];
-    addr->sprint(addrBuf);
+    inet_ntop(AF_INET6, &(dest.sin6_addr.s6_addr), addrBuf, INET6_ADDRSTRLEN);
     D_NWSTACK("sendto %s\n", addrBuf);
 #endif
 
