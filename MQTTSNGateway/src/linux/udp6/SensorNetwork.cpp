@@ -402,7 +402,7 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 #ifdef  DEBUG_NW
     char addrBuf[INET6_ADDRSTRLEN];
     addr->sprint(addrBuf);
-    D_NWSTACK("sendto %s\n", addrBuf);
+    D_NWSTACK("sendto %s, port %d\n", addrBuf, dest.sin6_port);
 #endif
 
     int status = ::sendto(_pollfds[0].fd, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
@@ -425,7 +425,7 @@ int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 #ifdef  DEBUG_NW
     char addrBuf[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, &(dest.sin6_addr.s6_addr), addrBuf, INET6_ADDRSTRLEN);
-    D_NWSTACK("sendto %s\n", addrBuf);
+    D_NWSTACK("mcast sendto %s, port %d\n", addrBuf, dest.sin6_port);
 #endif
 
     int status = ::sendto(_pollfds[1].fd, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
