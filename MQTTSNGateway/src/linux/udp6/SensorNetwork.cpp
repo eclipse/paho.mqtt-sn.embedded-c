@@ -342,6 +342,15 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
         close();
         return -1;
     }
+
+    //select the interface
+    ifindex = if_nametoindex(interfaceName);
+    if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex,sizeof(ifindex)) < 0)
+    {
+        D_NWSTACK("\033[0m\033[0;31m multicast socket error %s IPV6_MULTICAST_IF\033[0m\033[0;37m\n", strerror(errno));
+	return -1;
+    }
+
     optval = 1;
     if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*) &optval, sizeof(optval)) < 0)
     {
