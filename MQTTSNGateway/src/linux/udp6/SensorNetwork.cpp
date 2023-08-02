@@ -387,7 +387,6 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
     optval = 0;
 #endif
 
-#if 0
     if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char*) &optval, sizeof(optval)) < 0)
     {
         D_NWSTACK("\033[0m\033[0;31m error %s IPV6_MULTICAST_LOOP\033[0m\033[0;37m\n", strerror(errno));
@@ -400,7 +399,6 @@ int UDPPort6::open(uint16_t uniPortNo, uint16_t multiPortNo, const char *multica
         close();
         return -1;
     }
-#endif
 
     memcpy(&addr6.sin6_addr, &addrm.ipv6mr_multiaddr, sizeof(addrm.ipv6mr_multiaddr));
     _grpAddr.setAddress(&addr6);
@@ -433,19 +431,27 @@ int UDPPort6::unicast(const uint8_t* buf, uint32_t length, SensorNetAddress* add
 
 int UDPPort6::broadcast(const uint8_t* buf, uint32_t length)
 {
-    sockaddr_in6 dest;
-    memset(&dest, 0, sizeof(dest));
-    dest.sin6_family = AF_INET6;
-    dest.sin6_port = _grpAddr.getPortNo();
-    memcpy(dest.sin6_addr.s6_addr, (const void*) &_grpAddr.getIpAddress()->sin6_addr, sizeof(in6_addr));
+    struct addrinfo hint,*info;
+
+    memset( &hint, 0, sizeof( hint ) );
+    hint.ai_family = AF_INET6;
+    hint.ai_socktype = SOCK_DGRAM;
+    hint.ai_protocol = 0;
+
+    int status = getaddrinfo(_grpAddr.getAddress(), std::to_string(_grpAddr.getPortNo()).c_str(), &hint, &info );
+    if( status < 0 ) {
+	    D_NWSTACK("UDP6::broadcast - getaddrinfo: %s",strerror(errno));
+	    return status;
+	}
 
 #ifdef  DEBUG_NW
+    // TODO: This address is incorrect?
     char addrBuf[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6, &(dest.sin6_addr.s6_addr), addrBuf, INET6_ADDRSTRLEN);
-    D_NWSTACK("mcast sendto %s, port %d\n", addrBuf, dest.sin6_port);
+    inet_ntop(AF_INET6, info->ai_addr, addrBuf, INET6_ADDRSTRLEN);
+    D_NWSTACK("mcast sendto %s, port %d\n", addrBuf, _grpAddr.getPortNo());
 #endif
 
-    int status = ::sendto(_pollfds[1].fd, buf, length, 0, (const sockaddr*) &dest, sizeof(dest));
+    status = ::sendto(_pollfds[1].fd, buf, length, 0, (const sockaddr*) info->ai_addr, info->ai_addrlen);
 
     if (status < 0)
     {
